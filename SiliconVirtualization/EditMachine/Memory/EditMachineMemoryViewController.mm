@@ -6,20 +6,18 @@
 //
 
 #import "EditMachineMemoryViewController.h"
-#import "EditMachineNumberTextField.h"
+#import "EditMachineStorageControl.h"
 
-@interface EditMachineMemoryViewController () <NSTextFieldDelegate>
+@interface EditMachineMemoryViewController ()
 @property (retain, nonatomic, readonly, getter=_gridView) NSGridView *gridView;
 @property (retain, nonatomic, readonly, getter=_memorySizeLabel) NSTextField *memorySizeLabel;
-@property (retain, nonatomic, readonly, getter=_memorySizeTextField) EditMachineNumberTextField *memorySizeTextField;
-@property (retain, nonatomic, readonly, getter=_memorySizePopUpButton) NSPopUpButton *memorySizePopUpButton;
+@property (retain, nonatomic, readonly, getter=_memorySizeControl) EditMachineStorageControl *memorySizeControl;
 @end
 
 @implementation EditMachineMemoryViewController
 @synthesize gridView = _gridView;
 @synthesize memorySizeLabel = _memorySizeLabel;
-@synthesize memorySizeTextField = _memorySizeTextField;
-@synthesize memorySizePopUpButton = _memorySizePopUpButton;
+@synthesize memorySizeControl = _memorySizeControl;
 
 - (instancetype)initWithConfiguration:(VZVirtualMachineConfiguration *)configuration {
     if (self = [super initWithNibName:nil bundle:nil]) {
@@ -33,8 +31,7 @@
     [_gridView release];
     [_configuration release];
     [_memorySizeLabel release];
-    [_memorySizeTextField release];
-    [_memorySizePopUpButton release];
+    [_memorySizeControl release];
     [super dealloc];
 }
 
@@ -53,14 +50,14 @@
         [gridView.bottomAnchor constraintLessThanOrEqualToAnchor:self.view.bottomAnchor]
     ]];
     
-    [self _updateMemorySizeTextField];
+    self.memorySizeControl.unsignedInt64Value = self.configuration.memorySize;
 }
 
 - (void)setConfiguration:(VZVirtualMachineConfiguration *)configuration {
     [_configuration release];
     _configuration = [configuration copy];
     
-    [self _updateMemorySizeTextField];
+    self.memorySizeControl.unsignedInt64Value = configuration.memorySize;
 }
 
 - (NSGridView *)_gridView {
@@ -68,9 +65,9 @@
     
     NSGridView *gridView = [NSGridView new];
     
-    NSGridRow *gridRow = [gridView addRowWithViews:@[self.memorySizeLabel, self.memorySizeTextField, self.memorySizePopUpButton]];
+    NSGridRow *gridRow = [gridView addRowWithViews:@[self.memorySizeLabel, self.memorySizeControl]];
     [gridRow cellAtIndex:1].customPlacementConstraints = @[
-        [self.memorySizeTextField.widthAnchor constraintEqualToConstant:100.]
+        [self.memorySizeControl.widthAnchor constraintEqualToConstant:150.]
     ];
     
     [gridView columnAtIndex:0].xPlacement = NSGridCellPlacementTrailing;
@@ -90,112 +87,33 @@
     return memorySizeLabel;
 }
 
-- (EditMachineNumberTextField *)_memorySizeTextField {
-    if (auto memorySizeTextField = _memorySizeTextField) return memorySizeTextField;
+- (EditMachineStorageControl *)_memorySizeControl {
+    if (auto memorySizeControl = _memorySizeControl) return memorySizeControl;
     
-    EditMachineNumberTextField *memorySizeTextField = [EditMachineNumberTextField new];
-    memorySizeTextField.delegate = self;
-    memorySizeTextField.allowsDoubleValue = NO;
+    EditMachineStorageControl *memorySizeControl = [EditMachineStorageControl new];
     
-    _memorySizeTextField = memorySizeTextField;
-    [self _updateMemorySizeTextField];
+    memorySizeControl.minValue = VZVirtualMachineConfiguration.minimumAllowedMemorySize;
+    memorySizeControl.maxValue = VZVirtualMachineConfiguration.maximumAllowedMemorySize;
     
-    return memorySizeTextField;
+    memorySizeControl.target = self;
+    memorySizeControl.action = @selector(_didTriggerMemorySizeControl:);
+    
+    _memorySizeControl = memorySizeControl;
+    return memorySizeControl;
 }
 
-- (NSPopUpButton *)_memorySizePopUpButton {
-    if (auto memorySizePopUpButton = _memorySizePopUpButton) return memorySizePopUpButton;
-    
-    NSPopUpButton *memorySizePopUpButton = [NSPopUpButton new];
-    
-    [memorySizePopUpButton addItemsWithTitles:@[
-        NSUnitInformationStorage.megabytes.symbol,
-        NSUnitInformationStorage.gigabytes.symbol
-    ]];
-    
-    [memorySizePopUpButton selectItemWithTitle:NSUnitInformationStorage.megabytes.symbol];
-    
-    memorySizePopUpButton.target = self;
-    memorySizePopUpButton.action = @selector(_didChangeMemorySizePopUpButtonValue:);
-    
-    _memorySizePopUpButton = memorySizePopUpButton;
-    return memorySizePopUpButton;
-}
-
-- (void)_updateMemorySizeTextField {
-    EditMachineNumberTextField *memorySizeTextField = self.memorySizeTextField;
-    uint64_t memorySize = self.configuration.memorySize;
-    
-    NSString *selectedTitle = self.memorySizePopUpButton.titleOfSelectedItem;
-    if ([selectedTitle isEqualToString:NSUnitInformationStorage.megabytes.symbol]) {
-        memorySizeTextField.stringValue = @(memorySize / 1024ull / 1024ull).stringValue;
-        memorySizeTextField.allowsDoubleValue = NO;
-    } else if ([selectedTitle isEqualToString:NSUnitInformationStorage.gigabytes.symbol]) {
-        memorySizeTextField.stringValue = @(static_cast<double>(memorySize / 1024ull) / 1024ull / 1024ull).stringValue;
-        memorySizeTextField.allowsDoubleValue = YES;
-    } else {
-        abort();
-    }
-}
-
-- (void)controlTextDidEndEditing:(NSNotification *)obj {
-    if ([obj.object isEqual:self.memorySizeTextField]) {
-        BOOL adjusted;
-        [self _updateMemorySizeConfiguration:&adjusted];
-        if (adjusted) {
-            [self _updateMemorySizeTextField];
-        }
-    }
-}
-
-- (void)_didChangeMemorySizePopUpButtonValue:(NSPopUpButton *)sender {
-    [self _updateMemorySizeTextField];
-}
-
-- (void)_updateMemorySizeConfiguration:(BOOL * _Nullable)adjusted {
-    NSString *stringValue = self.memorySizeTextField.stringValue;
-    
-    if (stringValue.length == 0) {
-        self.configuration.memorySize = VZVirtualMachineConfiguration.minimumAllowedMemorySize;
-        
-        if (adjusted != NULL) {
-            *adjusted = YES;
-        }
-        
-        [self _notifyDelegate];
-        return;
-    }
-    
-    NSNumberFormatter *numberFormatter = [NSNumberFormatter new];
-    
-    double inputDoubleValue = [numberFormatter numberFromString:stringValue].doubleValue;
-    uint64_t memorySize;
-    
-    NSString *selectedTitle = self.memorySizePopUpButton.titleOfSelectedItem;
-    if ([selectedTitle isEqualToString:NSUnitInformationStorage.megabytes.symbol]) {
-        memorySize = inputDoubleValue * 1024ull * 1024ull;
-    } else if ([selectedTitle isEqualToString:NSUnitInformationStorage.gigabytes.symbol]) {
-        memorySize = inputDoubleValue * 1024ull * 1024ull * 1024ull;
-    } else {
-        abort();
-    }
-    
-    uint64_t possibleMemorySize = MAX(MIN(memorySize, VZVirtualMachineConfiguration.maximumAllowedMemorySize), VZVirtualMachineConfiguration.minimumAllowedMemorySize);
-    self.configuration.memorySize = possibleMemorySize;
-    
-    if (memorySize != possibleMemorySize) {
-        if (adjusted != NULL) {
-            *adjusted = YES;
-        }
-    }
-    
+- (void)_didTriggerMemorySizeControl:(EditMachineStorageControl *)sender {
+    self.configuration.memorySize = sender.unsignedInt64Value;
     [self _notifyDelegate];
 }
 
 - (void)_notifyDelegate {
     auto delegate = self.delegate;
     if (delegate == nil) return;
-    [delegate editMachineMemoryViewController:self didUpdateConfiguration:self.configuration];
+    
+    VZVirtualMachineConfiguration *configuration = [self.configuration copy];
+    [delegate editMachineMemoryViewController:self didUpdateConfiguration:configuration];
+    [configuration release];
 }
 
 @end

@@ -12,7 +12,6 @@
 @property (retain, nonatomic, readonly, getter=_stackView) NSStackView *stackView;
 @property (retain, nonatomic, readonly, getter=_memorySizeTextField) EditMachineNumberTextField *memorySizeTextField;
 @property (retain, nonatomic, readonly, getter=_memorySizePopUpButton) NSPopUpButton *memorySizePopUpButton;
-@property (assign, nonatomic, getter=_bytes, setter=_setBytes:) uint64_t bytes;
 @end
 
 @implementation EditMachineStorageControl
@@ -44,6 +43,30 @@
 
 - (NSSize)intrinsicContentSize {
     return self.stackView.intrinsicContentSize;
+}
+
+- (BOOL)isEnabled {
+    return self.memorySizeTextField.enabled;
+}
+
+- (void)setEnabled:(BOOL)enabled {
+    self.memorySizeTextField.enabled = enabled;
+}
+
+- (void)setUnsignedInt64Value:(uint64_t)unsignedInt64Value {
+    unsignedInt64Value = MAX(MIN(unsignedInt64Value, self.maxValue), self.minValue);
+    _unsignedInt64Value = unsignedInt64Value;
+    [self _updateMemorySizeTextField];
+}
+
+- (void)setMaxValue:(uint64_t)maxValue {
+    _maxValue = maxValue;
+    self.unsignedInt64Value = self.unsignedInt64Value;
+}
+
+- (void)setMinValue:(uint64_t)minValue {
+    _minValue = minValue;
+    self.unsignedInt64Value = self.unsignedInt64Value;
 }
 
 - (NSStackView *)_stackView {
@@ -114,8 +137,9 @@
 
 - (void)_updateMemorySizeTextField {
     EditMachineNumberTextField *memorySizeTextField = self.memorySizeTextField;
-    uint64_t bytes = self.bytes;
+    uint64_t bytes = self.unsignedInt64Value;
     
+    // double 변환을 피하기 위해 NSMeasurement를 사용하지 않음
     if ([self.selectedUnit isEqual:NSUnitInformationStorage.megabytes]) {
         memorySizeTextField.stringValue = @(bytes / 1024ull / 1024ull).stringValue;
         memorySizeTextField.allowsDoubleValue = NO;
@@ -128,18 +152,41 @@
     } else {
         abort();
     }
-#warning Send Event
 }
 
 - (void)controlTextDidEndEditing:(NSNotification *)obj {
     if ([obj.object isEqual:self.memorySizeTextField]) {
-        BOOL adjusted;
+        NSString *stringValue = self.memorySizeTextField.stringValue;
         
-#warning Send Event
+        if (stringValue.length == 0) {
+            _unsignedInt64Value = self.minValue;
+            return;
+        }
         
-        if (adjusted) {
+        uint64_t memorySize;
+        
+        // double 변환을 피하기 위해 NSMeasurement를 사용하지 않음
+        if ([self.selectedUnit isEqual:NSUnitInformationStorage.megabytes]) {
+            NSNumberFormatter *numberFormatter = [NSNumberFormatter new];
+            memorySize = [numberFormatter numberFromString:self.memorySizeTextField.stringValue].unsignedLongLongValue;
+            [numberFormatter release];
+        } else if ([self.selectedUnit isEqual:NSUnitInformationStorage.gigabytes]) {
+            memorySize = self.memorySizeTextField.stringValue.doubleValue * 1024ull * 1024ull * 1024ull;
+        } else if ([self.selectedUnit isEqual:NSUnitInformationStorage.terabytes]) {
+            memorySize = self.memorySizeTextField.stringValue.doubleValue * 1024ull * 1024ull * 1024ull * 1024ull;
+        } else {
+            abort();
+        }
+        
+        uint64_t adjustedSize = MAX(MIN(memorySize, self.maxValue), self.minValue);
+        
+        _unsignedInt64Value = adjustedSize;
+        
+        if (adjustedSize != memorySize) {
             [self _updateMemorySizeTextField];
         }
+        
+        [self sendAction:self.action to:self.target];
     }
 }
 
