@@ -27,6 +27,10 @@
         stackView.frame = self.bounds;
         stackView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
         [self addSubview:stackView];
+        
+        _minValue = 4ull * 1024ull * 1024ull * 1024ull;
+        _maxValue = 512ull * 1024ull * 1024ull * 1024ull;
+        self.unsignedInt64Value = 64ull * 1024ull * 1024ull * 1024ull;
     }
     
     return self;

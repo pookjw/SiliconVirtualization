@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23784.1" systemVersion="24E5228e" minimumToolsVersion="Automatic" sourceLanguage="Objective-C" userDefinedModelVersionIdentifier="">
+    <entity name="DiskImageStorageDeviceAttachment" representedClassName="SVDiskImageStorageDeviceAttachment" parentEntity="StorageDeviceAttachment" syncable="YES" codeGenerationType="class">
+        <attribute name="cachingMode" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="readOnly" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="synchronizationMode" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="url" optional="YES" attributeType="URI"/>
+    </entity>
+    <entity name="GraphicsDeviceConfiguration" representedClassName="SVGraphicsDevices" isAbstract="YES" syncable="YES" codeGenerationType="class">
+        <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="graphicsDevices" inverseEntity="VirtualMachineConfiguration"/>
+    </entity>
+    <entity name="GraphicsDisplayConfiguration" representedClassName="SVGraphicsDisplay" isAbstract="YES" syncable="YES" codeGenerationType="class"/>
+    <entity name="MacGraphicsDeviceConfiguration" representedClassName="SVMacGraphicsDevice" parentEntity="GraphicsDeviceConfiguration" syncable="YES" codeGenerationType="class">
+        <relationship name="displays" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="MacGraphicsDisplayConfigiration" inverseName="graphicsDisplay" inverseEntity="MacGraphicsDisplayConfigiration"/>
+    </entity>
+    <entity name="MacGraphicsDisplayConfigiration" representedClassName="SVMacGraphicsDisplay" parentEntity="GraphicsDisplayConfiguration" syncable="YES" codeGenerationType="class">
+        <attribute name="heightInPixels" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="pixelsPerInch" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="widthInPixels" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="graphicsDisplay" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MacGraphicsDeviceConfiguration" inverseName="displays" inverseEntity="MacGraphicsDeviceConfiguration"/>
+    </entity>
+    <entity name="StorageDeviceAttachment" representedClassName="SVStorageDeviceAttachment" isAbstract="YES" syncable="YES" codeGenerationType="class">
+        <relationship name="storageDevice" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="StorageDeviceConfiguration" inverseName="attachment" inverseEntity="StorageDeviceConfiguration"/>
+    </entity>
+    <entity name="StorageDeviceConfiguration" representedClassName="SVStorageDeviceConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class">
+        <relationship name="attachment" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="StorageDeviceAttachment" inverseName="storageDevice" inverseEntity="StorageDeviceAttachment"/>
+        <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="storageDevices" inverseEntity="VirtualMachineConfiguration"/>
+    </entity>
+    <entity name="VirtioBlockDeviceConfiguration" representedClassName="SVVirtioBlockDeviceConfiguration" parentEntity="StorageDeviceConfiguration" syncable="YES" codeGenerationType="class"/>
+    <entity name="VirtioGraphicsDeviceConfiguration" representedClassName="SVVirtioGraphicsDevice" parentEntity="GraphicsDeviceConfiguration" syncable="YES" codeGenerationType="class">
+        <relationship name="scanouts" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="VirtioGraphicsScanoutConfiguration" inverseName="graphicsDevice" inverseEntity="VirtioGraphicsScanoutConfiguration"/>
+    </entity>
+    <entity name="VirtioGraphicsScanoutConfiguration" representedClassName="SVVirtioGraphicsScanoutConfiguration" parentEntity="GraphicsDisplayConfiguration" syncable="YES" codeGenerationType="class">
+        <attribute name="heightInPixels" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="widthInPixels" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="graphicsDevice" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtioGraphicsDeviceConfiguration" inverseName="scanouts" inverseEntity="VirtioGraphicsDeviceConfiguration"/>
+    </entity>
+    <entity name="VirtualMachineConfiguration" representedClassName="SVVirtualMachineConfiguration" syncable="YES" codeGenerationType="class">
+        <attribute name="cpuCount" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromData" customClassName="NSNumber"/>
+        <attribute name="memorySize" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromData" customClassName="NSNumber"/>
+        <relationship name="graphicsDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="GraphicsDeviceConfiguration" inverseName="machine" inverseEntity="GraphicsDeviceConfiguration"/>
+        <relationship name="storageDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="StorageDeviceConfiguration" inverseName="machine" inverseEntity="StorageDeviceConfiguration"/>
+    </entity>
+</model>

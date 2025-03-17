@@ -83,7 +83,7 @@
     tableView.allowsEmptySelection = YES;
     tableView.style = NSTableViewStyleFullWidth;
     
-    NSNib *cellNib = [[NSNib alloc] initWithNibNamed:NSStringFromClass([EditMachineGraphicsDevicesCellView class]) bundle:[NSBundle bundleForClass:[self class]]];
+    NSNib *cellNib = [[NSNib alloc] initWithNibNamed:NSStringFromClass([EditMachineGraphicsDevicesCellView class]) bundle:[NSBundle bundleForClass:[EditMachineGraphicsDevicesCellView class]]];
     [tableView registerNib:cellNib forIdentifier:EditMachineGraphicsDevicesViewController.cellIdentifier];
     [cellNib release];
     

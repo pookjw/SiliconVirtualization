@@ -12,17 +12,35 @@
 		4F52C59A2D87297D00FE2881 /* UniformTypeIdentifiers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F52C5992D87297D00FE2881 /* UniformTypeIdentifiers.framework */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		4FD7A61F2D886B4C00EDD35E /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		4F52C3312D85E53200FE2881 /* SiliconVirtualization.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SiliconVirtualization.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4F52C4E72D85EC3300FE2881 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		4F52C5192D85F00300FE2881 /* Virtualization.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Virtualization.framework; path = System/Library/Frameworks/Virtualization.framework; sourceTree = SDKROOT; };
 		4F52C5992D87297D00FE2881 /* UniformTypeIdentifiers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UniformTypeIdentifiers.framework; path = System/Library/Frameworks/UniformTypeIdentifiers.framework; sourceTree = SDKROOT; };
+		4FD7A6212D886B4C00EDD35E /* MyScript */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = MyScript; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		4F52C3332D85E53200FE2881 /* SiliconVirtualization */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = SiliconVirtualization;
+			sourceTree = "<group>";
+		};
+		4FD7A6222D886B4C00EDD35E /* MyScript */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = MyScript;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -38,6 +56,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4FD7A61E2D886B4C00EDD35E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -45,6 +70,7 @@
 			isa = PBXGroup;
 			children = (
 				4F52C3332D85E53200FE2881 /* SiliconVirtualization */,
+				4FD7A6222D886B4C00EDD35E /* MyScript */,
 				4F52C4E62D85EC3300FE2881 /* Frameworks */,
 				4F52C3322D85E53200FE2881 /* Products */,
 			);
@@ -54,6 +80,7 @@
 			isa = PBXGroup;
 			children = (
 				4F52C3312D85E53200FE2881 /* SiliconVirtualization.app */,
+				4FD7A6212D886B4C00EDD35E /* MyScript */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -93,6 +120,28 @@
 			productReference = 4F52C3312D85E53200FE2881 /* SiliconVirtualization.app */;
 			productType = "com.apple.product-type.application";
 		};
+		4FD7A6202D886B4C00EDD35E /* MyScript */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4FD7A6252D886B4C00EDD35E /* Build configuration list for PBXNativeTarget "MyScript" */;
+			buildPhases = (
+				4FD7A61D2D886B4C00EDD35E /* Sources */,
+				4FD7A61E2D886B4C00EDD35E /* Frameworks */,
+				4FD7A61F2D886B4C00EDD35E /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				4FD7A6222D886B4C00EDD35E /* MyScript */,
+			);
+			name = MyScript;
+			packageProductDependencies = (
+			);
+			productName = MyScript;
+			productReference = 4FD7A6212D886B4C00EDD35E /* MyScript */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -103,6 +152,9 @@
 				LastUpgradeCheck = 1630;
 				TargetAttributes = {
 					4F52C3302D85E53200FE2881 = {
+						CreatedOnToolsVersion = 16.3;
+					};
+					4FD7A6202D886B4C00EDD35E = {
 						CreatedOnToolsVersion = 16.3;
 					};
 				};
@@ -122,6 +174,7 @@
 			projectRoot = "";
 			targets = (
 				4F52C3302D85E53200FE2881 /* SiliconVirtualization */,
+				4FD7A6202D886B4C00EDD35E /* MyScript */,
 			);
 		};
 /* End PBXProject section */
@@ -138,6 +191,13 @@
 
 /* Begin PBXSourcesBuildPhase section */
 		4F52C32D2D85E53200FE2881 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4FD7A61D2D886B4C00EDD35E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -318,6 +378,32 @@
 			};
 			name = Release;
 		};
+		4FD7A6262D886B4C00EDD35E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = P53D29U9LJ;
+				ENABLE_HARDENED_RUNTIME = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		4FD7A6272D886B4C00EDD35E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = P53D29U9LJ;
+				ENABLE_HARDENED_RUNTIME = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -335,6 +421,15 @@
 			buildConfigurations = (
 				4F52C3452D85E53300FE2881 /* Debug */,
 				4F52C3462D85E53300FE2881 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4FD7A6252D886B4C00EDD35E /* Build configuration list for PBXNativeTarget "MyScript" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4FD7A6262D886B4C00EDD35E /* Debug */,
+				4FD7A6272D886B4C00EDD35E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
