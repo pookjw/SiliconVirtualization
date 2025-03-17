@@ -7,6 +7,8 @@
 
 #import "EditMachineStorageControl.h"
 #import "EditMachineNumberTextField.h"
+#import <objc/message.h>
+#import <objc/runtime.h>
 
 @interface EditMachineStorageControl () <NSTextFieldDelegate>
 @property (retain, nonatomic, readonly, getter=_stackView) NSStackView *stackView;
@@ -51,6 +53,183 @@
 
 - (void)setEnabled:(BOOL)enabled {
     self.memorySizeTextField.enabled = enabled;
+}
+
+- (double)doubleValue {
+    return self.unsignedInt64Value;
+}
+
+- (void)setDoubleValue:(double)doubleValue {
+    self.unsignedInt64Value = doubleValue;
+}
+
+- (float)floatValue {
+    return self.unsignedInt64Value;
+}
+
+- (void)setFloatValue:(float)floatValue {
+    self.unsignedInt64Value = floatValue;
+}
+
+- (int)intValue {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+    return self.unsignedInt64Value;
+#pragma clang diagnostic pop
+}
+
+- (void)setIntValue:(int)intValue {
+    self.unsignedInt64Value = intValue;
+}
+
+- (NSInteger)integerValue {
+    return self.unsignedInt64Value;
+}
+
+- (void)setIntegerValue:(NSInteger)integerValue {
+    self.unsignedInt64Value = integerValue;
+}
+
+- (id)objectValue {
+    return @(self.unsignedInt64Value);
+}
+
+- (void)setObjectValue:(id)objectValue {
+    assert([objectValue isKindOfClass:[NSNumber class]]);
+    self.unsignedInt64Value = static_cast<NSNumber *>(objectValue).unsignedLongLongValue;
+}
+
+- (NSString *)stringValue {
+    return @(self.unsignedInt64Value).stringValue;
+}
+
+- (void)setStringValue:(NSString *)stringValue {
+    NSNumberFormatter *formatter = [NSNumberFormatter new];
+    self.unsignedInt64Value = [formatter numberFromString:stringValue].unsignedLongLongValue;
+    [formatter release];
+}
+
+- (NSAttributedString *)attributedStringValue {
+    NSMutableDictionary<NSAttributedStringKey, id> *attributes = [NSMutableDictionary new];
+    
+    EditMachineNumberTextField *memorySizeTextField = self.memorySizeTextField;
+    
+    NSMutableParagraphStyle *paragraphStyle = [NSMutableParagraphStyle new];
+    paragraphStyle.alignment = memorySizeTextField.alignment;
+    paragraphStyle.lineBreakMode = memorySizeTextField.lineBreakMode;
+    attributes[NSParagraphStyleAttributeName] = paragraphStyle;
+    [paragraphStyle release];
+    
+    if (NSFont *font = memorySizeTextField.font) {
+        attributes[NSFontAttributeName] = font;
+    }
+    
+    NSAttributedString *attributedString = [[NSAttributedString alloc] initWithString:self.stringValue attributes:attributes];
+    [attributes release];
+    return [attributedString autorelease];
+}
+
+- (void)setAttributedStringValue:(NSAttributedString *)attributedStringValue {
+    NSDictionary<NSAttributedStringKey, id> *attributes = [attributedStringValue attributesAtIndex:0 effectiveRange:NULL];
+    
+    EditMachineNumberTextField *memorySizeTextField = self.memorySizeTextField;
+    
+    if (NSParagraphStyle *paragraphStyle = attributes[NSParagraphStyleAttributeName]) {
+        memorySizeTextField.alignment = paragraphStyle.alignment;
+        memorySizeTextField.lineBreakMode = paragraphStyle.lineBreakMode;
+    } else {
+        memorySizeTextField.alignment = NSTextAlignmentNatural;
+        memorySizeTextField.lineBreakMode = NSLineBreakByWordWrapping;
+    }
+    
+    memorySizeTextField.font = [attributedStringValue attribute:NSFontAttributeName atIndex:0 effectiveRange:NULL];
+    
+    self.stringValue = attributedStringValue.string;
+}
+
+- (NSTextAlignment)alignment {
+    return self.memorySizeTextField.alignment;
+}
+
+- (void)setAlignment:(NSTextAlignment)alignment {
+    self.memorySizeTextField.alignment = alignment;
+}
+
+- (NSFont *)font {
+    return self.memorySizeTextField.font;
+}
+
+- (void)setFont:(NSFont *)font {
+    self.memorySizeTextField.font = font;
+}
+
+- (NSLineBreakMode)lineBreakMode {
+    return self.memorySizeTextField.lineBreakMode;
+}
+
+- (void)setLineBreakMode:(NSLineBreakMode)lineBreakMode {
+    self.memorySizeTextField.lineBreakMode = lineBreakMode;
+}
+
+- (BOOL)abortEditing {
+    return [self.memorySizeTextField abortEditing];
+}
+
+- (NSText *)currentEditor {
+    return [self.memorySizeTextField currentEditor];
+}
+
+- (void)validateEditing {
+    [self.memorySizeTextField validateEditing];
+}
+
+- (void)editWithFrame:(NSRect)rect editor:(NSText *)textObj delegate:(id)delegate event:(NSEvent *)event {
+    return [self.memorySizeTextField editWithFrame:rect editor:textObj delegate:delegate event:event];
+}
+
+- (void)endEditing:(NSText *)textObj {
+    [self.memorySizeTextField endEditing:textObj];
+}
+
+- (void)selectWithFrame:(NSRect)rect editor:(NSText *)textObj delegate:(id)delegate start:(NSInteger)selStart length:(NSInteger)selLength {
+    return [self.memorySizeTextField selectWithFrame:rect editor:textObj delegate:delegate start:selStart length:selLength];
+}
+
+#warning NSControlTextDidBeginEditingNotification...
+
+- (NSControlSize)controlSize {
+    return self.memorySizeTextField.controlSize;
+}
+
+- (void)setControlSize:(NSControlSize)controlSize {
+    self.memorySizeTextField.controlSize = controlSize;
+    self.memorySizePopUpButton.controlSize = controlSize;
+}
+
+- (NSSize)sizeThatFits:(NSSize)size {
+    return self.stackView.intrinsicContentSize;
+}
+
+- (void)sizeToFit {
+    NSStackView *stackView = self.stackView;
+    [stackView setFrameSize:stackView.intrinsicContentSize];
+}
+
+- (BOOL)isHighlighted {
+    return self.memorySizeTextField.highlighted or self.memorySizePopUpButton.highlighted;
+}
+
+- (void)setHighlighted:(BOOL)highlighted {
+    self.memorySizeTextField.highlighted = highlighted;
+    self.memorySizePopUpButton.highlighted = highlighted;
+}
+
+- (void)performClick:(id)sender {
+    [self.memorySizeTextField performClick:sender];
+}
+
+- (BOOL)refusesFirstResponder {
+    return self.memorySizeTextField.refusesFirstResponder;
 }
 
 - (void)setUnsignedInt64Value:(uint64_t)unsignedInt64Value {

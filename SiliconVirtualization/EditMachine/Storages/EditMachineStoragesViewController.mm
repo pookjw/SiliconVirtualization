@@ -7,13 +7,23 @@
 
 #import "EditMachineStoragesViewController.h"
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
+#import "EditMachineStorageControl.h"
+#include <sys/fcntl.h>
+#include <unistd.h>
+#import <objc/runtime.h>
 
 @interface EditMachineStoragesViewController ()
+@property (class, nonatomic, readonly) void *progressIndicatorKey;
 @property (retain, nonatomic, readonly, getter=_addButton) NSButton *addButton;
 @end
 
 @implementation EditMachineStoragesViewController
 @synthesize addButton = _addButton;
+
++ (void *)progressIndicatorKey {
+    static void *key = &key;
+    return key;
+}
 
 - (instancetype)initWithConfiguration:(VZVirtualMachineConfiguration *)configuration {
     if (self = [super initWithNibName:nil bundle:nil]) {
@@ -110,11 +120,27 @@
 - (void)_didTriggerVirtioCreateNewItem:(NSMenuItem *)sender {
     NSSavePanel *panel = [NSSavePanel new];
     
+    EditMachineStorageControl *accessoryView = [EditMachineStorageControl new];
+    [accessoryView sizeToFit];
+    panel.accessoryView = accessoryView;
+    
     panel.allowedContentTypes = @[[UTType typeWithIdentifier:@"com.apple.disk-image-udif"]];
     
     [panel beginSheetModalForWindow:self.view.window completionHandler:^(NSModalResponse result) {
-        
+        if (result == NSModalResponseOK) {
+            [self _presentProgressIndicatorViewController];
+            
+            dispatch_async(dispatch_get_global_queue(0, 0), ^{
+                [EditMachineStoragesViewController _createEmptyDiskImageIntoURL:panel.URL bytesSize:accessoryView.unsignedInt64Value];
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self _dismissProgressIndicatorViewControllers];
+                });
+            });
+        }
     }];
+    
+    [accessoryView release];
     [panel release];
 }
 
@@ -124,6 +150,42 @@
 
 - (void)_didTriggerNVMExpressItem:(NSMenuItem *)sender {
     abort();
+}
+
+- (void)_presentProgressIndicatorViewController {
+    NSViewController *viewController = [NSViewController new];
+    NSProgressIndicator *progressIndicator = [NSProgressIndicator new];
+    progressIndicator.style = NSProgressIndicatorStyleSpinning;
+    [progressIndicator startAnimation:nil];
+    [progressIndicator sizeToFit];
+    viewController.view = progressIndicator;
+    [progressIndicator release];
+    
+    objc_setAssociatedObject(viewController, EditMachineStoragesViewController.progressIndicatorKey, [NSNull null], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    
+    [self presentViewControllerAsSheet:viewController];
+    [viewController release];
+}
+
+- (void)_dismissProgressIndicatorViewControllers {
+    for (NSViewController *presentedViewController in self.presentedViewControllers) {
+        if (objc_getAssociatedObject(presentedViewController, EditMachineStoragesViewController.progressIndicatorKey)) {
+            [self dismissViewController:presentedViewController];
+        }
+    }
+}
+
++ (void)_createEmptyDiskImageIntoURL:(NSURL *)URL bytesSize:(uint64_t)bytesSize {
+    assert(!NSThread.isMainThread);
+    
+    int fd = open(URL.fileSystemRepresentation, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+    assert(fd != -1);
+    
+    int result = ftruncate(fd, bytesSize);
+    assert(result == 0);
+    
+    result = close(fd);
+    assert(result == 0);
 }
 
 @end
