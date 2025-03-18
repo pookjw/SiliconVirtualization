@@ -15,6 +15,7 @@
     SVVirtualMachineConfiguration *virtualMachineConfigurationObject = [[SVVirtualMachineConfiguration alloc] initWithContext:managedObjectContext];
     
     virtualMachineConfigurationObject.bootLoader = [self _isolated_makeManagedObjectFromBootLoader:virtualMachineConfiguration.bootLoader];
+    virtualMachineConfigurationObject.platform = [self _isolated_makeManagedObjectFromPlatform:virtualMachineConfiguration.platform];
     
     virtualMachineConfigurationObject.cpuCount = @(virtualMachineConfiguration.CPUCount);
     virtualMachineConfigurationObject.memorySize = @(virtualMachineConfiguration.memorySize);
@@ -48,6 +49,73 @@
     
     virtualMachineConfiguration.bootLoader = bootLoader;
     [bootLoader release];
+    
+    //
+    
+    __kindof SVPlatformConfiguration * _Nullable platformConfigurationObject = virtualMachineConfigurationObject.platform;
+    __kindof VZPlatformConfiguration * _Nullable platformConfiguration = nil;
+    
+    if (platformConfigurationObject == nil) {
+        platformConfiguration = nil;
+    } else if ([platformConfigurationObject isKindOfClass:[SVMacPlatformConfiguration class]]) {
+        auto macPlatformConfigurationObject = static_cast<SVMacPlatformConfiguration *>(platformConfigurationObject);
+        VZMacPlatformConfiguration *macPlatformConfiguration = [[VZMacPlatformConfiguration alloc] init];
+        
+        {
+            SVMacAuxiliaryStorage *macAuxiliaryStorageObject = macPlatformConfigurationObject.auxiliaryStorage;
+            assert(macAuxiliaryStorageObject != nil);
+            NSData *bookmarkData = macAuxiliaryStorageObject.bookmarkData;
+            
+            NSError * _Nullable error = nil;
+            BOOL stale;
+            NSURL *URL = [[NSURL alloc] initByResolvingBookmarkData:bookmarkData
+                                                            options:NSURLBookmarkResolutionWithoutMounting | NSURLBookmarkResolutionWithSecurityScope
+                                                      relativeToURL:nil
+                                                bookmarkDataIsStale:&stale
+                                                              error:&error];
+            assert(error == nil);
+            assert(!stale);
+            
+            assert([URL startAccessingSecurityScopedResource]);
+            VZMacAuxiliaryStorage *macAuxiliaryStorage = [[VZMacAuxiliaryStorage alloc] initWithURL:URL];
+            [URL stopAccessingSecurityScopedResource];
+            [URL release];
+            
+            macPlatformConfiguration.auxiliaryStorage = macAuxiliaryStorage;
+            [macAuxiliaryStorage release];
+        }
+        
+        {
+            SVMacHardwareModel *macHardwareModelObject = macPlatformConfigurationObject.hardwareModel;
+            assert(macPlatformConfigurationObject != nil);
+            
+            NSData *dataRepresentation = macHardwareModelObject.dataRepresentation;
+            assert(dataRepresentation != nil);
+            
+            VZMacHardwareModel *hardwareModel = [[VZMacHardwareModel alloc] initWithDataRepresentation:dataRepresentation];
+            macPlatformConfiguration.hardwareModel = hardwareModel;
+            [hardwareModel release];
+        }
+        
+        {
+            SVMacMachineIdentifier *macMachineIdentifierObject = macPlatformConfigurationObject.machineIdentifier;
+            assert(macMachineIdentifierObject != nil);
+            
+            NSData *dataRepresentation = macMachineIdentifierObject.dataRepresentation;
+            assert(dataRepresentation != nil);
+            
+            VZMacMachineIdentifier *machineIdentifier = [[VZMacMachineIdentifier alloc] initWithDataRepresentation:dataRepresentation];
+            macPlatformConfiguration.machineIdentifier = machineIdentifier;
+            [machineIdentifier release];
+        }
+        
+        platformConfiguration = macPlatformConfiguration;
+    } else {
+        abort();
+    }
+    
+    virtualMachineConfiguration.platform = platformConfiguration;
+    [platformConfiguration release];
     
     //
     
@@ -158,6 +226,7 @@
     virtualMachineConfiguration.memorySize = @(machineConfiguration.memorySize);
     
     virtualMachineConfiguration.bootLoader = [self _isolated_makeManagedObjectFromBootLoader:machineConfiguration.bootLoader];
+    virtualMachineConfiguration.platform = [self _isolated_makeManagedObjectFromPlatform:machineConfiguration.platform];
     
     [virtualMachineConfiguration removeGraphicsDevicesAtIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, virtualMachineConfiguration.graphicsDevices.count)]];
     [virtualMachineConfiguration removeStorageDevicesAtIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, virtualMachineConfiguration.storageDevices.count)]];
@@ -179,6 +248,46 @@
     }
     
     return [bootLoaderObject autorelease];
+}
+
+- (__kindof SVPlatformConfiguration * _Nullable)_isolated_makeManagedObjectFromPlatform:(__kindof VZPlatformConfiguration * _Nullable)platformConfiguration {
+    NSManagedObjectContext *managedObjectContext = self.backgroundContext;
+    
+    __kindof SVPlatformConfiguration * _Nullable platformConfigurationObject = nil;
+    
+    if (platformConfiguration == nil) {
+        platformConfigurationObject = nil;
+    } else if ([platformConfiguration isKindOfClass:[VZMacPlatformConfiguration class]]) {
+        auto macPlatformConfiguration = static_cast<VZMacPlatformConfiguration *>(platformConfiguration);
+        
+        SVMacPlatformConfiguration *macPlatformConfigurationObject = [[SVMacPlatformConfiguration alloc] initWithContext:managedObjectContext];
+        
+        SVMacAuxiliaryStorage *macAuxiliaryStorageObject = [[SVMacAuxiliaryStorage alloc] initWithContext:managedObjectContext];
+        NSURL *auxiliaryStorageURL = macPlatformConfiguration.auxiliaryStorage.URL;
+        assert([auxiliaryStorageURL startAccessingSecurityScopedResource]);
+        NSError * _Nullable error = nil;
+        macAuxiliaryStorageObject.bookmarkData = [auxiliaryStorageURL bookmarkDataWithOptions:NSURLBookmarkCreationWithSecurityScope includingResourceValuesForKeys:nil relativeToURL:nil error:&error];
+        assert(error == nil);
+        [auxiliaryStorageURL stopAccessingSecurityScopedResource];
+        macPlatformConfigurationObject.auxiliaryStorage = macAuxiliaryStorageObject;
+        [macAuxiliaryStorageObject release];
+        
+        SVMacHardwareModel *macHardwareModelObject = [[SVMacHardwareModel alloc] initWithContext:managedObjectContext];
+        macHardwareModelObject.dataRepresentation = macPlatformConfiguration.hardwareModel.dataRepresentation;
+        macPlatformConfigurationObject.hardwareModel = macHardwareModelObject;
+        [macHardwareModelObject release];
+        
+        SVMacMachineIdentifier *macMachineIdentifierObject = [[SVMacMachineIdentifier alloc] initWithContext:managedObjectContext];
+        macMachineIdentifierObject.dataRepresentation = macPlatformConfiguration.machineIdentifier.dataRepresentation;
+        macPlatformConfigurationObject.machineIdentifier = macMachineIdentifierObject;
+        [macMachineIdentifierObject release];
+        
+        platformConfigurationObject = macPlatformConfigurationObject;
+    } else {
+        abort();
+    }
+    
+    return [platformConfigurationObject autorelease];
 }
 
 - (NSOrderedSet<__kindof SVGraphicsDeviceConfiguration *> *)_isolated_makeManagedObjectsFromGraphicsDevices:(NSArray<VZGraphicsDeviceConfiguration *> *)graphicsDevices {

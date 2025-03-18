@@ -232,6 +232,67 @@
         storageDeviceAttachmentEntity.subentities = @[diskImageStorageDeviceAttachmentEntity];
     }
     
+    NSEntityDescription *macAuxiliaryStorageEntity;
+    {
+        macAuxiliaryStorageEntity = [NSEntityDescription new];
+        macAuxiliaryStorageEntity.name = @"MacAuxiliaryStorage";
+        macAuxiliaryStorageEntity.managedObjectClassName = NSStringFromClass([SVMacAuxiliaryStorage class]);
+        
+        NSAttributeDescription *bookmarkDataAttribute = [NSAttributeDescription new];
+        bookmarkDataAttribute.name = @"bookmarkData";
+        bookmarkDataAttribute.optional = YES;
+        bookmarkDataAttribute.attributeType = NSBinaryDataAttributeType;
+        
+        macAuxiliaryStorageEntity.properties = @[bookmarkDataAttribute];
+        [bookmarkDataAttribute release];
+    }
+    
+    NSEntityDescription *macHardwareModelEntity;
+    {
+        macHardwareModelEntity = [NSEntityDescription new];
+        macHardwareModelEntity.name = @"MacHardwareModel";
+        macHardwareModelEntity.managedObjectClassName = NSStringFromClass([SVMacHardwareModel class]);
+        
+        NSAttributeDescription *dataRepresentationAttribute = [NSAttributeDescription new];
+        dataRepresentationAttribute.name = @"dataRepresentation";
+        dataRepresentationAttribute.optional = YES;
+        dataRepresentationAttribute.attributeType = NSBinaryDataAttributeType;
+        
+        macHardwareModelEntity.properties = @[dataRepresentationAttribute];
+        [dataRepresentationAttribute release];
+    }
+    
+    NSEntityDescription *macMachineIdentifierEntity;
+    {
+        macMachineIdentifierEntity = [NSEntityDescription new];
+        macMachineIdentifierEntity.name = @"MacMachineIdentifier";
+        macMachineIdentifierEntity.managedObjectClassName = NSStringFromClass([SVMacMachineIdentifier class]);
+        
+        NSAttributeDescription *dataRepresentationAttribute = [NSAttributeDescription new];
+        dataRepresentationAttribute.name = @"dataRepresentation";
+        dataRepresentationAttribute.optional = YES;
+        dataRepresentationAttribute.attributeType = NSBinaryDataAttributeType;
+        
+        macMachineIdentifierEntity.properties = @[dataRepresentationAttribute];
+        [dataRepresentationAttribute release];
+    }
+    
+    NSEntityDescription *macPlatformConfigurationEntity;
+    {
+        macPlatformConfigurationEntity = [NSEntityDescription new];
+        macPlatformConfigurationEntity.name = @"MacPlatformConfiguration";
+        macPlatformConfigurationEntity.managedObjectClassName = NSStringFromClass([SVMacPlatformConfiguration class]);
+    }
+    
+    NSEntityDescription *platformConfigurationEntity;
+    {
+        platformConfigurationEntity = [NSEntityDescription new];
+        platformConfigurationEntity.name = @"PlatformConfiguration";
+        platformConfigurationEntity.managedObjectClassName = NSStringFromClass([SVPlatformConfiguration class]);
+        platformConfigurationEntity.abstract = YES;
+        platformConfigurationEntity.subentities = @[macPlatformConfigurationEntity];
+    }
+    
     //
     
     {
@@ -261,6 +322,35 @@
         
         [virtualMachineConfiguration_bootLoader_relationship release];
         [bootLoader_machine_relationship release];
+    }
+    
+    {
+        NSRelationshipDescription *virtualMachineConfiguration_platform_relationship = [NSRelationshipDescription new];
+        virtualMachineConfiguration_platform_relationship.name = @"platform";
+        virtualMachineConfiguration_platform_relationship.optional = YES;
+        virtualMachineConfiguration_platform_relationship.minCount = 0;
+        virtualMachineConfiguration_platform_relationship.maxCount = 1;
+        assert(!virtualMachineConfiguration_platform_relationship.toMany);
+        virtualMachineConfiguration_platform_relationship.destinationEntity = platformConfigurationEntity;
+        virtualMachineConfiguration_platform_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *platform_machine_relationship = [NSRelationshipDescription new];
+        platform_machine_relationship.name = @"machine";
+        platform_machine_relationship.optional = YES;
+        platform_machine_relationship.minCount = 0;
+        platform_machine_relationship.maxCount = 1;
+        assert(!platform_machine_relationship.toMany);
+        platform_machine_relationship.destinationEntity = virtualMachineConfigurationEntity;
+        platform_machine_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        virtualMachineConfiguration_platform_relationship.inverseRelationship = platform_machine_relationship;
+        platform_machine_relationship.inverseRelationship = virtualMachineConfiguration_platform_relationship;
+        
+        virtualMachineConfigurationEntity.properties = [virtualMachineConfigurationEntity.properties arrayByAddingObject:virtualMachineConfiguration_platform_relationship];
+        platformConfigurationEntity.properties = [platformConfigurationEntity.properties arrayByAddingObject:platform_machine_relationship];
+        
+        [virtualMachineConfiguration_platform_relationship release];
+        [platform_machine_relationship release];
     }
     
     {
@@ -412,6 +502,93 @@
         [storageDeviceAttachment_storageDevice_relationship release];
     }
     
+    {
+        NSRelationshipDescription *macPlatformConfiguration_machineIdentifier_relationship = [NSRelationshipDescription new];
+        macPlatformConfiguration_machineIdentifier_relationship.name = @"machineIdentifier";
+        macPlatformConfiguration_machineIdentifier_relationship.optional = YES;
+        macPlatformConfiguration_machineIdentifier_relationship.minCount = 0;
+        macPlatformConfiguration_machineIdentifier_relationship.maxCount = 1;
+        assert(!macPlatformConfiguration_machineIdentifier_relationship.toMany);
+        macPlatformConfiguration_machineIdentifier_relationship.destinationEntity = macMachineIdentifierEntity;
+        macPlatformConfiguration_machineIdentifier_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *macMachineIdentifier_platform_relationship = [NSRelationshipDescription new];
+        macMachineIdentifier_platform_relationship.name = @"platform";
+        macMachineIdentifier_platform_relationship.optional = YES;
+        macMachineIdentifier_platform_relationship.minCount = 0;
+        macMachineIdentifier_platform_relationship.maxCount = 1;
+        assert(!macMachineIdentifier_platform_relationship.toMany);
+        macMachineIdentifier_platform_relationship.destinationEntity = macPlatformConfigurationEntity;
+        macMachineIdentifier_platform_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        macPlatformConfiguration_machineIdentifier_relationship.inverseRelationship = macMachineIdentifier_platform_relationship;
+        macMachineIdentifier_platform_relationship.inverseRelationship = macPlatformConfiguration_machineIdentifier_relationship;
+        
+        macPlatformConfigurationEntity.properties = [macPlatformConfigurationEntity.properties arrayByAddingObject:macPlatformConfiguration_machineIdentifier_relationship];
+        macMachineIdentifierEntity.properties = [macMachineIdentifierEntity.properties arrayByAddingObject:macMachineIdentifier_platform_relationship];
+        
+        [macPlatformConfiguration_machineIdentifier_relationship release];
+        [macMachineIdentifier_platform_relationship release];
+    }
+    
+    {
+        NSRelationshipDescription *macPlatformConfiguration_hardwareModel_relationship = [NSRelationshipDescription new];
+        macPlatformConfiguration_hardwareModel_relationship.name = @"hardwareModel";
+        macPlatformConfiguration_hardwareModel_relationship.optional = YES;
+        macPlatformConfiguration_hardwareModel_relationship.minCount = 0;
+        macPlatformConfiguration_hardwareModel_relationship.maxCount = 1;
+        assert(!macPlatformConfiguration_hardwareModel_relationship.toMany);
+        macPlatformConfiguration_hardwareModel_relationship.destinationEntity = macHardwareModelEntity;
+        macPlatformConfiguration_hardwareModel_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *macHardwareModel_platform_relationship = [NSRelationshipDescription new];
+        macHardwareModel_platform_relationship.name = @"platform";
+        macHardwareModel_platform_relationship.optional = YES;
+        macHardwareModel_platform_relationship.minCount = 0;
+        macHardwareModel_platform_relationship.maxCount = 1;
+        assert(!macHardwareModel_platform_relationship.toMany);
+        macHardwareModel_platform_relationship.destinationEntity = macPlatformConfigurationEntity;
+        macHardwareModel_platform_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        macPlatformConfiguration_hardwareModel_relationship.inverseRelationship = macHardwareModel_platform_relationship;
+        macHardwareModel_platform_relationship.inverseRelationship = macPlatformConfiguration_hardwareModel_relationship;
+        
+        macPlatformConfigurationEntity.properties = [macPlatformConfigurationEntity.properties arrayByAddingObject:macPlatformConfiguration_hardwareModel_relationship];
+        macHardwareModelEntity.properties = [macHardwareModelEntity.properties arrayByAddingObject:macHardwareModel_platform_relationship];
+        
+        [macPlatformConfiguration_hardwareModel_relationship release];
+        [macHardwareModel_platform_relationship release];
+    }
+    
+    {
+        NSRelationshipDescription *macPlatformConfiguration_auxiliaryStorage_relationship = [NSRelationshipDescription new];
+        macPlatformConfiguration_auxiliaryStorage_relationship.name = @"auxiliaryStorage";
+        macPlatformConfiguration_auxiliaryStorage_relationship.optional = YES;
+        macPlatformConfiguration_auxiliaryStorage_relationship.minCount = 0;
+        macPlatformConfiguration_auxiliaryStorage_relationship.maxCount = 1;
+        assert(!macPlatformConfiguration_auxiliaryStorage_relationship.toMany);
+        macPlatformConfiguration_auxiliaryStorage_relationship.destinationEntity = macAuxiliaryStorageEntity;
+        macPlatformConfiguration_auxiliaryStorage_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *macAuxiliaryStorage_platform_relationship = [NSRelationshipDescription new];
+        macAuxiliaryStorage_platform_relationship.name = @"platform";
+        macAuxiliaryStorage_platform_relationship.optional = YES;
+        macAuxiliaryStorage_platform_relationship.minCount = 0;
+        macAuxiliaryStorage_platform_relationship.maxCount = 1;
+        assert(!macAuxiliaryStorage_platform_relationship.toMany);
+        macAuxiliaryStorage_platform_relationship.destinationEntity = macPlatformConfigurationEntity;
+        macAuxiliaryStorage_platform_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        macPlatformConfiguration_auxiliaryStorage_relationship.inverseRelationship = macAuxiliaryStorage_platform_relationship;
+        macAuxiliaryStorage_platform_relationship.inverseRelationship = macPlatformConfiguration_auxiliaryStorage_relationship;
+        
+        macPlatformConfigurationEntity.properties = [macPlatformConfigurationEntity.properties arrayByAddingObject:macPlatformConfiguration_auxiliaryStorage_relationship];
+        macAuxiliaryStorageEntity.properties = [macAuxiliaryStorageEntity.properties arrayByAddingObject:macAuxiliaryStorage_platform_relationship];
+        
+        [macPlatformConfiguration_auxiliaryStorage_relationship release];
+        [macAuxiliaryStorage_platform_relationship release];
+    }
+    
     //
     
     managedObjectModel.entities = @[
@@ -427,7 +604,12 @@
         virtioBlockDeviceConfigurationEntity,
         storageDeviceConfigurationEntity,
         diskImageStorageDeviceAttachmentEntity,
-        storageDeviceAttachmentEntity
+        storageDeviceAttachmentEntity,
+        macAuxiliaryStorageEntity,
+        macHardwareModelEntity,
+        macMachineIdentifierEntity,
+        macPlatformConfigurationEntity,
+        platformConfigurationEntity
     ];
     
     [macOSBootLoaderEntity release];
@@ -443,6 +625,11 @@
     [storageDeviceConfigurationEntity release];
     [diskImageStorageDeviceAttachmentEntity release];
     [storageDeviceAttachmentEntity release];
+    [macAuxiliaryStorageEntity release];
+    [macHardwareModelEntity release];
+    [macMachineIdentifierEntity release];
+    [macPlatformConfigurationEntity release];
+    [platformConfigurationEntity release];
     
     return [managedObjectModel autorelease];
 }

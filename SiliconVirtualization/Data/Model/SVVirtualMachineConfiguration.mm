@@ -17,6 +17,7 @@
 @dynamic timestamp;
 @dynamic bootLoader;
 @dynamic graphicsDevices;
+@dynamic platform;
 @dynamic storageDevices;
 
 + (NSFetchRequest<SVVirtualMachineConfiguration *> *)fetchRequest {

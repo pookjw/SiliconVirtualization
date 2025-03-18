@@ -14,6 +14,10 @@
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="graphicsDevices" inverseEntity="VirtualMachineConfiguration"/>
     </entity>
     <entity name="GraphicsDisplayConfiguration" representedClassName="SVGraphicsDisplayConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class"/>
+    <entity name="MacAuxiliaryStorage" representedClassName="SVMacAuxiliaryStorage" syncable="YES" codeGenerationType="class">
+        <attribute name="bookmarkData" optional="YES" attributeType="Binary"/>
+        <relationship name="platform" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MacPlatformConfiguration" inverseName="auxiliaryStorage" inverseEntity="MacPlatformConfiguration"/>
+    </entity>
     <entity name="MacGraphicsDeviceConfiguration" representedClassName="SVMacGraphicsDeviceConfiguration" parentEntity="GraphicsDeviceConfiguration" syncable="YES" codeGenerationType="class">
         <relationship name="displays" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="MacGraphicsDisplayConfiguration" inverseName="graphicsDevice" inverseEntity="MacGraphicsDisplayConfiguration"/>
     </entity>
@@ -23,7 +27,23 @@
         <attribute name="widthInPixels" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <relationship name="graphicsDevice" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MacGraphicsDeviceConfiguration" inverseName="displays" inverseEntity="MacGraphicsDeviceConfiguration"/>
     </entity>
+    <entity name="MacHardwareModel" representedClassName="SVMacHardwareModel" syncable="YES" codeGenerationType="class">
+        <attribute name="dataRepresentation" optional="YES" attributeType="Binary"/>
+        <relationship name="platform" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MacPlatformConfiguration" inverseName="hardwareModel" inverseEntity="MacPlatformConfiguration"/>
+    </entity>
+    <entity name="MacMachineIdentifier" representedClassName="SVMacMachineIdentifier" syncable="YES" codeGenerationType="class">
+        <attribute name="dataRepresentation" optional="YES" attributeType="Binary"/>
+        <relationship name="platform" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MacPlatformConfiguration" inverseName="machineIdentifier" inverseEntity="MacPlatformConfiguration"/>
+    </entity>
     <entity name="MacOSBootLoader" representedClassName="SVMacOSBootLoader" parentEntity="BootLoader" syncable="YES" codeGenerationType="class"/>
+    <entity name="MacPlatformConfiguration" representedClassName="SVMacPlatformConfiguration" parentEntity="PlatformConfiguration" syncable="YES" codeGenerationType="class">
+        <relationship name="auxiliaryStorage" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="MacAuxiliaryStorage" inverseName="platform" inverseEntity="MacAuxiliaryStorage"/>
+        <relationship name="hardwareModel" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="MacHardwareModel" inverseName="platform" inverseEntity="MacHardwareModel"/>
+        <relationship name="machineIdentifier" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="MacMachineIdentifier" inverseName="platform" inverseEntity="MacMachineIdentifier"/>
+    </entity>
+    <entity name="PlatformConfiguration" representedClassName="SVPlatformConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class">
+        <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="platform" inverseEntity="VirtualMachineConfiguration"/>
+    </entity>
     <entity name="StorageDeviceAttachment" representedClassName="SVStorageDeviceAttachment" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <relationship name="storageDevice" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="StorageDeviceConfiguration" inverseName="attachment" inverseEntity="StorageDeviceConfiguration"/>
     </entity>
@@ -46,6 +66,7 @@
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="bootLoader" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="BootLoader" inverseName="machine" inverseEntity="BootLoader"/>
         <relationship name="graphicsDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="GraphicsDeviceConfiguration" inverseName="machine" inverseEntity="GraphicsDeviceConfiguration"/>
+        <relationship name="platform" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="PlatformConfiguration" inverseName="machine" inverseEntity="PlatformConfiguration"/>
         <relationship name="storageDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="StorageDeviceConfiguration" inverseName="machine" inverseEntity="StorageDeviceConfiguration"/>
     </entity>
 </model>

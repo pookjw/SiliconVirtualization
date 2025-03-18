@@ -18,3 +18,8 @@
 #import "SVStorageDeviceAttachment.h"
 #import "SVBootLoader.h"
 #import "SVMacOSBootLoader.h"
+#import "SVPlatformConfiguration.h"
+#import "SVMacPlatformConfiguration.h"
+#import "SVMacAuxiliaryStorage.h"
+#import "SVMacHardwareModel.h"
+#import "SVMacMachineIdentifier.h"
