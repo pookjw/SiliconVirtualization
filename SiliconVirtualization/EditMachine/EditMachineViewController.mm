@@ -12,10 +12,11 @@
 #import "EditMachineGraphicsViewController.h"
 #import "EditMachineStoragesViewController.h"
 #import "EditMachineBootLoaderViewController.h"
+#import "EditMachinePlatformViewController.h"
 #import <objc/message.h>
 #import <objc/runtime.h>
 
-@interface EditMachineViewController () <EditMachineSidebarViewControllerDelegate, EditMachineBootLoaderViewControllerDelegate, EditMachineCPUViewControllerDelegate, EditMachineMemoryViewControllerDelegate, EditMachineGraphicsViewControllerDelegate, EditMachineStoragesViewControllerDelegate>
+@interface EditMachineViewController () <EditMachineSidebarViewControllerDelegate, EditMachineBootLoaderViewControllerDelegate, EditMachineCPUViewControllerDelegate, EditMachineMemoryViewControllerDelegate, EditMachineGraphicsViewControllerDelegate, EditMachineStoragesViewControllerDelegate, EditMachinePlatformViewControllerDelegate>
 @property (retain, nonatomic, readonly, getter=_splitViewController) NSSplitViewController *splitViewController;
 
 @property (retain, nonatomic, readonly, getter=_bootLoaderViewController) EditMachineBootLoaderViewController *bootLoaderViewController;
@@ -35,6 +36,9 @@
 
 @property (retain, nonatomic, readonly, getter=_storagesViewController) EditMachineStoragesViewController *storagesViewController;
 @property (retain, nonatomic, readonly, getter=_storagesSplitViewItem) NSSplitViewItem *storagesSplitViewItem;
+
+@property (retain, nonatomic, readonly, getter=_platformViewController) EditMachinePlatformViewController *platformViewController;
+@property (retain, nonatomic, readonly, getter=_platformSplitViewItem) NSSplitViewItem *platformSplitViewItem;
 @end
 
 @implementation EditMachineViewController
@@ -51,6 +55,8 @@
 @synthesize graphicsSplitViewItem = _graphicsSplitViewItem;
 @synthesize storagesViewController = _storagesViewController;
 @synthesize storagesSplitViewItem = _storagesSplitViewItem;
+@synthesize platformViewController = _platformViewController;
+@synthesize platformSplitViewItem = _platformSplitViewItem;
 
 - (instancetype)initWithConfiguration:(VZVirtualMachineConfiguration *)configuration {
     if (self = [super init]) {
@@ -75,6 +81,8 @@
     [_graphicsSplitViewItem release];
     [_storagesViewController release];
     [_storagesSplitViewItem release];
+    [_platformViewController release];
+    [_platformSplitViewItem release];
     [super dealloc];
 }
 
@@ -219,6 +227,25 @@
     return storagesSplitViewItem;
 }
 
+- (EditMachinePlatformViewController *)_platformViewController {
+    if (auto platformViewController = _platformViewController) return platformViewController;
+    
+    EditMachinePlatformViewController *platformViewController = [[EditMachinePlatformViewController alloc] initWithConfiguration:self.configuration];
+    platformViewController.delegate = self;
+    
+    _platformViewController = platformViewController;
+    return platformViewController;
+}
+
+- (NSSplitViewItem *)_platformSplitViewItem {
+    if (auto platformSplitViewItem = _platformSplitViewItem) return platformSplitViewItem;
+    
+    NSSplitViewItem *platformSplitViewItem = [NSSplitViewItem contentListWithViewController:self.platformViewController];
+    
+    _platformSplitViewItem = [platformSplitViewItem retain];
+    return platformSplitViewItem;
+}
+
 - (void)_notifyDelegate {
     if (auto delegate = self.delegate) {
         [delegate editMachineViewController:self didUpdateConfiguration:self.configuration];
@@ -230,6 +257,11 @@
         case EditMachineSidebarItemModelTypeBootLoader: {
             self.bootLoaderViewController.configuration = self.configuration;
             self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.bootLoaderSplitViewItem];
+            break;
+        }
+        case EditMachineSidebarItemModelTypePlatform: {
+            self.bootLoaderViewController.configuration = self.configuration;
+            self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.platformSplitViewItem];
             break;
         }
         case EditMachineSidebarItemModelTypeCPU: {
@@ -258,6 +290,11 @@
 }
 
 - (void)editMachineBootLoaderViewController:(EditMachineBootLoaderViewController *)editMachineBootLoaderViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
+    self.configuration = configuration;
+    [self _notifyDelegate];
+}
+
+- (void)editMachinePlatformViewController:(EditMachinePlatformViewController *)editMachinePlatformViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
     self.configuration = configuration;
     [self _notifyDelegate];
 }

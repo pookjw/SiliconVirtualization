@@ -93,6 +93,10 @@
             textField.stringValue = @"BootLoader";
             break;
         }
+        case EditMachineSidebarItemModelTypePlatform: {
+            textField.stringValue = @"Platform";
+            break;
+        }
         case EditMachineSidebarItemModelTypeCPU: {
             textField.stringValue = @"CPU";
             break;
@@ -120,6 +124,10 @@
     
     switch (self.itemModel.type) {
         case EditMachineSidebarItemModelTypeBootLoader: {
+            imageView.image = [NSImage imageWithSystemSymbolName:@"desktopcomputer.and.macbook" accessibilityDescription:nil];
+            break;
+        }
+        case EditMachineSidebarItemModelTypePlatform: {
             imageView.image = [NSImage imageWithSystemSymbolName:@"desktopcomputer.and.macbook" accessibilityDescription:nil];
             break;
         }
