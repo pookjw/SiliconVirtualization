@@ -10,6 +10,14 @@
         <attribute name="synchronizationMode" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="url" optional="YES" attributeType="URI"/>
     </entity>
+    <entity name="GenericMachineIdentifier" representedClassName="SVGenericMachineIdentifier" syncable="YES" codeGenerationType="class">
+        <attribute name="dataRepresentation" optional="YES" attributeType="Binary"/>
+        <relationship name="platform" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="GenericPlatformConfiguration" inverseName="machineIdentifier" inverseEntity="GenericPlatformConfiguration"/>
+    </entity>
+    <entity name="GenericPlatformConfiguration" representedClassName="SVGenericPlatformConfiguration" parentEntity="PlatformConfiguration" syncable="YES" codeGenerationType="class">
+        <attribute name="nestedVirtualizationEnabled" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <relationship name="machineIdentifier" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="GenericMachineIdentifier" inverseName="platform" inverseEntity="GenericMachineIdentifier"/>
+    </entity>
     <entity name="GraphicsDeviceConfiguration" representedClassName="SVGraphicsDeviceConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="graphicsDevices" inverseEntity="VirtualMachineConfiguration"/>
     </entity>

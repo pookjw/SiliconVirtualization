@@ -23,3 +23,5 @@
 #import "SVMacAuxiliaryStorage.h"
 #import "SVMacHardwareModel.h"
 #import "SVMacMachineIdentifier.h"
+#import "SVGenericPlatformConfiguration.h"
+#import "SVGenericMachineIdentifier.h"

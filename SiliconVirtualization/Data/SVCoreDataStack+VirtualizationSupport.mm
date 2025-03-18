@@ -110,6 +110,20 @@
         }
         
         platformConfiguration = macPlatformConfiguration;
+    } else if ([platformConfigurationObject isKindOfClass:[SVGenericPlatformConfiguration class]]) {
+        auto genericPlatformConfigurationObject = static_cast<SVGenericPlatformConfiguration *>(platformConfigurationObject);
+        
+        VZGenericPlatformConfiguration *genericPlatformConfiguration = [[VZGenericPlatformConfiguration alloc] init];
+        
+        NSData *dataRepresentation = genericPlatformConfigurationObject.machineIdentifier.dataRepresentation;
+        assert(dataRepresentation != nil);
+        VZGenericMachineIdentifier *genericMachineIdentifier = [[VZGenericMachineIdentifier alloc] initWithDataRepresentation:dataRepresentation];
+        genericPlatformConfiguration.machineIdentifier = genericMachineIdentifier;
+        [genericMachineIdentifier release];
+        
+        genericPlatformConfiguration.nestedVirtualizationEnabled = genericPlatformConfigurationObject.nestedVirtualizationEnabled;
+        
+        platformConfiguration = genericPlatformConfiguration;
     } else {
         abort();
     }
@@ -283,6 +297,19 @@
         [macMachineIdentifierObject release];
         
         platformConfigurationObject = macPlatformConfigurationObject;
+    } else if ([platformConfiguration isKindOfClass:[VZGenericPlatformConfiguration class]]) {
+        auto genericPlatformConfiguration = static_cast<VZGenericPlatformConfiguration *>(platformConfiguration);
+        
+        SVGenericPlatformConfiguration *genericPlatformConfigurationObject = [[SVGenericPlatformConfiguration alloc] initWithContext:managedObjectContext];
+        
+        SVGenericMachineIdentifier *genericMachineIdentifierObject = [[SVGenericMachineIdentifier alloc] initWithContext:managedObjectContext];
+        genericMachineIdentifierObject.dataRepresentation = genericPlatformConfiguration.machineIdentifier.dataRepresentation;
+        genericPlatformConfigurationObject.machineIdentifier = genericMachineIdentifierObject;
+        [genericMachineIdentifierObject release];
+        
+        genericPlatformConfiguration.nestedVirtualizationEnabled = genericPlatformConfiguration.nestedVirtualizationEnabled;
+        
+        platformConfigurationObject = genericPlatformConfigurationObject;
     } else {
         abort();
     }

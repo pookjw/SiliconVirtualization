@@ -284,13 +284,43 @@
         macPlatformConfigurationEntity.managedObjectClassName = NSStringFromClass([SVMacPlatformConfiguration class]);
     }
     
+    NSEntityDescription *genericPlatformConfigurationEntity;
+    {
+        genericPlatformConfigurationEntity = [NSEntityDescription new];
+        genericPlatformConfigurationEntity.name = @"GenericPlatformConfiguration";
+        genericPlatformConfigurationEntity.managedObjectClassName = NSStringFromClass([SVGenericPlatformConfiguration class]);
+        
+        NSAttributeDescription *nestedVirtualizationEnabledAttribute = [NSAttributeDescription new];
+        nestedVirtualizationEnabledAttribute.name = @"nestedVirtualizationEnabled";
+        nestedVirtualizationEnabledAttribute.optional = YES;
+        nestedVirtualizationEnabledAttribute.attributeType = NSBooleanAttributeType;
+        
+        genericPlatformConfigurationEntity.properties = @[nestedVirtualizationEnabledAttribute];
+        [nestedVirtualizationEnabledAttribute release];
+    }
+    
     NSEntityDescription *platformConfigurationEntity;
     {
         platformConfigurationEntity = [NSEntityDescription new];
         platformConfigurationEntity.name = @"PlatformConfiguration";
         platformConfigurationEntity.managedObjectClassName = NSStringFromClass([SVPlatformConfiguration class]);
         platformConfigurationEntity.abstract = YES;
-        platformConfigurationEntity.subentities = @[macPlatformConfigurationEntity];
+        platformConfigurationEntity.subentities = @[macPlatformConfigurationEntity, genericPlatformConfigurationEntity];
+    }
+    
+    NSEntityDescription *genericMachineIdentifierEntity;
+    {
+        genericMachineIdentifierEntity = [NSEntityDescription new];
+        genericMachineIdentifierEntity.name = @"GenericMachineIdentifier";
+        genericMachineIdentifierEntity.managedObjectClassName = NSStringFromClass([SVGenericMachineIdentifier class]);
+        
+        NSAttributeDescription *dataRepresentationAttribute = [NSAttributeDescription new];
+        dataRepresentationAttribute.name = @"dataRepresentation";
+        dataRepresentationAttribute.optional = YES;
+        dataRepresentationAttribute.attributeType = NSBinaryDataAttributeType;
+        
+        genericMachineIdentifierEntity.properties = @[dataRepresentationAttribute];
+        [dataRepresentationAttribute release];
     }
     
     //
@@ -589,6 +619,35 @@
         [macAuxiliaryStorage_platform_relationship release];
     }
     
+    {
+        NSRelationshipDescription *genericPlatformConfiguration_machineIdentifier_relationship = [NSRelationshipDescription new];
+        genericPlatformConfiguration_machineIdentifier_relationship.name = @"machineIdentifier";
+        genericPlatformConfiguration_machineIdentifier_relationship.optional = YES;
+        genericPlatformConfiguration_machineIdentifier_relationship.minCount = 0;
+        genericPlatformConfiguration_machineIdentifier_relationship.maxCount = 1;
+        assert(!genericPlatformConfiguration_machineIdentifier_relationship.toMany);
+        genericPlatformConfiguration_machineIdentifier_relationship.destinationEntity = genericMachineIdentifierEntity;
+        genericPlatformConfiguration_machineIdentifier_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *genericMachineIdentifier_platform_relationship = [NSRelationshipDescription new];
+        genericMachineIdentifier_platform_relationship.name = @"platform";
+        genericMachineIdentifier_platform_relationship.optional = YES;
+        genericMachineIdentifier_platform_relationship.minCount = 0;
+        genericMachineIdentifier_platform_relationship.maxCount = 1;
+        assert(!genericMachineIdentifier_platform_relationship.toMany);
+        genericMachineIdentifier_platform_relationship.destinationEntity = genericPlatformConfigurationEntity;
+        genericMachineIdentifier_platform_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        genericPlatformConfiguration_machineIdentifier_relationship.inverseRelationship = genericMachineIdentifier_platform_relationship;
+        genericMachineIdentifier_platform_relationship.inverseRelationship = genericPlatformConfiguration_machineIdentifier_relationship;
+        
+        genericPlatformConfigurationEntity.properties = [genericPlatformConfigurationEntity.properties arrayByAddingObject:genericPlatformConfiguration_machineIdentifier_relationship];
+        genericMachineIdentifierEntity.properties = [genericMachineIdentifierEntity.properties arrayByAddingObject:genericMachineIdentifier_platform_relationship];
+        
+        [genericPlatformConfiguration_machineIdentifier_relationship release];
+        [genericMachineIdentifier_platform_relationship release];
+    }
+    
     //
     
     managedObjectModel.entities = @[
@@ -609,7 +668,9 @@
         macHardwareModelEntity,
         macMachineIdentifierEntity,
         macPlatformConfigurationEntity,
-        platformConfigurationEntity
+        genericPlatformConfigurationEntity,
+        platformConfigurationEntity,
+        genericMachineIdentifierEntity
     ];
     
     [macOSBootLoaderEntity release];
@@ -629,7 +690,9 @@
     [macHardwareModelEntity release];
     [macMachineIdentifierEntity release];
     [macPlatformConfigurationEntity release];
+    [genericPlatformConfigurationEntity release];
     [platformConfigurationEntity release];
+    [genericMachineIdentifierEntity release];
     
     return [managedObjectModel autorelease];
 }
