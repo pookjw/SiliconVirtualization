@@ -218,9 +218,12 @@
             diskImageStorageDeviceAttachmentObject.readOnly = diskImageStorageDeviceAttachment.readOnly;
             diskImageStorageDeviceAttachmentObject.synchronizationMode = diskImageStorageDeviceAttachment.synchronizationMode;
             
+            NSURL *URL = diskImageStorageDeviceAttachment.URL;
+            assert([URL startAccessingSecurityScopedResource]);
             NSError * _Nullable error = nil;
-            diskImageStorageDeviceAttachmentObject.bookmarkData = [diskImageStorageDeviceAttachment.URL bookmarkDataWithOptions:NSURLBookmarkCreationWithSecurityScope includingResourceValuesForKeys:nil relativeToURL:nil error:&error];
+            diskImageStorageDeviceAttachmentObject.bookmarkData = [URL bookmarkDataWithOptions:NSURLBookmarkCreationWithSecurityScope includingResourceValuesForKeys:nil relativeToURL:nil error:&error];
             assert(error == nil);
+            [URL stopAccessingSecurityScopedResource];
         } else {
             abort();
         }

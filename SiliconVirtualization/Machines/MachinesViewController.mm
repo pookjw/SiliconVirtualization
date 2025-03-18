@@ -16,13 +16,14 @@
 
 OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self class] }; */
 
-@interface MachinesViewController () <NSToolbarDelegate, NSCollectionViewDelegate>
+@interface MachinesViewController () <NSToolbarDelegate, NSCollectionViewDelegate, NSMenuDelegate>
 @property (class, nonatomic, readonly, getter=_itemIdentifier) NSUserInterfaceItemIdentifier itemIdentifier;
 @property (retain, nonatomic, readonly, getter=_scrollView) NSScrollView *scrollView;
 @property (retain, nonatomic, readonly, getter=_collectionView) NSCollectionView *collectionView;
 @property (retain, nonatomic, readonly, getter=_toolbar) NSToolbar *toolbar;
 @property (retain, nonatomic, readonly, getter=_viewModel) MachinesViewModel *viewModel;
 @property (retain, nonatomic, readonly, getter=_dataSource) NSCollectionViewDiffableDataSource<NSString *, NSManagedObjectID *> *dataSource;
+@property (copy, nonatomic, nullable, getter=_menuIndexPath, setter=_setMenuIndexPath:) NSIndexPath *menuIndexPath;
 @end
 
 @implementation MachinesViewController
@@ -42,12 +43,12 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     [_toolbar release];
     [_viewModel release];
     [_dataSource release];
+    [_menuIndexPath release];
     [super dealloc];
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-//    [self _showCreateMachineWindow];
     
     NSScrollView *scrollView = self.scrollView;
     scrollView.frame = self.view.bounds;
@@ -119,6 +120,11 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     collectionView.allowsMultipleSelection = NO;
     collectionView.delegate = self;
     [collectionView registerClass:[MachinesCollectionViewItem class] forItemWithIdentifier:MachinesViewController.itemIdentifier];
+    
+    NSMenu *menu = [NSMenu new];
+    menu.delegate = self;
+    collectionView.menu = menu;
+    [menu release];
     
     _collectionView = collectionView;
     return collectionView;
@@ -214,10 +220,49 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
 }
 
 - (void)collectionView:(NSCollectionView *)collectionView didSelectItemsAtIndexPaths:(NSSet<NSIndexPath *> *)indexPaths {
+    
+}
+
+- (void)menuWillOpen:(NSMenu *)menu {
+    [menu removeAllItems];
+    
+    NSCollectionView *collectionView = self.collectionView;
+    NSEvent * _Nullable event = collectionView.window.currentEvent;
+    if (event == nil) {
+        self.menuIndexPath = nil;
+        return;
+    }
+    
+    CGPoint point = [collectionView convertPoint:[event locationInWindow] fromView:nil];
+    NSIndexPath * _Nullable indexPath = [collectionView indexPathForItemAtPoint:point];
+    if (indexPath == nil) {
+        self.menuIndexPath = nil;
+        return;
+    }
+    
+    self.menuIndexPath = indexPath;
+    
+    NSMenuItem *editItem = [NSMenuItem new];
+    editItem.title = @"Edit";
+    editItem.target = self;
+    editItem.action = @selector(_didTriggerEditItem:);
+    [menu addItem:editItem];
+    [editItem release];
+    
+    NSMenuItem *runItem = [NSMenuItem new];
+    runItem.title = @"Run";
+    runItem.target = self;
+    runItem.action = @selector(_didTriggerRunItem:);
+    [menu addItem:runItem];
+    [runItem release];
+}
+
+- (void)_didTriggerEditItem:(NSMenuItem *)sender {
+    NSIndexPath *menuIndexPath = self.menuIndexPath;
+    assert(menuIndexPath != nil);
+    
     [SVCoreDataStack.sharedInstance.backgroundContext performBlock:^{
-        assert(indexPaths.count == 1);
-        NSIndexPath *indexPath = indexPaths.allObjects[0];
-        SVVirtualMachineConfiguration *machineConfigurationObject = [self.viewModel isolated_machineConfigurationObjectAtIndexPath:indexPath];
+        SVVirtualMachineConfiguration *machineConfigurationObject = [self.viewModel isolated_machineConfigurationObjectAtIndexPath:menuIndexPath];
         assert(machineConfigurationObject != nil);
         
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -226,6 +271,10 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
             [window release];
         });
     }];
+}
+
+- (void)_didTriggerRunItem:(NSMenuItem *)sender {
+    
 }
 
 @end
