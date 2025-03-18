@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23786.1" systemVersion="24E5238a" minimumToolsVersion="Automatic" sourceLanguage="Objective-C" userDefinedModelVersionIdentifier="">
+    <entity name="BootLoader" representedClassName="SVBootLoader" isAbstract="YES" syncable="YES" codeGenerationType="class">
+        <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="bootLoader" inverseEntity="VirtualMachineConfiguration"/>
+    </entity>
     <entity name="DiskImageStorageDeviceAttachment" representedClassName="SVDiskImageStorageDeviceAttachment" parentEntity="StorageDeviceAttachment" syncable="YES" codeGenerationType="class">
         <attribute name="bookmarkData" optional="YES" attributeType="Binary"/>
         <attribute name="cachingMode" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
@@ -20,6 +23,7 @@
         <attribute name="widthInPixels" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <relationship name="graphicsDevice" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MacGraphicsDeviceConfiguration" inverseName="displays" inverseEntity="MacGraphicsDeviceConfiguration"/>
     </entity>
+    <entity name="MacOSBootLoader" representedClassName="SVMacOSBootLoader" parentEntity="BootLoader" syncable="YES" codeGenerationType="class"/>
     <entity name="StorageDeviceAttachment" representedClassName="SVStorageDeviceAttachment" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <relationship name="storageDevice" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="StorageDeviceConfiguration" inverseName="attachment" inverseEntity="StorageDeviceConfiguration"/>
     </entity>
@@ -40,6 +44,7 @@
         <attribute name="cpuCount" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromData" customClassName="NSNumber"/>
         <attribute name="memorySize" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromData" customClassName="NSNumber"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="bootLoader" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="BootLoader" inverseName="machine" inverseEntity="BootLoader"/>
         <relationship name="graphicsDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="GraphicsDeviceConfiguration" inverseName="machine" inverseEntity="GraphicsDeviceConfiguration"/>
         <relationship name="storageDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="StorageDeviceConfiguration" inverseName="machine" inverseEntity="StorageDeviceConfiguration"/>
     </entity>

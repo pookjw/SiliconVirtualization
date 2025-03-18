@@ -16,3 +16,5 @@
 #import "SVVirtioBlockDeviceConfiguration.h"
 #import "SVDiskImageStorageDeviceAttachment.h"
 #import "SVStorageDeviceAttachment.h"
+#import "SVBootLoader.h"
+#import "SVMacOSBootLoader.h"

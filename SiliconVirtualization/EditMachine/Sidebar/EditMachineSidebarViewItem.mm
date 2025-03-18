@@ -89,6 +89,10 @@
     NSTextField *textField = self.textField;
     
     switch (self.itemModel.type) {
+        case EditMachineSidebarItemModelTypeBootLoader: {
+            textField.stringValue = @"BootLoader";
+            break;
+        }
         case EditMachineSidebarItemModelTypeCPU: {
             textField.stringValue = @"CPU";
             break;
@@ -115,6 +119,10 @@
     NSImageView *imageView = self.imageView;
     
     switch (self.itemModel.type) {
+        case EditMachineSidebarItemModelTypeBootLoader: {
+            imageView.image = [NSImage imageWithSystemSymbolName:@"desktopcomputer.and.macbook" accessibilityDescription:nil];
+            break;
+        }
         case EditMachineSidebarItemModelTypeCPU: {
             imageView.image = [NSImage imageWithSystemSymbolName:selected ? @"cpu.fill" : @"cpu" accessibilityDescription:nil];
             break;

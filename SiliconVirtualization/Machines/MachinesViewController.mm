@@ -56,6 +56,8 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     [self.view addSubview:scrollView];
     
     [self _viewModel];
+    
+    [self _showCreateMachineWindow];
 }
 
 - (void)_viewDidMoveToWindow:(NSWindow * _Nullable)newWindow fromWindow:(NSWindow * _Nullable)oldWindow {

@@ -8,6 +8,8 @@
 #import "NSManagedObjectModel+Category.h"
 #import "Model.h"
 
+#warning TODO BootLoader Entities
+
 @implementation NSManagedObjectModel (Category)
 
 + (NSManagedObjectModel *)sv_makeManagedObjectModel {

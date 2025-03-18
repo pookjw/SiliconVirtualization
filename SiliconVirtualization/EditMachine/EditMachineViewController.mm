@@ -11,11 +11,15 @@
 #import "EditMachineMemoryViewController.h"
 #import "EditMachineGraphicsViewController.h"
 #import "EditMachineStoragesViewController.h"
+#import "EditMachineBootLoaderViewController.h"
 #import <objc/message.h>
 #import <objc/runtime.h>
 
-@interface EditMachineViewController () <EditMachineSidebarViewControllerDelegate, EditMachineCPUViewControllerDelegate, EditMachineMemoryViewControllerDelegate, EditMachineGraphicsViewControllerDelegate, EditMachineStoragesViewControllerDelegate>
+@interface EditMachineViewController () <EditMachineSidebarViewControllerDelegate, EditMachineBootLoaderViewControllerDelegate, EditMachineCPUViewControllerDelegate, EditMachineMemoryViewControllerDelegate, EditMachineGraphicsViewControllerDelegate, EditMachineStoragesViewControllerDelegate>
 @property (retain, nonatomic, readonly, getter=_splitViewController) NSSplitViewController *splitViewController;
+
+@property (retain, nonatomic, readonly, getter=_bootLoaderViewController) EditMachineBootLoaderViewController *bootLoaderViewController;
+@property (retain, nonatomic, readonly, getter=_bootLoaderSplitViewItem) NSSplitViewItem *bootLoaderSplitViewItem;
 
 @property (retain, nonatomic, readonly, getter=_sidebarViewController) EditMachineSidebarViewController *sidebarViewController;
 @property (retain, nonatomic, readonly, getter=_sidebarSplitViewItem) NSSplitViewItem *sidebarSplitViewItem;
@@ -34,6 +38,8 @@
 @end
 
 @implementation EditMachineViewController
+@synthesize bootLoaderViewController = _bootLoaderViewController;
+@synthesize bootLoaderSplitViewItem = _bootLoaderSplitViewItem;
 @synthesize splitViewController = _splitViewController;
 @synthesize sidebarViewController = _sidebarViewController;
 @synthesize sidebarSplitViewItem = _sidebarSplitViewItem;
@@ -55,6 +61,8 @@
 }
 
 - (void)dealloc {
+    [_bootLoaderViewController release];
+    [_bootLoaderSplitViewItem release];
     [_configuration release];
     [_splitViewController release];
     [_sidebarViewController release];
@@ -79,7 +87,7 @@
     [self.view addSubview:splitViewController.view];
     [self addChildViewController:splitViewController];
     
-    EditMachineSidebarItemModel *itemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeStorages];
+    EditMachineSidebarItemModel *itemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeBootLoader];
     [self.sidebarViewController setItemModel:itemModel notifyingDelegate:YES];
     [itemModel release];
 }
@@ -114,6 +122,25 @@
     
     _sidebarSplitViewItem = [sidebarSplitViewItem retain];
     return sidebarSplitViewItem;
+}
+
+- (EditMachineBootLoaderViewController *)_bootLoaderViewController {
+    if (auto bootLoaderViewController = _bootLoaderViewController) return bootLoaderViewController;
+    
+    EditMachineBootLoaderViewController *bootLoaderViewController = [[EditMachineBootLoaderViewController alloc] initWithConfiguration:self.configuration];
+    bootLoaderViewController.delegate = self;
+    
+    _bootLoaderViewController = bootLoaderViewController;
+    return bootLoaderViewController;
+}
+
+- (NSSplitViewItem *)_bootLoaderSplitViewItem {
+    if (auto bootLoaderSplitViewItem = _bootLoaderSplitViewItem) return bootLoaderSplitViewItem;
+    
+    NSSplitViewItem *bootLoaderSplitViewItem = [NSSplitViewItem contentListWithViewController:self.bootLoaderViewController];
+    
+    _bootLoaderSplitViewItem = [bootLoaderSplitViewItem retain];
+    return bootLoaderSplitViewItem;
 }
 
 - (EditMachineCPUViewController *)_CPUViewController {
@@ -200,6 +227,11 @@
 
 - (void)editMachineSidebarViewController:(EditMachineSidebarViewController *)editMachineSidebarViewController didSelectItemModel:(EditMachineSidebarItemModel *)itemModel {
     switch (itemModel.type) {
+        case EditMachineSidebarItemModelTypeBootLoader: {
+            self.bootLoaderViewController.configuration = self.configuration;
+            self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.bootLoaderSplitViewItem];
+            break;
+        }
         case EditMachineSidebarItemModelTypeCPU: {
             self.CPUViewController.configuration = self.configuration;
             self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.CPUSplitViewItem];
@@ -223,6 +255,11 @@
         default:
             abort();
     }
+}
+
+- (void)editMachineBootLoaderViewController:(EditMachineBootLoaderViewController *)editMachineBootLoaderViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
+    self.configuration = configuration;
+    [self _notifyDelegate];
 }
 
 - (void)editMachineCPUViewController:(EditMachineCPUViewController *)editMachineCPUViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {

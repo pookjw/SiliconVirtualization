@@ -153,13 +153,15 @@
     NSDiffableDataSourceSnapshot<NSNull *, EditMachineSidebarItemModel *> *snapshot = [NSDiffableDataSourceSnapshot new];
     
     [snapshot appendSectionsWithIdentifiers:@[[NSNull null]]];
-     
+    
+    EditMachineSidebarItemModel *bootLoaderItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeBootLoader];
     EditMachineSidebarItemModel *CPUItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeCPU];
     EditMachineSidebarItemModel *memoryItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeMemory];
     EditMachineSidebarItemModel *graphicsItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeGraphics];
     EditMachineSidebarItemModel *storagesItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeStorages];
     
     [snapshot appendItemsWithIdentifiers:@[
+        bootLoaderItemModel,
         CPUItemModel,
         memoryItemModel,
         graphicsItemModel,
@@ -167,6 +169,7 @@
     ]
                intoSectionWithIdentifier:[NSNull null]];
     
+    [bootLoaderItemModel release];
     [CPUItemModel release];
     [memoryItemModel release];
     [graphicsItemModel release];
