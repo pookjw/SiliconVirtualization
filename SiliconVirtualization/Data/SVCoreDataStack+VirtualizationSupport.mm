@@ -13,6 +13,9 @@
     NSManagedObjectContext *managedObjectContext = self.backgroundContext;
     
     SVVirtualMachineConfiguration *virtualMachineConfigurationObject = [[SVVirtualMachineConfiguration alloc] initWithContext:managedObjectContext];
+    
+    virtualMachineConfigurationObject.bootLoader = [self _isolated_makeManagedObjectFromBootLoader:virtualMachineConfiguration.bootLoader];
+    
     virtualMachineConfigurationObject.cpuCount = @(virtualMachineConfiguration.CPUCount);
     virtualMachineConfigurationObject.memorySize = @(virtualMachineConfiguration.memorySize);
     
@@ -29,6 +32,22 @@
     
     virtualMachineConfiguration.CPUCount = virtualMachineConfigurationObject.cpuCount.unsignedLongLongValue;
     virtualMachineConfiguration.memorySize = virtualMachineConfigurationObject.memorySize.unsignedLongLongValue;
+    
+    //
+    
+    __kindof SVBootLoader * _Nullable bootLoaderObject = virtualMachineConfigurationObject.bootLoader;
+    __kindof VZBootLoader * _Nullable bootLoader = nil;
+    
+    if (bootLoaderObject == nil) {
+        bootLoader = nil;
+    } else if ([bootLoaderObject isKindOfClass:[SVMacOSBootLoader class]]) {
+        bootLoader = [[VZMacOSBootLoader alloc] init];
+    } else {
+        abort();
+    }
+    
+    virtualMachineConfiguration.bootLoader = bootLoader;
+    [bootLoader release];
     
     //
     
@@ -138,11 +157,28 @@
     virtualMachineConfiguration.cpuCount = @(machineConfiguration.CPUCount);
     virtualMachineConfiguration.memorySize = @(machineConfiguration.memorySize);
     
+    virtualMachineConfiguration.bootLoader = [self _isolated_makeManagedObjectFromBootLoader:machineConfiguration.bootLoader];
+    
     [virtualMachineConfiguration removeGraphicsDevicesAtIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, virtualMachineConfiguration.graphicsDevices.count)]];
     [virtualMachineConfiguration removeStorageDevicesAtIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, virtualMachineConfiguration.storageDevices.count)]];
     
     virtualMachineConfiguration.graphicsDevices = [self _isolated_makeManagedObjectsFromGraphicsDevices:machineConfiguration.graphicsDevices];
     virtualMachineConfiguration.storageDevices = [self _isolated_makeManagedObjectsFromStorageDevices:machineConfiguration.storageDevices];
+}
+
+- (__kindof SVBootLoader * _Nullable)_isolated_makeManagedObjectFromBootLoader:(__kindof VZBootLoader * _Nullable)bootLoader {
+    NSManagedObjectContext *context = self.backgroundContext;
+    
+    __kindof SVBootLoader * _Nullable bootLoaderObject;
+    if (bootLoader == nil) {
+        bootLoaderObject = nil;
+    } else if ([bootLoader isKindOfClass:[VZMacOSBootLoader class]]) {
+        bootLoaderObject = [[SVMacOSBootLoader alloc] initWithContext:context];
+    } else {
+        abort();
+    }
+    
+    return [bootLoaderObject autorelease];
 }
 
 - (NSOrderedSet<__kindof SVGraphicsDeviceConfiguration *> *)_isolated_makeManagedObjectsFromGraphicsDevices:(NSArray<VZGraphicsDeviceConfiguration *> *)graphicsDevices {

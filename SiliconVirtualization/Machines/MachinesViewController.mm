@@ -12,7 +12,8 @@
 #import "MachinesViewModel.h"
 #import "MachinesCollectionViewItem.h"
 #import "EditMachineConfigurationObjectWindow.h"
-#import "SVCoreDataStack.h"
+#import "SVCoreDataStack+VirtualizationSupport.h"
+#import <Virtualization/Virtualization.h>
 
 OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self class] }; */
 
@@ -251,6 +252,13 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     [menu addItem:editItem];
     [editItem release];
     
+    NSMenuItem *validateItem = [NSMenuItem new];
+    validateItem.title = @"Validate";
+    validateItem.target = self;
+    validateItem.action = @selector(_didTriggerValidateItem:);
+    [menu addItem:validateItem];
+    [validateItem release];
+    
     NSMenuItem *runItem = [NSMenuItem new];
     runItem.title = @"Run";
     runItem.target = self;
@@ -273,6 +281,45 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
             [window release];
         });
     }];
+    
+    self.menuIndexPath = nil;
+}
+
+- (void)_didTriggerValidateItem:(NSMenuItem *)sender {
+    NSIndexPath *menuIndexPath = self.menuIndexPath;
+    assert(menuIndexPath != nil);
+    
+    [SVCoreDataStack.sharedInstance.backgroundContext performBlock:^{
+        SVVirtualMachineConfiguration *machineConfigurationObject = [self.viewModel isolated_machineConfigurationObjectAtIndexPath:menuIndexPath];
+        assert(machineConfigurationObject != nil);
+        
+        VZVirtualMachineConfiguration *configuration = [SVCoreDataStack.sharedInstance isolated_makeVirtualMachineConfigurationFromManagedObject:machineConfigurationObject];
+        
+        NSError * _Nullable error = nil;
+        [configuration validateWithError:&error];
+        
+        if (error == nil) {
+            [configuration validateSaveRestoreSupportWithError:&error];
+        }
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSAlert *alert = [NSAlert new];
+            
+            if (error != nil) {
+                alert.messageText = @"ERROR";
+                alert.informativeText = error.description;
+            } else {
+                alert.messageText = @"No Error";
+            }
+            
+            [alert beginSheetModalForWindow:self.view.window completionHandler:^(NSModalResponse returnCode) {
+                
+            }];
+            [alert release];
+        });
+    }];
+    
+    self.menuIndexPath = nil;
 }
 
 - (void)_didTriggerRunItem:(NSMenuItem *)sender {

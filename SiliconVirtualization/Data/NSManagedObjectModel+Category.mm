@@ -53,6 +53,24 @@
     
     //
     
+    NSEntityDescription *macOSBootLoaderEntity;
+    {
+        macOSBootLoaderEntity = [NSEntityDescription new];
+        macOSBootLoaderEntity.name = @"MacOSBootLoader";
+        macOSBootLoaderEntity.managedObjectClassName = NSStringFromClass([SVMacOSBootLoader class]);
+    }
+    
+    NSEntityDescription *bootLoaderEntity;
+    {
+        bootLoaderEntity = [NSEntityDescription new];
+        bootLoaderEntity.name = @"BootLoader";
+        bootLoaderEntity.managedObjectClassName = NSStringFromClass([SVBootLoader class]);
+        bootLoaderEntity.abstract = YES;
+        bootLoaderEntity.subentities = @[macOSBootLoaderEntity];
+    }
+    
+    //
+    
     NSEntityDescription *macGraphicsDeviceConfigurationEntity;
     {
         macGraphicsDeviceConfigurationEntity = [NSEntityDescription new];
@@ -217,6 +235,35 @@
     //
     
     {
+        NSRelationshipDescription *virtualMachineConfiguration_bootLoader_relationship = [NSRelationshipDescription new];
+        virtualMachineConfiguration_bootLoader_relationship.name = @"bootLoader";
+        virtualMachineConfiguration_bootLoader_relationship.optional = YES;
+        virtualMachineConfiguration_bootLoader_relationship.minCount = 0;
+        virtualMachineConfiguration_bootLoader_relationship.maxCount = 1;
+        assert(!virtualMachineConfiguration_bootLoader_relationship.toMany);
+        virtualMachineConfiguration_bootLoader_relationship.destinationEntity = bootLoaderEntity;
+        virtualMachineConfiguration_bootLoader_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *bootLoader_machine_relationship = [NSRelationshipDescription new];
+        bootLoader_machine_relationship.name = @"machine";
+        bootLoader_machine_relationship.optional = YES;
+        bootLoader_machine_relationship.minCount = 0;
+        bootLoader_machine_relationship.maxCount = 1;
+        assert(!bootLoader_machine_relationship.toMany);
+        bootLoader_machine_relationship.destinationEntity = virtualMachineConfigurationEntity;
+        bootLoader_machine_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        virtualMachineConfiguration_bootLoader_relationship.inverseRelationship = bootLoader_machine_relationship;
+        bootLoader_machine_relationship.inverseRelationship = virtualMachineConfiguration_bootLoader_relationship;
+        
+        virtualMachineConfigurationEntity.properties = [virtualMachineConfigurationEntity.properties arrayByAddingObject:virtualMachineConfiguration_bootLoader_relationship];
+        bootLoaderEntity.properties = [bootLoaderEntity.properties arrayByAddingObject:bootLoader_machine_relationship];
+        
+        [virtualMachineConfiguration_bootLoader_relationship release];
+        [bootLoader_machine_relationship release];
+    }
+    
+    {
         NSRelationshipDescription *virtualMachineConfiguration_graphicsDevices_relationship = [NSRelationshipDescription new];
         virtualMachineConfiguration_graphicsDevices_relationship.name = @"graphicsDevices";
         virtualMachineConfiguration_graphicsDevices_relationship.optional = YES;
@@ -368,6 +415,8 @@
     //
     
     managedObjectModel.entities = @[
+        macOSBootLoaderEntity,
+        bootLoaderEntity,
         virtualMachineConfigurationEntity,
         macGraphicsDeviceConfigurationEntity,
         virtioGraphicsDeviceConfigurationEntity,
@@ -381,6 +430,8 @@
         storageDeviceAttachmentEntity
     ];
     
+    [macOSBootLoaderEntity release];
+    [bootLoaderEntity release];
     [virtualMachineConfigurationEntity release];
     [macGraphicsDeviceConfigurationEntity release];
     [virtioGraphicsDeviceConfigurationEntity release];

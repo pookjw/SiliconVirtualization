@@ -8,6 +8,7 @@
 #import <CoreData/CoreData.h>
 #import "SVGraphicsDeviceConfiguration.h"
 #import "SVStorageDeviceConfiguration.h"
+#import "SVBootLoader.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -16,6 +17,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (retain, nonatomic, nullable) NSNumber *cpuCount;
 @property (retain, nonatomic, nullable) NSNumber *memorySize;
 @property (copy, nonatomic, nullable) NSDate *timestamp;
+@property (retain, nonatomic, nullable) SVBootLoader *bootLoader;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVGraphicsDeviceConfiguration *> *graphicsDevices;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVStorageDeviceConfiguration *> *storageDevices;
 
