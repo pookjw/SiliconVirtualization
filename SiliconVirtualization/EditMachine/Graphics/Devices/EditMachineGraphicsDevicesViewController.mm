@@ -34,8 +34,8 @@
 
 - (void)dealloc {
     [_graphicsDevices release];
+    [_scrollView release];
     [_tableView release];
-    [_graphicsDevices release];
     [_createButton release];
     [super dealloc];
 }

@@ -14,6 +14,7 @@
 
 @dynamic cpuCount;
 @dynamic memorySize;
+@dynamic timestamp;
 @dynamic graphicsDevices;
 @dynamic storageDevices;
 

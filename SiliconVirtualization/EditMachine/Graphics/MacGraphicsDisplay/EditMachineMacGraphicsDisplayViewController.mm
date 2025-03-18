@@ -31,6 +31,7 @@
 @synthesize pixelsPerInchTextField = _pixelsPerInchTextField;
 
 - (void)dealloc {
+    [_configuration release];
     [_gridView release];
     [_heightInPixelsLabel release];
     [_heightInPixelsTextField release];

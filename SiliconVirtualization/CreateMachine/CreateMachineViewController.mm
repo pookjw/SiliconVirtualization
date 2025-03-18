@@ -8,65 +8,35 @@
 #import "CreateMachineViewController.h"
 #import <Virtualization/Virtualization.h>
 #import "EditMachineViewController.h"
+#import "SVCoreDataStack+VirtualizationSupport.h"
+#import <objc/message.h>
+#import <objc/runtime.h>
 
-@interface _CreateMachineMemorySizeTextField : NSTextField <NSTextViewDelegate>
-@property (assign, nonatomic, getter=isAllowedDoubleValue) BOOL allowedDoubleValue;
-@end
-@implementation _CreateMachineMemorySizeTextField
+OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self class] }; */
 
-- (BOOL)textView:(NSTextView *)textView shouldChangeTextInRange:(NSRange)affectedCharRange replacementString:(NSString *)replacementString {
-    NSString *oldString = textView.string;
-    NSString *newString = [oldString stringByReplacingCharactersInRange:affectedCharRange withString:replacementString];
-    
-    if (newString.length == 0) return YES;
-    
-    if (self.allowedDoubleValue) {
-        NSNumberFormatter *formatter = [NSNumberFormatter new];
-        BOOL isNumber = [formatter numberFromString:newString] != nil;
-        [formatter release];
-        return isNumber;
-    } else {
-        NSCharacterSet *searchSet = [[NSCharacterSet decimalDigitCharacterSet] invertedSet];
-        NSString *trimmedString = [newString stringByTrimmingCharactersInSet:searchSet];
-        return newString.length == trimmedString.length;
-    }
-}
-
-@end
-
-@interface CreateMachineViewController () <NSTextFieldDelegate>
-@property (retain, nonatomic, readonly, getter=_gridView) NSGridView *gridView;
-
-@property (retain, nonatomic, readonly, getter=_CPUCountLabel) NSTextField *CPUCountLabel;
-@property (retain, nonatomic, readonly, getter=_CPUCountValueLabel) NSTextField *CPUCountValueLabel;
-@property (retain, nonatomic, readonly, getter=_CPUCountStepper) NSStepper *CPUCountStepper;
-
-@property (retain, nonatomic, readonly, getter=_memorySizeLabel) NSTextField *memorySizeLabel;
-@property (retain, nonatomic, readonly, getter=_memorySizeTextField) _CreateMachineMemorySizeTextField *memorySizeTextField;
-@property (retain, nonatomic, readonly, getter=_memorySizePopUpButton) NSPopUpButton *memorySizePopUpButton;
-
-@property (retain, nonatomic, readonly, getter=_machineConfiguration) VZVirtualMachineConfiguration *machineConfiguration;
+@interface CreateMachineViewController () <EditMachineViewControllerDelegate, NSToolbarDelegate>
+@property (copy, nonatomic, getter=_machineConfiguration, setter=_setMachineConfiguration:) VZVirtualMachineConfiguration *machineConfiguration;
+@property (retain, nonatomic, readonly, getter=_toolbar) NSToolbar *toolbar;
+@property (retain, nonatomic, readonly, getter=_nextToolbarItem) NSToolbarItem *nextToolbarItem;
 @end
 
 @implementation CreateMachineViewController
-@synthesize gridView = _gridView;
-@synthesize CPUCountLabel = _CPUCountLabel;
-@synthesize CPUCountValueLabel = _CPUCountValueLabel;
-@synthesize CPUCountStepper = _CPUCountStepper;
-@synthesize memorySizeLabel = _memorySizeLabel;
-@synthesize memorySizeTextField = _memorySizeTextField;
-@synthesize memorySizePopUpButton = _memorySizePopUpButton;
-@synthesize machineConfiguration = _machineConfiguration;
+@synthesize toolbar = _toolbar;
+@synthesize nextToolbarItem = _nextToolbarItem;
+
+- (instancetype)initWithNibName:(NSNibName)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
+    if (self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil]) {
+        _machineConfiguration = [VZVirtualMachineConfiguration new];
+    }
+    
+    return self;
+}
 
 - (void)dealloc {
-    [_gridView release];
-    [_CPUCountLabel release];
-    [_CPUCountValueLabel release];
-    [_CPUCountStepper release];
-    [_memorySizeLabel release];
-    [_memorySizeTextField release];
-    [_memorySizePopUpButton release];
+    [NSNotificationCenter.defaultCenter removeObserver:self];
     [_machineConfiguration release];
+    [_toolbar release];
+    [_nextToolbarItem release];
     [super dealloc];
 }
 
@@ -74,209 +44,103 @@
     [super viewDidLoad];
     
     EditMachineViewController *editMachineViewController = [[EditMachineViewController alloc] initWithConfiguration:self.machineConfiguration];
+    editMachineViewController.delegate = self;
     editMachineViewController.view.frame = self.view.bounds;
     editMachineViewController.view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
     [self.view addSubview:editMachineViewController.view];
     [self addChildViewController:editMachineViewController];
     [editMachineViewController release];
-//    [self.view addSubview:self.gridView];
-//    self.gridView.frame = NSMakeRect(0., 0., self.gridView.fittingSize.width, self.gridView.fittingSize.height);
+    
+    //
+    
+    [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(_didInitializeCoreDataStack:) name:SVCoreDataStackDidInitializeNotification object:SVCoreDataStack.sharedInstance];
+    if (SVCoreDataStack.sharedInstance.initialized) {
+        self.nextToolbarItem.enabled = YES;
+    }
 }
 
-//- (NSSize)preferredMinimumSize {
-//    return self.gridView.fittingSize;
-//}
-//
-//- (NSSize)preferredMaximumSize {
-//    return self.gridView.fittingSize;
-//}
-//
-//- (NSSize)preferredContentSize {
-//    return self.gridView.fittingSize;
-//}
-
-- (NSGridView *)_gridView {
-    if (auto gridView = _gridView) return gridView;
+- (void)_viewDidMoveToWindow:(NSWindow * _Nullable)newWindow fromWindow:(NSWindow * _Nullable)oldWindow {
+    objc_super superInfo = { self, [self class] };
+    reinterpret_cast<void (*)(objc_super *, SEL, id, id)>(objc_msgSendSuper2)(&superInfo, _cmd, newWindow, oldWindow);
     
-    NSGridView *gridView = [NSGridView new];
-    
-    [gridView addRowWithViews:@[self.CPUCountLabel, self.CPUCountValueLabel, self.CPUCountStepper]];
-    
-    {
-        NSGridRow *gridRow = [gridView addRowWithViews:@[self.memorySizeLabel, self.memorySizeTextField, self.memorySizePopUpButton]];
-        [gridRow cellAtIndex:1].customPlacementConstraints = @[
-            [self.memorySizeTextField.widthAnchor constraintEqualToConstant:100.]
-        ];
+    if (oldWindow) {
+        oldWindow.toolbar = nil;
     }
     
-    [gridView columnAtIndex:0].xPlacement = NSGridCellPlacementTrailing;
-    [gridView columnAtIndex:1].xPlacement = NSGridCellPlacementLeading;
-    
-    _gridView = gridView;
-    return gridView;
+    if (newWindow) {
+        newWindow.toolbar = self.toolbar;
+    }
 }
 
-- (NSTextField *)_CPUCountLabel {
-    if (auto CPUCountLabel = _CPUCountLabel) return CPUCountLabel;
+- (NSToolbar *)_toolbar {
+    if (auto toolbar = _toolbar) return toolbar;
     
-    NSTextField *CPUCountLabel = [NSTextField wrappingLabelWithString:@"CPU Count"];
+    NSToolbar *toolbar = [[NSToolbar alloc] initWithIdentifier:@"CreateMachine"];
+    toolbar.delegate = self;
     
-    _CPUCountLabel = [CPUCountLabel retain];
-    return CPUCountLabel;
+    _toolbar = toolbar;
+    return toolbar;
 }
 
-- (NSTextField *)_CPUCountValueLabel {
-    if (auto CPUCountValueLabel = _CPUCountValueLabel) return CPUCountValueLabel;
+- (NSToolbarItem *)_nextToolbarItem {
+    if (auto nextToolbarItem = _nextToolbarItem) return nextToolbarItem;
     
-    NSTextField *CPUCountValueLabel = [NSTextField wrappingLabelWithString:@""];
+    NSToolbarItem *nextToolbarItem = [[NSToolbarItem alloc] initWithItemIdentifier:@"Next"];
+    nextToolbarItem.label = @"Next";
+    nextToolbarItem.image = [NSImage imageWithSystemSymbolName:@"arrow.right" accessibilityDescription:nil];
+    nextToolbarItem.target = self;
+    nextToolbarItem.action = @selector(_didTriggerNextToolbarItem:);
+    nextToolbarItem.enabled = NO;
+    nextToolbarItem.autovalidates = NO;
     
-    _CPUCountValueLabel = CPUCountValueLabel;
-    [self _updateCPUCountStepper];
-    
-    return CPUCountValueLabel;
+    _nextToolbarItem = nextToolbarItem;
+    return nextToolbarItem;
 }
 
-- (NSStepper *)_CPUCountStepper {
-    if (auto CPUCountStepper = _CPUCountStepper) return CPUCountStepper;
+- (void)_didTriggerNextToolbarItem:(NSToolbarItem *)sender {
+    VZVirtualMachineConfiguration *machineConfiguration = self.machineConfiguration;
+    assert(machineConfiguration != nil);
     
-    NSStepper *CPUCountStepper = [NSStepper new];
-    CPUCountStepper.minValue = VZVirtualMachineConfiguration.minimumAllowedCPUCount;
-    CPUCountStepper.maxValue = VZVirtualMachineConfiguration.maximumAllowedCPUCount;
-    CPUCountStepper.increment = 1.;
-    CPUCountStepper.doubleValue = self.machineConfiguration.CPUCount;
-    CPUCountStepper.autorepeat = YES;
-    CPUCountStepper.continuous = YES;
-    CPUCountStepper.valueWraps = NO;
-    CPUCountStepper.target = self;
-    CPUCountStepper.action = @selector(_didChangeCPUCountStepperValue:);
+    SVCoreDataStack *stack = SVCoreDataStack.sharedInstance;
+    NSManagedObjectContext *context = stack.backgroundContext;
     
-    _CPUCountStepper = CPUCountStepper;
-    return CPUCountStepper;
+    [context performBlock:^{
+        SVVirtualMachineConfiguration *configuration = [stack isolated_makeManagedObjectFromVirtualMachineConfiguration:machineConfiguration];
+        configuration.timestamp = NSDate.now;
+        NSError * _Nullable error = nil;
+        // 이걸 해줘야 NSFetchedResultsController에서 이상한 Object ID가 안 날라옴
+        [context obtainPermanentIDsForObjects:@[configuration] error:&error];
+        assert(error == nil);
+        [context save:&error];
+        assert(error == nil);
+    }];
 }
 
-- (void)_didChangeCPUCountStepperValue:(NSStepper *)sender {
-    self.machineConfiguration.CPUCount = sender.doubleValue;
-    [self _updateCPUCountStepper];
+- (void)_didInitializeCoreDataStack:(NSNotification *)notification {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self.nextToolbarItem.enabled = SVCoreDataStack.sharedInstance.initialized;
+    });
 }
 
-- (void)_updateCPUCountStepper {
-    self.CPUCountValueLabel.stringValue = @(self.machineConfiguration.CPUCount).stringValue;
+- (void)editMachineViewController:(EditMachineViewController *)editMachineViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
+    self.machineConfiguration = configuration;
 }
 
-- (NSTextField *)_memorySizeLabel {
-    if (auto memorySizeLabel = _memorySizeLabel) return memorySizeLabel;
-    
-    NSTextField *memorySizeLabel = [NSTextField wrappingLabelWithString:@"Memory Size"];
-    
-    _memorySizeLabel = [memorySizeLabel retain];
-    return memorySizeLabel;
+- (NSArray<NSToolbarItemIdentifier> *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar {
+    return @[
+        self.nextToolbarItem.itemIdentifier
+    ];
 }
 
-- (_CreateMachineMemorySizeTextField *)_memorySizeTextField {
-    if (auto memorySizeTextField = _memorySizeTextField) return memorySizeTextField;
-    
-    _CreateMachineMemorySizeTextField *memorySizeTextField = [_CreateMachineMemorySizeTextField new];
-    memorySizeTextField.delegate = self;
-    memorySizeTextField.allowedDoubleValue = NO;
-    
-    _memorySizeTextField = memorySizeTextField;
-    [self _updateMemorySizeTextField];
-    
-    return memorySizeTextField;
+- (NSArray<NSToolbarItemIdentifier> *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar {
+    return [self toolbarAllowedItemIdentifiers:toolbar];
 }
 
-- (NSPopUpButton *)_memorySizePopUpButton {
-    if (auto memorySizePopUpButton = _memorySizePopUpButton) return memorySizePopUpButton;
-    
-    NSPopUpButton *memorySizePopUpButton = [NSPopUpButton new];
-    
-    [memorySizePopUpButton addItemsWithTitles:@[
-        NSUnitInformationStorage.megabytes.symbol,
-        NSUnitInformationStorage.gigabytes.symbol
-    ]];
-    
-    [memorySizePopUpButton selectItemWithTitle:NSUnitInformationStorage.megabytes.symbol];
-    
-    memorySizePopUpButton.target = self;
-    memorySizePopUpButton.action = @selector(_didChangeMemorySizePopUpButtonValue:);
-    
-    _memorySizePopUpButton = memorySizePopUpButton;
-    return memorySizePopUpButton;
-}
-
-- (void)_didChangeMemorySizePopUpButtonValue:(NSPopUpButton *)sender {
-    [self _updateMemorySizeTextField];
-}
-
-- (void)_updateMemorySizeTextField {
-    _CreateMachineMemorySizeTextField *memorySizeTextField = self.memorySizeTextField;
-    uint64_t memorySize = self.machineConfiguration.memorySize;
-    
-    NSString *selectedTitle = self.memorySizePopUpButton.titleOfSelectedItem;
-    if ([selectedTitle isEqualToString:NSUnitInformationStorage.megabytes.symbol]) {
-        memorySizeTextField.stringValue = @(memorySize / 1024ull / 1024ull).stringValue;
-        memorySizeTextField.allowedDoubleValue = NO;
-    } else if ([selectedTitle isEqualToString:NSUnitInformationStorage.gigabytes.symbol]) {
-        memorySizeTextField.stringValue = @(static_cast<double>(memorySize / 1024ull) / 1024ull / 1024ull).stringValue;
-        memorySizeTextField.allowedDoubleValue = YES;
+- (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSToolbarItemIdentifier)itemIdentifier willBeInsertedIntoToolbar:(BOOL)flag {
+    if ([self.nextToolbarItem.itemIdentifier isEqualToString:itemIdentifier]) {
+        return self.nextToolbarItem;
     } else {
         abort();
-    }
-}
-
-- (VZVirtualMachineConfiguration *)_machineConfiguration {
-    if (auto machineConfiguration = _machineConfiguration) return machineConfiguration;
-    
-    VZVirtualMachineConfiguration *machineConfiguration = [VZVirtualMachineConfiguration new];
-    
-    _machineConfiguration = machineConfiguration;
-    return machineConfiguration;
-}
-
-- (void)controlTextDidEndEditing:(NSNotification *)obj {
-    if ([obj.object isEqual:self.memorySizeTextField]) {
-        BOOL adjusted;
-        [self _updateMemorySizeConfiguration:&adjusted];
-        if (adjusted) {
-            [self _updateMemorySizeTextField];
-        }
-    }
-}
-
-- (void)_updateMemorySizeConfiguration:(BOOL * _Nullable)adjusted {
-    NSString *stringValue = self.memorySizeTextField.stringValue;
-    
-    if (stringValue.length == 0) {
-        self.machineConfiguration.memorySize = VZVirtualMachineConfiguration.minimumAllowedMemorySize;
-        
-        if (adjusted != NULL) {
-            *adjusted = YES;
-        }
-        
-        return;
-    }
-    
-    NSNumberFormatter *numberFormatter = [NSNumberFormatter new];
-    
-    double inputDoubleValue = [numberFormatter numberFromString:stringValue].doubleValue;
-    uint64_t memorySize;
-    
-    NSString *selectedTitle = self.memorySizePopUpButton.titleOfSelectedItem;
-    if ([selectedTitle isEqualToString:NSUnitInformationStorage.megabytes.symbol]) {
-        memorySize = inputDoubleValue * 1024ull * 1024ull;
-    } else if ([selectedTitle isEqualToString:NSUnitInformationStorage.gigabytes.symbol]) {
-        memorySize = inputDoubleValue * 1024ull * 1024ull * 1024ull;
-    } else {
-        abort();
-    }
-    
-    uint64_t possibleMemorySize = MAX(MIN(memorySize, VZVirtualMachineConfiguration.maximumAllowedMemorySize), VZVirtualMachineConfiguration.minimumAllowedMemorySize);
-    self.machineConfiguration.memorySize = possibleMemorySize;
-    
-    if (memorySize != possibleMemorySize) {
-        if (adjusted != NULL) {
-            *adjusted = YES;
-        }
     }
 }
 

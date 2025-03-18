@@ -14,7 +14,7 @@
 #import <objc/message.h>
 #import <objc/runtime.h>
 
-@interface EditMachineViewController () <EditMachineSidebarViewControllerDelegate, EditMachineCPUViewControllerDelegate, EditMachineMemoryViewControllerDelegate, EditMachineGraphicsViewControllerDelegate>
+@interface EditMachineViewController () <EditMachineSidebarViewControllerDelegate, EditMachineCPUViewControllerDelegate, EditMachineMemoryViewControllerDelegate, EditMachineGraphicsViewControllerDelegate, EditMachineStoragesViewControllerDelegate>
 @property (retain, nonatomic, readonly, getter=_splitViewController) NSSplitViewController *splitViewController;
 
 @property (retain, nonatomic, readonly, getter=_sidebarViewController) EditMachineSidebarViewController *sidebarViewController;
@@ -56,6 +56,7 @@
 
 - (void)dealloc {
     [_configuration release];
+    [_splitViewController release];
     [_sidebarViewController release];
     [_sidebarSplitViewItem release];
     [_CPUViewController release];
@@ -176,6 +177,7 @@
     if (auto storagesViewController = _storagesViewController) return storagesViewController;
     
     EditMachineStoragesViewController *storagesViewController = [[EditMachineStoragesViewController alloc] initWithConfiguration:self.configuration];
+    storagesViewController.delegate = self;
     
     _storagesViewController = storagesViewController;
     return storagesViewController;
@@ -188,6 +190,12 @@
     
     _storagesSplitViewItem = [storagesSplitViewItem retain];
     return storagesSplitViewItem;
+}
+
+- (void)_notifyDelegate {
+    if (auto delegate = self.delegate) {
+        [delegate editMachineViewController:self didUpdateConfiguration:self.configuration];
+    }
 }
 
 - (void)editMachineSidebarViewController:(EditMachineSidebarViewController *)editMachineSidebarViewController didSelectItemModel:(EditMachineSidebarItemModel *)itemModel {
@@ -219,14 +227,22 @@
 
 - (void)editMachineCPUViewController:(EditMachineCPUViewController *)editMachineCPUViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
     self.configuration = configuration;
+    [self _notifyDelegate];
 }
 
 - (void)editMachineMemoryViewController:(EditMachineMemoryViewController *)editMachineMemoryViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
     self.configuration = configuration;
+    [self _notifyDelegate];
 }
 
 - (void)editMachineGraphicsViewController:(EditMachineGraphicsViewController *)editMachineGraphicsViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
     self.configuration = configuration;
+    [self _notifyDelegate];
+}
+
+- (void)EditMachineStoragesViewController:(EditMachineStoragesViewController *)EditMachineStoragesViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
+    self.configuration = configuration;
+    [self _notifyDelegate];
 }
 
 @end

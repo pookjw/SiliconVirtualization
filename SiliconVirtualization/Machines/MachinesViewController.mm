@@ -9,24 +9,52 @@
 #import <objc/message.h>
 #import <objc/runtime.h>
 #import "CreateMachineWindow.h"
+#import "MachinesViewModel.h"
+#import "MachinesCollectionViewItem.h"
+#import "EditMachineConfigurationObjectWindow.h"
+#import "SVCoreDataStack.h"
 
 OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self class] }; */
 
-@interface MachinesViewController () <NSToolbarDelegate>
+@interface MachinesViewController () <NSToolbarDelegate, NSCollectionViewDelegate>
+@property (class, nonatomic, readonly, getter=_itemIdentifier) NSUserInterfaceItemIdentifier itemIdentifier;
+@property (retain, nonatomic, readonly, getter=_scrollView) NSScrollView *scrollView;
+@property (retain, nonatomic, readonly, getter=_collectionView) NSCollectionView *collectionView;
 @property (retain, nonatomic, readonly, getter=_toolbar) NSToolbar *toolbar;
+@property (retain, nonatomic, readonly, getter=_viewModel) MachinesViewModel *viewModel;
+@property (retain, nonatomic, readonly, getter=_dataSource) NSCollectionViewDiffableDataSource<NSString *, NSManagedObjectID *> *dataSource;
 @end
 
 @implementation MachinesViewController
+@synthesize scrollView = _scrollView;
+@synthesize collectionView = _collectionView;
 @synthesize toolbar = _toolbar;
+@synthesize viewModel = _viewModel;
+@synthesize dataSource = _dataSource;
+
++ (NSUserInterfaceItemIdentifier)_itemIdentifier {
+    return NSStringFromClass([MachinesCollectionViewItem class]);
+}
 
 - (void)dealloc {
+    [_scrollView release];
+    [_collectionView release];
     [_toolbar release];
+    [_viewModel release];
+    [_dataSource release];
     [super dealloc];
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    [self _showCreateMachineWindow];
+//    [self _showCreateMachineWindow];
+    
+    NSScrollView *scrollView = self.scrollView;
+    scrollView.frame = self.view.bounds;
+    scrollView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+    [self.view addSubview:scrollView];
+    
+    [self _viewModel];
 }
 
 - (void)_viewDidMoveToWindow:(NSWindow * _Nullable)newWindow fromWindow:(NSWindow * _Nullable)oldWindow {
@@ -42,6 +70,60 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     }
 }
 
+- (NSScrollView *)_scrollView {
+    if (auto scrollView = _scrollView) return scrollView;
+    
+    NSScrollView *scrollView = [NSScrollView new];
+    scrollView.documentView = self.collectionView;
+    
+    _scrollView = scrollView;
+    return scrollView;
+}
+
+- (NSCollectionView *)_collectionView {
+    if (auto collectionView = _collectionView) return collectionView;
+    
+    NSCollectionView *collectionView = [NSCollectionView new];
+    
+    NSCollectionViewCompositionalLayoutConfiguration *configuration = [NSCollectionViewCompositionalLayoutConfiguration new];
+    configuration.scrollDirection = NSCollectionViewScrollDirectionVertical;
+    
+    NSCollectionViewCompositionalLayout *collectionViewLayout = [[NSCollectionViewCompositionalLayout alloc] initWithSectionProvider:^NSCollectionLayoutSection * _Nullable(NSInteger sectionIndex, id<NSCollectionLayoutEnvironment> _Nonnull layoutEnvironment) {
+        NSUInteger quotient = floorf(layoutEnvironment.container.contentSize.width / 200.);
+        NSUInteger count = MAX(quotient, 2);
+        
+        NSCollectionLayoutSize *itemSize = [NSCollectionLayoutSize sizeWithWidthDimension:[NSCollectionLayoutDimension fractionalWidthDimension:1. / count]
+                                                                          heightDimension:[NSCollectionLayoutDimension fractionalHeightDimension:1.]];
+        
+        NSCollectionLayoutItem *item = [NSCollectionLayoutItem itemWithLayoutSize:itemSize];
+        item.contentInsets = NSDirectionalEdgeInsetsMake(10., 10., 10., 10.);
+        
+        NSCollectionLayoutSize *groupSize = [NSCollectionLayoutSize sizeWithWidthDimension:[NSCollectionLayoutDimension fractionalWidthDimension:1.]
+                                                                           heightDimension:[NSCollectionLayoutDimension fractionalWidthDimension:1. / count]];
+        
+        NSCollectionLayoutGroup *group = [NSCollectionLayoutGroup horizontalGroupWithLayoutSize:groupSize subitem:item count:count];
+        
+        NSCollectionLayoutSection *section = [NSCollectionLayoutSection sectionWithGroup:group];
+        section.contentInsets = NSDirectionalEdgeInsetsMake(10., 10., 10., 10.);
+        
+        return section;
+    }
+                                                                                                                       configuration:configuration];
+    [configuration release];
+    
+    collectionView.collectionViewLayout = collectionViewLayout;
+    [collectionViewLayout release];
+    
+    collectionView.selectable = YES;
+    collectionView.allowsEmptySelection = YES;
+    collectionView.allowsMultipleSelection = NO;
+    collectionView.delegate = self;
+    [collectionView registerClass:[MachinesCollectionViewItem class] forItemWithIdentifier:MachinesViewController.itemIdentifier];
+    
+    _collectionView = collectionView;
+    return collectionView;
+}
+
 - (NSToolbar *)_toolbar {
     if (auto toolbar = _toolbar) return toolbar;
     
@@ -50,6 +132,28 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     
     _toolbar = toolbar;
     return toolbar;
+}
+
+- (MachinesViewModel *)_viewModel {
+    if (auto viewModel = _viewModel) return viewModel;
+    
+    MachinesViewModel *viewModel = [[MachinesViewModel alloc] initWithDataSource:self.dataSource];
+    
+    _viewModel = viewModel;
+    return viewModel;
+}
+
+- (NSCollectionViewDiffableDataSource<NSString *,NSManagedObjectID *> *)_dataSource {
+    if (auto dataSource = _dataSource) return dataSource;
+    
+    NSCollectionViewDiffableDataSource<NSString *,NSManagedObjectID *> *dataSource = [[NSCollectionViewDiffableDataSource alloc] initWithCollectionView:self.collectionView itemProvider:^NSCollectionViewItem * _Nullable(NSCollectionView * _Nonnull collectionView, NSIndexPath * _Nonnull indexPath, NSManagedObjectID * _Nonnull objectID) {
+        MachinesCollectionViewItem *item = [collectionView makeItemWithIdentifier:MachinesViewController.itemIdentifier forIndexPath:indexPath];
+        item.objectID = objectID;
+        return item;
+    }];
+    
+    _dataSource = dataSource;
+    return dataSource;
 }
 
 - (NSMenu *)_makeAddMachineMenu {
@@ -107,6 +211,21 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     } else {
         abort();
     }
+}
+
+- (void)collectionView:(NSCollectionView *)collectionView didSelectItemsAtIndexPaths:(NSSet<NSIndexPath *> *)indexPaths {
+    [SVCoreDataStack.sharedInstance.backgroundContext performBlock:^{
+        assert(indexPaths.count == 1);
+        NSIndexPath *indexPath = indexPaths.allObjects[0];
+        SVVirtualMachineConfiguration *machineConfigurationObject = [self.viewModel isolated_machineConfigurationObjectAtIndexPath:indexPath];
+        assert(machineConfigurationObject != nil);
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            EditMachineConfigurationObjectWindow *window = [[EditMachineConfigurationObjectWindow alloc] initWithMachineConfigurationObject:machineConfigurationObject];
+            [window makeKeyAndOrderFront:nil];
+            [window release];
+        });
+    }];
 }
 
 @end

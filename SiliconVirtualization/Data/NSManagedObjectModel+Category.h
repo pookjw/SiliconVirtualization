@@ -10,7 +10,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface NSManagedObjectModel (Category)
-@property (class, nonatomic, readonly) NSManagedObjectModel *sv_managedObjectModel;
++ (NSManagedObjectModel *)sv_makeManagedObjectModel;
 @end
 
 NS_ASSUME_NONNULL_END
