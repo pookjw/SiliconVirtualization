@@ -95,7 +95,7 @@
     [self.view addSubview:splitViewController.view];
     [self addChildViewController:splitViewController];
     
-    EditMachineSidebarItemModel *itemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeBootLoader];
+    EditMachineSidebarItemModel *itemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypePlatform];
     [self.sidebarViewController setItemModel:itemModel notifyingDelegate:YES];
     [itemModel release];
 }
@@ -260,7 +260,7 @@
             break;
         }
         case EditMachineSidebarItemModelTypePlatform: {
-            self.bootLoaderViewController.configuration = self.configuration;
+            self.platformViewController.configuration = self.configuration;
             self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.platformSplitViewItem];
             break;
         }
