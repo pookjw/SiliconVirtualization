@@ -62,27 +62,32 @@
         VZMacPlatformConfiguration *macPlatformConfiguration = [[VZMacPlatformConfiguration alloc] init];
         
         {
-            SVMacAuxiliaryStorage *macAuxiliaryStorageObject = macPlatformConfigurationObject.auxiliaryStorage;
-            assert(macAuxiliaryStorageObject != nil);
-            NSData *bookmarkData = macAuxiliaryStorageObject.bookmarkData;
+            SVMacAuxiliaryStorage * _Nullable macAuxiliaryStorageObject = macPlatformConfigurationObject.auxiliaryStorage;
             
-            NSError * _Nullable error = nil;
-            BOOL stale;
-            NSURL *URL = [[NSURL alloc] initByResolvingBookmarkData:bookmarkData
-                                                            options:NSURLBookmarkResolutionWithoutMounting | NSURLBookmarkResolutionWithSecurityScope
-                                                      relativeToURL:nil
-                                                bookmarkDataIsStale:&stale
-                                                              error:&error];
-            assert(error == nil);
-            assert(!stale);
-            
-            assert([URL startAccessingSecurityScopedResource]);
-            VZMacAuxiliaryStorage *macAuxiliaryStorage = [[VZMacAuxiliaryStorage alloc] initWithURL:URL];
-            [URL stopAccessingSecurityScopedResource];
-            [URL release];
-            
-            macPlatformConfiguration.auxiliaryStorage = macAuxiliaryStorage;
-            [macAuxiliaryStorage release];
+            if (macAuxiliaryStorageObject != nil) {
+                NSData *bookmarkData = macAuxiliaryStorageObject.bookmarkData;
+                assert(bookmarkData != nil);
+                
+                NSError * _Nullable error = nil;
+                BOOL stale;
+                NSURL *URL = [[NSURL alloc] initByResolvingBookmarkData:bookmarkData
+                                                                options:NSURLBookmarkResolutionWithoutMounting | NSURLBookmarkResolutionWithSecurityScope
+                                                          relativeToURL:nil
+                                                    bookmarkDataIsStale:&stale
+                                                                  error:&error];
+                assert(error == nil);
+                assert(!stale);
+                
+                assert([URL startAccessingSecurityScopedResource]);
+                VZMacAuxiliaryStorage *macAuxiliaryStorage = [[VZMacAuxiliaryStorage alloc] initWithURL:URL];
+                [URL stopAccessingSecurityScopedResource];
+                [URL release];
+                
+                macPlatformConfiguration.auxiliaryStorage = macAuxiliaryStorage;
+                [macAuxiliaryStorage release];
+            } else {
+                macPlatformConfiguration.auxiliaryStorage = nil;
+            }
         }
         
         {
@@ -276,15 +281,19 @@
         
         SVMacPlatformConfiguration *macPlatformConfigurationObject = [[SVMacPlatformConfiguration alloc] initWithContext:managedObjectContext];
         
-        SVMacAuxiliaryStorage *macAuxiliaryStorageObject = [[SVMacAuxiliaryStorage alloc] initWithContext:managedObjectContext];
-        NSURL *auxiliaryStorageURL = macPlatformConfiguration.auxiliaryStorage.URL;
-        assert([auxiliaryStorageURL startAccessingSecurityScopedResource]);
-        NSError * _Nullable error = nil;
-        macAuxiliaryStorageObject.bookmarkData = [auxiliaryStorageURL bookmarkDataWithOptions:NSURLBookmarkCreationWithSecurityScope includingResourceValuesForKeys:nil relativeToURL:nil error:&error];
-        assert(error == nil);
-        [auxiliaryStorageURL stopAccessingSecurityScopedResource];
-        macPlatformConfigurationObject.auxiliaryStorage = macAuxiliaryStorageObject;
-        [macAuxiliaryStorageObject release];
+        NSURL * _Nullable auxiliaryStorageURL = macPlatformConfiguration.auxiliaryStorage.URL;
+        if (auxiliaryStorageURL != nil) {
+            SVMacAuxiliaryStorage *macAuxiliaryStorageObject = [[SVMacAuxiliaryStorage alloc] initWithContext:managedObjectContext];
+            assert([auxiliaryStorageURL startAccessingSecurityScopedResource]);
+            NSError * _Nullable error = nil;
+            macAuxiliaryStorageObject.bookmarkData = [auxiliaryStorageURL bookmarkDataWithOptions:NSURLBookmarkCreationWithSecurityScope includingResourceValuesForKeys:nil relativeToURL:nil error:&error];
+            assert(error == nil);
+            [auxiliaryStorageURL stopAccessingSecurityScopedResource];
+            macPlatformConfigurationObject.auxiliaryStorage = macAuxiliaryStorageObject;
+            [macAuxiliaryStorageObject release];
+        } else {
+            macPlatformConfigurationObject.auxiliaryStorage = nil;
+        }
         
         SVMacHardwareModel *macHardwareModelObject = [[SVMacHardwareModel alloc] initWithContext:managedObjectContext];
         macHardwareModelObject.dataRepresentation = macPlatformConfiguration.hardwareModel.dataRepresentation;
@@ -307,7 +316,7 @@
         genericPlatformConfigurationObject.machineIdentifier = genericMachineIdentifierObject;
         [genericMachineIdentifierObject release];
         
-        genericPlatformConfiguration.nestedVirtualizationEnabled = genericPlatformConfiguration.nestedVirtualizationEnabled;
+        genericPlatformConfigurationObject.nestedVirtualizationEnabled = genericPlatformConfiguration.nestedVirtualizationEnabled;
         
         platformConfigurationObject = genericPlatformConfigurationObject;
     } else {

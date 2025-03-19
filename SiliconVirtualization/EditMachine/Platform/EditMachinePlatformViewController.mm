@@ -26,6 +26,10 @@
 @property (retain, nonatomic, readonly, getter=_macOS_machineIdentifierLabel) NSTextField *macOS_machineIdentifierLabel;
 @property (retain, nonatomic, readonly, getter=_macOS_machineIdentifierECIDLabel) NSTextField *macOS_machineIdentifierECIDLabel;
 @property (retain, nonatomic, readonly, getter=_macOS_regenerateMachineIdentifierButton) NSButton *macOS_regenerateMachineIdentifierButton;
+
+@property (retain, nonatomic, readonly, getter=_macOS_auxiliaryStorageLabel) NSTextField *macOS_auxiliaryStorageLabel;
+@property (retain, nonatomic, readonly, getter=_macOS_auxiliaryStorageURLLabel) NSTextField *macOS_auxiliaryStorageURLLabel;
+@property (retain, nonatomic, readonly, getter=_macOS_auxiliaryStorageMenuButton) NSButton *macOS_auxiliaryStorageMenuButton;
 @end
 
 @implementation EditMachinePlatformViewController
@@ -40,6 +44,9 @@
 @synthesize macOS_machineIdentifierLabel = _macOS_machineIdentifierLabel;
 @synthesize macOS_machineIdentifierECIDLabel = _macOS_machineIdentifierECIDLabel;
 @synthesize macOS_regenerateMachineIdentifierButton = _macOS_regenerateMachineIdentifierButton;
+@synthesize macOS_auxiliaryStorageLabel = _macOS_auxiliaryStorageLabel;
+@synthesize macOS_auxiliaryStorageURLLabel = _macOS_auxiliaryStorageURLLabel;
+@synthesize macOS_auxiliaryStorageMenuButton = _macOS_auxiliaryStorageMenuButton;
 
 - (instancetype)initWithConfiguration:(VZVirtualMachineConfiguration *)configuration {
     if (self = [super initWithNibName:nil bundle:nil]) {
@@ -62,6 +69,9 @@
     [_macOS_machineIdentifierLabel release];
     [_macOS_machineIdentifierECIDLabel release];
     [_macOS_regenerateMachineIdentifierButton release];
+    [_macOS_auxiliaryStorageLabel release];
+    [_macOS_auxiliaryStorageURLLabel release];
+    [_macOS_auxiliaryStorageMenuButton release];
     [super dealloc];
 }
 
@@ -293,6 +303,37 @@
     [configuration release];
 }
 
+- (NSTextField *)_macOS_auxiliaryStorageLabel {
+    if (auto macOS_auxiliaryStorageLabel = _macOS_auxiliaryStorageLabel) return macOS_auxiliaryStorageLabel;
+    
+    NSTextField *macOS_auxiliaryStorageLabel = [NSTextField wrappingLabelWithString:@"Auxiliary Storage"];
+    macOS_auxiliaryStorageLabel.selectable = NO;
+    
+    return [macOS_auxiliaryStorageLabel retain];
+    return macOS_auxiliaryStorageLabel;
+}
+
+- (NSTextField *)_macOS_auxiliaryStorageURLLabel {
+    if (auto macOS_auxiliaryStorageURLLabel = _macOS_auxiliaryStorageURLLabel) return macOS_auxiliaryStorageURLLabel;
+    
+    NSTextField *macOS_auxiliaryStorageURLLabel = [NSTextField wrappingLabelWithString:@"(null)"];
+    
+    _macOS_auxiliaryStorageURLLabel = [macOS_auxiliaryStorageURLLabel retain];
+    return macOS_auxiliaryStorageURLLabel;
+}
+
+- (NSButton *)_macOS_auxiliaryStorageMenuButton {
+    if (auto macOS_auxiliaryStorageMenuButton = _macOS_auxiliaryStorageMenuButton) return macOS_auxiliaryStorageMenuButton;
+    
+    NSButton *macOS_auxiliaryStorageMenuButton = [NSButton new];
+    
+    macOS_auxiliaryStorageMenuButton.target = self;
+    macOS_auxiliaryStorageMenuButton.action = @selector(_macOS_didTriggerAuxiliaryStorageMenuButton:);
+    
+    _macOS_auxiliaryStorageMenuButton = macOS_auxiliaryStorageMenuButton;
+    return macOS_auxiliaryStorageMenuButton;
+}
+
 - (void)_didTriggerNestedVirtualizationEnabledSwitch:(NSSwitch *)sender {
     VZVirtualMachineConfiguration *configuration = [self.configuration copy];
     
@@ -312,6 +353,92 @@
     }
     
     [configuration release];
+}
+
+- (void)_macOS_didTriggerAuxiliaryStorageMenuButton:(NSButton *)sender {
+    NSMenu *menu = [NSMenu new];
+    
+    NSMenuItem *addExistingItem = [NSMenuItem new];
+    addExistingItem.title = @"Add Existing...";
+    addExistingItem.target = self;
+    addExistingItem.action = @selector(_macOS_didTriggerAddExistinguxiliaryStorageItem:);
+    [menu addItem:addExistingItem];
+    [addExistingItem release];
+    
+    NSMenuItem *createNewItem = [NSMenuItem new];
+    createNewItem.title = @"Create new...";
+    createNewItem.target = self;
+    createNewItem.action = @selector(_macOS_didTriggerCreateNewuxiliaryStorageItem:);
+    [menu addItem:createNewItem];
+    [createNewItem release];
+    
+    [NSMenu popUpContextMenu:menu withEvent:sender.window.currentEvent forView:sender];
+    [menu release];
+}
+
+- (void)_macOS_didTriggerAddExistinguxiliaryStorageItem:(NSMenuItem *)sender {
+    NSOpenPanel *panel = [NSOpenPanel new];
+    panel.canChooseFiles = YES;
+    panel.canChooseDirectories = NO;
+    panel.resolvesAliases = YES;
+    panel.allowsMultipleSelection = NO;
+    
+    [panel beginSheetModalForWindow:self.view.window completionHandler:^(NSModalResponse result) {
+        if (NSURL *URL = panel.URL) {
+            VZVirtualMachineConfiguration *configuration = [self.configuration copy];
+            
+            auto platformConfiguration = static_cast<VZMacPlatformConfiguration *>(configuration.platform);
+            assert([platformConfiguration isKindOfClass:[VZMacPlatformConfiguration class]]);
+            
+            VZMacAuxiliaryStorage *auxiliaryStorage = [[VZMacAuxiliaryStorage alloc] initWithURL:URL];
+            platformConfiguration.auxiliaryStorage = auxiliaryStorage;
+            [auxiliaryStorage release];
+            
+            configuration.platform = platformConfiguration;
+            self.configuration = configuration;
+            
+            if (auto delegate = self.delegate) {
+                [delegate editMachinePlatformViewController:self didUpdateConfiguration:configuration];
+            }
+            
+            [configuration release];
+        }
+    }];
+    [panel release];
+}
+
+- (void)_macOS_didTriggerCreateNewuxiliaryStorageItem:(NSMenuItem *)sender {
+    NSSavePanel *panel = [NSSavePanel new];
+    
+    [panel beginSheetModalForWindow:self.view.window completionHandler:^(NSModalResponse result) {
+        if (NSURL *URL = panel.URL) {
+            VZVirtualMachineConfiguration *configuration = [self.configuration copy];
+            
+            auto platformConfiguration = static_cast<VZMacPlatformConfiguration *>(configuration.platform);
+            assert([platformConfiguration isKindOfClass:[VZMacPlatformConfiguration class]]);
+            
+            NSLog(@"%@", platformConfiguration.hardwareModel);
+            assert(platformConfiguration.hardwareModel.supported);
+            
+            NSError * _Nullable error = nil;
+            VZMacAuxiliaryStorage *auxiliaryStorage = [[VZMacAuxiliaryStorage alloc] initCreatingStorageAtURL:URL hardwareModel:platformConfiguration.hardwareModel options:VZMacAuxiliaryStorageInitializationOptionAllowOverwrite error:&error];
+            assert(error == nil);
+            
+            platformConfiguration.auxiliaryStorage = auxiliaryStorage;
+            [auxiliaryStorage release];
+            
+            configuration.platform = platformConfiguration;
+            self.configuration = configuration;
+            
+            if (auto delegate = self.delegate) {
+                [delegate editMachinePlatformViewController:self didUpdateConfiguration:configuration];
+            }
+            
+            [configuration release];
+        }
+    }];
+    
+    [panel release];
 }
 
 - (void)_setupGridViewWithGenericPlatform {
@@ -351,6 +478,7 @@
     
     NSGridView *gridView = self.gridView;
     [gridView addRowWithViews:@[self.macOS_machineIdentifierLabel, self.macOS_machineIdentifierECIDLabel, self.macOS_regenerateMachineIdentifierButton]];
+    [gridView addRowWithViews:@[self.macOS_auxiliaryStorageLabel, self.macOS_auxiliaryStorageURLLabel, self.macOS_auxiliaryStorageMenuButton]];
     
     //
     
@@ -367,15 +495,25 @@
         self.macOS_machineIdentifierECIDLabel.stringValue = @(ECID).stringValue;
     }
     
+    {
+        NSURL * _Nullable URL = platformConfiguration.auxiliaryStorage.URL;
+        
+        if (URL != nil) {
+            self.macOS_auxiliaryStorageURLLabel.stringValue = URL.path;
+        } else {
+            self.macOS_auxiliaryStorageURLLabel.stringValue = @"(null)";
+        }
+    }
+    
     //
     
-    {
-        NSData *dataRepresentation = platformConfiguration.hardwareModel.dataRepresentation;
-        NSError * _Nullable error = nil;
-        NSDictionary<NSString *, NSData *> *dictionary = [NSPropertyListSerialization propertyListWithData:dataRepresentation options:0 format:0 error:&error];
-        assert(error == nil);
-        NSLog(@"%@", dictionary);
-    }
+//    {
+//        NSData *dataRepresentation = platformConfiguration.hardwareModel.dataRepresentation;
+//        NSError * _Nullable error = nil;
+//        NSDictionary<NSString *, NSData *> *dictionary = [NSPropertyListSerialization propertyListWithData:dataRepresentation options:0 format:0 error:&error];
+//        assert(error == nil);
+//        NSLog(@"%@", dictionary);
+//    }
 }
 
 - (void)_removeGridRowsWithoutCommonRows {
