@@ -417,9 +417,7 @@
             auto platformConfiguration = static_cast<VZMacPlatformConfiguration *>(configuration.platform);
             assert([platformConfiguration isKindOfClass:[VZMacPlatformConfiguration class]]);
             
-            NSLog(@"%@", platformConfiguration.hardwareModel);
-            assert(platformConfiguration.hardwareModel.supported);
-            
+#warning TODO https://x.com/_silgen_name/status/1902379843045748996
             NSError * _Nullable error = nil;
             VZMacAuxiliaryStorage *auxiliaryStorage = [[VZMacAuxiliaryStorage alloc] initCreatingStorageAtURL:URL hardwareModel:platformConfiguration.hardwareModel options:VZMacAuxiliaryStorageInitializationOptionAllowOverwrite error:&error];
             assert(error == nil);
