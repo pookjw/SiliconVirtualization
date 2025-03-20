@@ -8,7 +8,7 @@
 #import "EditMachineGraphicsDevicesViewController.h"
 #import "EditMachineGraphicsDevicesCellView.h"
 
-@interface EditMachineGraphicsDevicesViewController () <NSTableViewDataSource, NSTableViewDelegate>
+@interface EditMachineGraphicsDevicesViewController () <NSTableViewDataSource, NSTableViewDelegate, NSMenuDelegate>
 @property (class, nonatomic, readonly, getter=_cellIdentifier) NSUserInterfaceItemIdentifier cellIdentifier;
 @property (retain, nonatomic, readonly, getter=_tableView) NSTableView *tableView;
 @property (retain, nonatomic, readonly, getter=_scrollView) NSScrollView *scrollView;
@@ -64,7 +64,12 @@
     NSTableView *tableView = self.tableView;
     NSInteger selectedRow = tableView.selectedRow;
     [tableView reloadData];
-    [tableView selectRowIndexes:[NSIndexSet indexSetWithIndex:selectedRow] byExtendingSelection:NO];
+    
+    if (tableView.numberOfRows > 0) {
+        [tableView selectRowIndexes:[NSIndexSet indexSetWithIndex:selectedRow] byExtendingSelection:NO];
+    }
+    
+    [self _tableViewSelectionDidChange];
 }
 
 - (NSTableView *)_tableView {
@@ -84,6 +89,11 @@
     typeColumn.title = @"Type";
     [tableView addTableColumn:typeColumn];
     [typeColumn release];
+    
+    NSMenu *menu = [NSMenu new];
+    menu.delegate = self;
+    tableView.menu = menu;
+    [menu release];
     
     _tableView = tableView;
     return tableView;
@@ -189,12 +199,47 @@
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification {
     if ([notification.object isEqual:self.tableView]) {
-        auto delegate = self.delegate;
-        if (delegate == nil) return;
-        
-        NSInteger selectedRow = self.tableView.selectedRow;
-        [delegate editMachineGraphicsDevicesViewController:self didSelectAtIndex:selectedRow];
+        [self _tableViewSelectionDidChange];
     }
+}
+
+- (void)_tableViewSelectionDidChange {
+    auto delegate = self.delegate;
+    if (delegate == nil) return;
+    
+    NSInteger selectedRow = self.tableView.selectedRow;
+    [delegate editMachineGraphicsDevicesViewController:self didSelectAtIndex:selectedRow];
+}
+
+- (void)menuWillOpen:(NSMenu *)menu {
+    [menu removeAllItems];
+    
+    NSInteger clickedRow = self.tableView.clickedRow;
+    if ((clickedRow == NSNotFound) or (clickedRow == -1)) return;
+    
+    NSMenuItem *deleteItem = [NSMenuItem new];
+    deleteItem.title = @"Delete";
+    deleteItem.image = [NSImage imageWithSystemSymbolName:@"trash.fill" accessibilityDescription:nil];
+    deleteItem.target = self;
+    deleteItem.action = @selector(_didTriggerDeleteItem:);
+    [menu addItem:deleteItem];
+    [deleteItem release];
+}
+
+- (void)_didTriggerDeleteItem:(NSMenuItem *)sender {
+    NSInteger clickedRow = self.tableView.clickedRow;
+    assert((clickedRow != NSNotFound) and (clickedRow != -1));
+    
+    NSMutableArray<__kindof VZGraphicsDeviceConfiguration *> *graphicsDevices = [self.graphicsDevices mutableCopy];
+    [graphicsDevices removeObjectAtIndex:clickedRow];
+    
+    self.graphicsDevices = graphicsDevices;
+    
+    if (auto delegate = self.delegate) {
+        [delegate editMachineGraphicsDevicesViewController:self didUpdateGraphicsDevices:graphicsDevices];
+    }
+    
+    [graphicsDevices release];
 }
 
 @end

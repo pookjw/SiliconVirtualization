@@ -194,6 +194,7 @@
     self.selectedDeviceIndex = selectedIndex;
     
     if (selectedIndex == NSNotFound || selectedIndex == -1) {
+        self.selectedDisplayIndex = NSNotFound;
         self.splitViewController.splitViewItems = @[self.devicesSplitViewItem, self.emptyDeviceSplitViewItem, self.emptyDetailSplitViewItem];
         return;
     }
