@@ -48,6 +48,10 @@
         self.releasedWhenClosed = NO;
         self.contentMinSize = NSMakeSize(400., 600.);
         
+        NSViewController *contentViewController = [NSViewController new];
+        self.contentViewController = contentViewController;
+        [contentViewController release];
+        
         NSToolbar *toolbar = [[NSToolbar alloc] initWithIdentifier:@"EditMachine"];
         toolbar.delegate = self;
         self.toolbar = toolbar;
