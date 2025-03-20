@@ -56,6 +56,7 @@
     <entity name="PlatformConfiguration" representedClassName="SVPlatformConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="platform" inverseEntity="VirtualMachineConfiguration"/>
     </entity>
+    <entity name="PointingDeviceConfiguration" representedClassName="SVPointingDeviceConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class"/>
     <entity name="StorageDeviceAttachment" representedClassName="SVStorageDeviceAttachment" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <relationship name="storageDevice" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="StorageDeviceConfiguration" inverseName="attachment" inverseEntity="StorageDeviceConfiguration"/>
     </entity>
