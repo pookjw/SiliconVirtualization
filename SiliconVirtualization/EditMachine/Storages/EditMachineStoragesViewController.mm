@@ -72,11 +72,18 @@
         [addButton.trailingAnchor constraintEqualToAnchor:self.view.layoutMarginsGuide.trailingAnchor],
         [addButton.bottomAnchor constraintEqualToAnchor:self.view.layoutMarginsGuide.bottomAnchor]
     ]];
+    
+    [self _didChangeConfiguration];
 }
 
 - (void)setConfiguration:(VZVirtualMachineConfiguration *)configuration {
     [_configuration release];
     _configuration = [configuration copy];
+    
+    [self _didChangeConfiguration];
+}
+
+- (void)_didChangeConfiguration {
     [self.tableView reloadData];
 }
 

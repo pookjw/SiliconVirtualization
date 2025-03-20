@@ -25,3 +25,6 @@
 #import "SVMacMachineIdentifier.h"
 #import "SVGenericPlatformConfiguration.h"
 #import "SVGenericMachineIdentifier.h"
+#import "SVKeyboardConfiguration.h"
+#import "SVMacKeyboardConfiguration.h"
+#import "SVUSBKeyboardConfiguration.h"

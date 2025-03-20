@@ -10,6 +10,7 @@
 #import "SVStorageDeviceConfiguration.h"
 #import "SVBootLoader.h"
 #import "SVPlatformConfiguration.h"
+#import "SVKeyboardConfiguration.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -20,6 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (copy, nonatomic, nullable) NSDate *timestamp;
 @property (retain, nonatomic, nullable) SVBootLoader *bootLoader;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVGraphicsDeviceConfiguration *> *graphicsDevices;
+@property (retain, nonatomic, nullable) NSOrderedSet<SVKeyboardConfiguration *> *keyboards;
 @property (retain, nonatomic, nullable) SVPlatformConfiguration *platform;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVStorageDeviceConfiguration *> *storageDevices;
 
@@ -33,6 +35,17 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)removeGraphicsDevicesObject:(SVGraphicsDeviceConfiguration *)value;
 - (void)addGraphicsDevices:(NSOrderedSet<SVGraphicsDeviceConfiguration *> *)values;
 - (void)removeGraphicsDevices:(NSOrderedSet<SVGraphicsDeviceConfiguration *> *)values;
+
+- (void)insertObject:(SVKeyboardConfiguration *)value inKeyboardsAtIndex:(NSUInteger)idx;
+- (void)removeObjectFromKeyboardsAtIndex:(NSUInteger)idx;
+- (void)insertKeyboards:(NSArray<SVKeyboardConfiguration *> *)value atIndexes:(NSIndexSet *)indexes;
+- (void)removeKeyboardsAtIndexes:(NSIndexSet *)indexes;
+- (void)replaceObjectInKeyboardsAtIndex:(NSUInteger)idx withObject:(SVKeyboardConfiguration *)value;
+- (void)replaceKeyboardsAtIndexes:(NSIndexSet *)indexes withKeyboards:(NSArray<SVKeyboardConfiguration *> *)values;
+- (void)addKeyboardsObject:(SVKeyboardConfiguration *)value;
+- (void)removeKeyboardsObject:(SVKeyboardConfiguration *)value;
+- (void)addKeyboards:(NSOrderedSet<SVKeyboardConfiguration *> *)values;
+- (void)removeKeyboards:(NSOrderedSet<SVKeyboardConfiguration *> *)values;
 
 - (void)insertObject:(SVStorageDeviceConfiguration *)value inStorageDevicesAtIndex:(NSUInteger)idx;
 - (void)removeObjectFromStorageDevicesAtIndex:(NSUInteger)idx;

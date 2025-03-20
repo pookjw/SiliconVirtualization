@@ -51,6 +51,8 @@
         [gridView.trailingAnchor constraintLessThanOrEqualToAnchor:self.view.trailingAnchor],
         [gridView.bottomAnchor constraintLessThanOrEqualToAnchor:self.view.bottomAnchor]
     ]];
+    
+    [self _didChangeConfiguration];
 }
 
 - (void)setConfiguration:(VZVirtualMachineConfiguration *)configuration {

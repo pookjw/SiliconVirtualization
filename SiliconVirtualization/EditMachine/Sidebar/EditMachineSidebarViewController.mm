@@ -158,6 +158,7 @@
     EditMachineSidebarItemModel *platformItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypePlatform];
     EditMachineSidebarItemModel *CPUItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeCPU];
     EditMachineSidebarItemModel *memoryItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeMemory];
+    EditMachineSidebarItemModel *keyboardsItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeKeyboards];
     EditMachineSidebarItemModel *graphicsItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeGraphics];
     EditMachineSidebarItemModel *storagesItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeStorages];
     
@@ -166,6 +167,7 @@
         platformItemModel,
         CPUItemModel,
         memoryItemModel,
+        keyboardsItemModel,
         graphicsItemModel,
         storagesItemModel
     ]
@@ -175,6 +177,7 @@
     [platformItemModel release];
     [CPUItemModel release];
     [memoryItemModel release];
+    [keyboardsItemModel release];
     [graphicsItemModel release];
     [storagesItemModel release];
     

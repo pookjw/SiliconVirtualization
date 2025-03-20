@@ -150,14 +150,26 @@
 }
 
 - (void)_updateTextFields {
-    VZMacGraphicsDisplayConfiguration *configuration = self.configuration;
-    self.heightInPixelsTextField.stringValue = @(configuration.heightInPixels).stringValue;
-    self.widthInPixelsTextField.stringValue = @(configuration.widthInPixels).stringValue;
-    self.pixelsPerInchTextField.stringValue = @(configuration.pixelsPerInch).stringValue;
+    VZMacGraphicsDisplayConfiguration * _Nullable configuration = self.configuration;
+    
+    if (configuration != nil) {
+        self.heightInPixelsTextField.hidden = NO;
+        self.widthInPixelsTextField.hidden = NO;
+        self.pixelsPerInchTextField.hidden = NO;
+        
+        self.heightInPixelsTextField.stringValue = @(configuration.heightInPixels).stringValue;
+        self.widthInPixelsTextField.stringValue = @(configuration.widthInPixels).stringValue;
+        self.pixelsPerInchTextField.stringValue = @(configuration.pixelsPerInch).stringValue;
+    } else {
+        self.heightInPixelsTextField.hidden = YES;
+        self.widthInPixelsTextField.hidden = YES;
+        self.pixelsPerInchTextField.hidden = YES;
+    }
 }
 
 - (void)controlTextDidEndEditing:(NSNotification *)obj {
     VZMacGraphicsDisplayConfiguration *configuration = [self.configuration copy];
+    assert(configuration != nil);
     
     if ([self.heightInPixelsTextField isEqual:obj.object]) {
         configuration.heightInPixels = self.heightInPixelsTextField.stringValue.integerValue;

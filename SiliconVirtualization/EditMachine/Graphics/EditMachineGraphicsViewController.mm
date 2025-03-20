@@ -67,6 +67,12 @@
     [_configuration release];
     _configuration = [configuration copy];
     
+    [self _didChangeConfiguration];
+}
+
+- (void)_didChangeConfiguration {
+    VZVirtualMachineConfiguration *configuration = self.configuration;
+    
     self.devicesViewController.graphicsDevices = self.configuration.graphicsDevices;
     
     NSInteger selectedDeviceIndex = self.selectedDeviceIndex;
@@ -92,6 +98,8 @@
     splitViewController.view.frame = self.view.bounds;
     splitViewController.view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
     [self.view addSubview:splitViewController.view];
+    
+    [self _didChangeConfiguration];
 }
 
 - (NSSplitViewController *)_splitViewController {

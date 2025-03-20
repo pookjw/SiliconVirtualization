@@ -55,8 +55,6 @@
         [createButton.trailingAnchor constraintEqualToAnchor:self.view.layoutMarginsGuide.trailingAnchor],
         [createButton.bottomAnchor constraintEqualToAnchor:self.view.layoutMarginsGuide.bottomAnchor]
     ]];
-    
-    [self _didChangeDelegate];
 }
 
 - (void)setGraphicsDevices:(NSArray<__kindof VZGraphicsDeviceConfiguration *> *)graphicsDevices {
@@ -67,11 +65,6 @@
     NSInteger selectedRow = tableView.selectedRow;
     [tableView reloadData];
     [tableView selectRowIndexes:[NSIndexSet indexSetWithIndex:selectedRow] byExtendingSelection:NO];
-}
-
-- (void)setDelegate:(id<EditMachineGraphicsDevicesViewControllerDelegate>)delegate {
-    _delegate = delegate;
-    [self _didChangeDelegate];
 }
 
 - (NSTableView *)_tableView {
@@ -122,10 +115,6 @@
     [NSMenu popUpContextMenu:[self _makeCreateButtonMenu] withEvent:sender.window.currentEvent forView:sender];
 }
 
-- (void)_didChangeDelegate {
-    self.createButton.hidden = (self.delegate == nil);
-}
-
 - (NSMenu *)_makeCreateButtonMenu {
     NSMenu *menu = [NSMenu new];
     
@@ -155,7 +144,11 @@
     VZMacGraphicsDeviceConfiguration *configuration = [[VZMacGraphicsDeviceConfiguration alloc] init];
     NSArray<__kindof VZGraphicsDeviceConfiguration *> *graphicsDevices = [self.graphicsDevices arrayByAddingObject:configuration];
     self.graphicsDevices = graphicsDevices;
-    [delegate editMachineGraphicsDevicesViewController:self didUpdateGraphicsDevices:graphicsDevices];
+    
+    if (auto delegate = self.delegate) {
+        [delegate editMachineGraphicsDevicesViewController:self didUpdateGraphicsDevices:graphicsDevices];
+    }
+    
     [configuration release];
 }
 
@@ -166,7 +159,11 @@
     VZVirtioGraphicsDeviceConfiguration *configuration = [[VZVirtioGraphicsDeviceConfiguration alloc] init];
     NSArray<__kindof VZGraphicsDeviceConfiguration *> *graphicsDevices = [self.graphicsDevices arrayByAddingObject:configuration];
     self.graphicsDevices = graphicsDevices;
-    [delegate editMachineGraphicsDevicesViewController:self didUpdateGraphicsDevices:graphicsDevices];
+    
+    if (auto delegate = self.delegate) {
+        [delegate editMachineGraphicsDevicesViewController:self didUpdateGraphicsDevices:graphicsDevices];
+    }
+    
     [configuration release];
 }
 

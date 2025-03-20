@@ -20,6 +20,7 @@
     virtualMachineConfigurationObject.cpuCount = @(virtualMachineConfiguration.CPUCount);
     virtualMachineConfigurationObject.memorySize = @(virtualMachineConfiguration.memorySize);
     
+    virtualMachineConfigurationObject.keyboards = [self _isolated_makeManagedObjectsFromKeyboards:virtualMachineConfiguration.keyboards];
     virtualMachineConfigurationObject.graphicsDevices = [self _isolated_makeManagedObjectsFromGraphicsDevices:virtualMachineConfiguration.graphicsDevices];
     virtualMachineConfigurationObject.storageDevices = [self _isolated_makeManagedObjectsFromStorageDevices:virtualMachineConfiguration.storageDevices];
     
@@ -141,6 +142,27 @@
     
     //
     
+    NSMutableArray<__kindof VZKeyboardConfiguration *> *keyboards = [[NSMutableArray alloc] initWithCapacity:virtualMachineConfigurationObject.keyboards.count];
+    
+    for (__kindof SVKeyboardConfiguration *keyboardConfigurationObject in virtualMachineConfigurationObject.keyboards) {
+        if ([keyboardConfigurationObject isKindOfClass:[SVMacKeyboardConfiguration class]]) {
+            VZMacKeyboardConfiguration *macKeyboardConfiguration = [[VZMacKeyboardConfiguration alloc] init];
+            [keyboards addObject:macKeyboardConfiguration];
+            [macKeyboardConfiguration release];
+        } else if ([keyboardConfigurationObject isKindOfClass:[SVUSBKeyboardConfiguration class]]) {
+            VZUSBKeyboardConfiguration *usbKeyboardConfiguration = [[VZUSBKeyboardConfiguration alloc] init];
+            [keyboards addObject:usbKeyboardConfiguration];
+            [usbKeyboardConfiguration release];
+        } else {
+            abort();
+        }
+    }
+    
+    virtualMachineConfiguration.keyboards = keyboards;
+    [keyboards release];
+    
+    //
+    
     NSMutableArray<__kindof VZGraphicsDeviceConfiguration *> *graphicsDevices = [[NSMutableArray alloc] initWithCapacity:virtualMachineConfigurationObject.graphicsDevices.count];
     
     for (__kindof SVGraphicsDeviceConfiguration *graphicsDeviceConfigurationObject in virtualMachineConfigurationObject.graphicsDevices) {
@@ -256,6 +278,7 @@
     [virtualMachineConfiguration removeGraphicsDevicesAtIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, virtualMachineConfiguration.graphicsDevices.count)]];
     [virtualMachineConfiguration removeStorageDevicesAtIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, virtualMachineConfiguration.storageDevices.count)]];
     
+    virtualMachineConfiguration.keyboards = [self _isolated_makeManagedObjectsFromKeyboards:machineConfiguration.keyboards];
     virtualMachineConfiguration.graphicsDevices = [self _isolated_makeManagedObjectsFromGraphicsDevices:machineConfiguration.graphicsDevices];
     virtualMachineConfiguration.storageDevices = [self _isolated_makeManagedObjectsFromStorageDevices:machineConfiguration.storageDevices];
 }
@@ -332,7 +355,28 @@
     return [platformConfigurationObject autorelease];
 }
 
-- (NSOrderedSet<__kindof SVGraphicsDeviceConfiguration *> *)_isolated_makeManagedObjectsFromGraphicsDevices:(NSArray<VZGraphicsDeviceConfiguration *> *)graphicsDevices {
+- (NSOrderedSet<__kindof SVKeyboardConfiguration *> *)_isolated_makeManagedObjectsFromKeyboards:(NSArray<__kindof VZKeyboardConfiguration *> *)keyboards {
+    NSManagedObjectContext *managedObjectContext = self.backgroundContext;
+    NSMutableOrderedSet<__kindof SVKeyboardConfiguration *> *keyboardObjects = [[NSMutableOrderedSet alloc] initWithCapacity:keyboards.count];
+    
+    for (__kindof VZKeyboardConfiguration *keyboard in keyboards) {
+        if ([keyboard isKindOfClass:[VZMacKeyboardConfiguration class]]) {
+            SVMacKeyboardConfiguration *macKeyboardConfiguration = [[SVMacKeyboardConfiguration alloc] initWithContext:managedObjectContext];
+            [keyboardObjects addObject:macKeyboardConfiguration];
+            [macKeyboardConfiguration release];
+        } else if ([keyboard isKindOfClass:[VZUSBKeyboardConfiguration class]]) {
+            SVUSBKeyboardConfiguration *usbKeyboardConfiguration = [[SVUSBKeyboardConfiguration alloc] initWithContext:managedObjectContext];
+            [keyboardObjects addObject:usbKeyboardConfiguration];
+            [usbKeyboardConfiguration release];
+        } else {
+            abort();
+        }
+    }
+    
+    return [keyboardObjects autorelease];
+}
+
+- (NSOrderedSet<__kindof SVGraphicsDeviceConfiguration *> *)_isolated_makeManagedObjectsFromGraphicsDevices:(NSArray<__kindof VZGraphicsDeviceConfiguration *> *)graphicsDevices {
     NSManagedObjectContext *managedObjectContext = self.backgroundContext;
     NSMutableOrderedSet<__kindof SVGraphicsDeviceConfiguration *> *graphicsDeviceObjects = [[NSMutableOrderedSet alloc] initWithCapacity:graphicsDevices.count];
     

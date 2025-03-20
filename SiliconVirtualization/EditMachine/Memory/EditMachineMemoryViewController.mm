@@ -50,14 +50,18 @@
         [gridView.bottomAnchor constraintLessThanOrEqualToAnchor:self.view.bottomAnchor]
     ]];
     
-    self.memorySizeControl.unsignedInt64Value = self.configuration.memorySize;
+    [self _didChangeConfiguration];
 }
 
 - (void)setConfiguration:(VZVirtualMachineConfiguration *)configuration {
     [_configuration release];
     _configuration = [configuration copy];
     
-    self.memorySizeControl.unsignedInt64Value = configuration.memorySize;
+    [self _didChangeConfiguration];
+}
+
+- (void)_didChangeConfiguration {
+    self.memorySizeControl.unsignedInt64Value = self.configuration.memorySize;
 }
 
 - (NSGridView *)_gridView {

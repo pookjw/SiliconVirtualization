@@ -48,12 +48,18 @@
         [stackView.trailingAnchor constraintLessThanOrEqualToAnchor:self.view.trailingAnchor],
         [stackView.bottomAnchor constraintLessThanOrEqualToAnchor:self.view.bottomAnchor]
     ]];
+    
+    [self _didChangeConfiguration];
 }
 
 - (void)setConfiguration:(VZVirtualMachineConfiguration *)configuration {
     [_configuration release];
     _configuration = [configuration copy];
     
+    [self _didChangeConfiguration];
+}
+
+- (void)_didChangeConfiguration {
     if (__kindof VZBootLoader *bootLoader = self.configuration.bootLoader) {
         self.currentBootLoaderLabel.stringValue = bootLoader.description;
     } else {

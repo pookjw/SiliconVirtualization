@@ -105,6 +105,10 @@
             textField.stringValue = @"Memory";
             break;
         }
+        case EditMachineSidebarItemModelTypeKeyboards: {
+            textField.stringValue = @"Keyboards";
+            break;
+        }
         case EditMachineSidebarItemModelTypeGraphics: {
             textField.stringValue = @"Graphics";
             break;
@@ -133,6 +137,10 @@
         }
         case EditMachineSidebarItemModelTypeCPU: {
             imageView.image = [NSImage imageWithSystemSymbolName:selected ? @"cpu.fill" : @"cpu" accessibilityDescription:nil];
+            break;
+        }
+        case EditMachineSidebarItemModelTypeKeyboards: {
+            imageView.image = [NSImage imageWithSystemSymbolName:selected ? @"keyboard.fill" : @"keyboard" accessibilityDescription:nil];
             break;
         }
         case EditMachineSidebarItemModelTypeMemory: {

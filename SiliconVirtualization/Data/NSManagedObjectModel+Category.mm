@@ -8,8 +8,6 @@
 #import "NSManagedObjectModel+Category.h"
 #import "Model.h"
 
-#warning TODO BootLoader Entities
-
 @implementation NSManagedObjectModel (Category)
 
 + (NSManagedObjectModel *)sv_makeManagedObjectModel {
@@ -321,6 +319,29 @@
         
         genericMachineIdentifierEntity.properties = @[dataRepresentationAttribute];
         [dataRepresentationAttribute release];
+    }
+    
+    NSEntityDescription *usbKeyboardConfigurationEntity;
+    {
+        usbKeyboardConfigurationEntity = [NSEntityDescription new];
+        usbKeyboardConfigurationEntity.name = @"USBKeyboardConfiguration";
+        usbKeyboardConfigurationEntity.managedObjectClassName = NSStringFromClass([SVUSBKeyboardConfiguration class]);
+    }
+    
+    NSEntityDescription *macKeyboardConfigurationEntity;
+    {
+        macKeyboardConfigurationEntity = [NSEntityDescription new];
+        macKeyboardConfigurationEntity.name = @"MacKeyboardConfiguration";
+        macKeyboardConfigurationEntity.managedObjectClassName = NSStringFromClass([SVMacKeyboardConfiguration class]);
+    }
+    
+    NSEntityDescription *keyboardConfigurationEntity;
+    {
+        keyboardConfigurationEntity = [NSEntityDescription new];
+        keyboardConfigurationEntity.name = @"KeyboardConfiguration";
+        keyboardConfigurationEntity.managedObjectClassName = NSStringFromClass([SVKeyboardConfiguration class]);
+        keyboardConfigurationEntity.abstract = YES;
+        keyboardConfigurationEntity.subentities = @[usbKeyboardConfigurationEntity ,macKeyboardConfigurationEntity];
     }
     
     //
@@ -648,6 +669,36 @@
         [genericMachineIdentifier_platform_relationship release];
     }
     
+    {
+        NSRelationshipDescription *virtualMachineConfiguration_keyboards_relationship = [NSRelationshipDescription new];
+        virtualMachineConfiguration_keyboards_relationship.name = @"keyboards";
+        virtualMachineConfiguration_keyboards_relationship.optional = YES;
+        virtualMachineConfiguration_keyboards_relationship.minCount = 0;
+        virtualMachineConfiguration_keyboards_relationship.maxCount = 0;
+        assert(virtualMachineConfiguration_keyboards_relationship.toMany);
+        virtualMachineConfiguration_keyboards_relationship.ordered = YES;
+        virtualMachineConfiguration_keyboards_relationship.destinationEntity = keyboardConfigurationEntity;
+        virtualMachineConfiguration_keyboards_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *keyboardConfiguration_machine_relationship = [NSRelationshipDescription new];
+        keyboardConfiguration_machine_relationship.name = @"machine";
+        keyboardConfiguration_machine_relationship.optional = YES;
+        keyboardConfiguration_machine_relationship.minCount = 0;
+        keyboardConfiguration_machine_relationship.maxCount = 1;
+        assert(!keyboardConfiguration_machine_relationship.toMany);
+        keyboardConfiguration_machine_relationship.destinationEntity = virtualMachineConfigurationEntity;
+        keyboardConfiguration_machine_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        virtualMachineConfiguration_keyboards_relationship.inverseRelationship = keyboardConfiguration_machine_relationship;
+        keyboardConfiguration_machine_relationship.inverseRelationship = virtualMachineConfiguration_keyboards_relationship;
+        
+        virtualMachineConfigurationEntity.properties = [virtualMachineConfigurationEntity.properties arrayByAddingObject:virtualMachineConfiguration_keyboards_relationship];
+        keyboardConfigurationEntity.properties = [keyboardConfigurationEntity.properties arrayByAddingObject:keyboardConfiguration_machine_relationship];
+        
+        [virtualMachineConfiguration_keyboards_relationship release];
+        [keyboardConfiguration_machine_relationship release];
+    }
+    
     //
     
     managedObjectModel.entities = @[
@@ -670,7 +721,10 @@
         macPlatformConfigurationEntity,
         genericPlatformConfigurationEntity,
         platformConfigurationEntity,
-        genericMachineIdentifierEntity
+        genericMachineIdentifierEntity,
+        usbKeyboardConfigurationEntity,
+        macKeyboardConfigurationEntity,
+        keyboardConfigurationEntity
     ];
     
     [macOSBootLoaderEntity release];
@@ -693,6 +747,9 @@
     [genericPlatformConfigurationEntity release];
     [platformConfigurationEntity release];
     [genericMachineIdentifierEntity release];
+    [usbKeyboardConfigurationEntity release];
+    [macKeyboardConfigurationEntity release];
+    [keyboardConfigurationEntity release];
     
     return [managedObjectModel autorelease];
 }

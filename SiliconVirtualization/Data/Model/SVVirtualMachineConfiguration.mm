@@ -17,6 +17,7 @@
 @dynamic timestamp;
 @dynamic bootLoader;
 @dynamic graphicsDevices;
+@dynamic keyboards;
 @dynamic platform;
 @dynamic storageDevices;
 

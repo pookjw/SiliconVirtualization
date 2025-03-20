@@ -101,11 +101,19 @@
         [gridView.trailingAnchor constraintLessThanOrEqualToAnchor:self.view.trailingAnchor],
         [gridView.bottomAnchor constraintLessThanOrEqualToAnchor:self.view.bottomAnchor]
     ]];
+    
+    [self _didChangeConfiguration];
 }
 
 - (void)setConfiguration:(VZVirtualMachineConfiguration *)configuration {
     [_configuration release];
     _configuration = [configuration copy];
+    
+    [self _didChangeConfiguration];
+}
+
+- (void)_didChangeConfiguration {
+    VZVirtualMachineConfiguration *configuration = self.configuration;
     
     __kindof VZPlatformConfiguration *platform = configuration.platform;
     if ([platform isKindOfClass:[VZGenericPlatformConfiguration class]]) {
