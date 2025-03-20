@@ -8,6 +8,8 @@
 #import <Cocoa/Cocoa.h>
 #import "AppDelegate.h"
 
+#warning _VZIOUSBHostPassthroughDeviceConfiguration (VZUSBDeviceConfiguration)
+
 int main(int argc, const char * argv[]) {
     AppDelegate *delegate = [AppDelegate new];
     NSApplication *application = NSApplication.sharedApplication;

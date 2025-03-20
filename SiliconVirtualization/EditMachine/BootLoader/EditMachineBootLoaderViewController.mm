@@ -20,6 +20,8 @@
 
 - (instancetype)initWithConfiguration:(VZVirtualMachineConfiguration *)configuration {
     if (self = [super init]) {
+        VZXHCIControllerConfiguration *config = [[VZXHCIControllerConfiguration alloc] init];
+        
         _configuration = [configuration copy];
     }
     
