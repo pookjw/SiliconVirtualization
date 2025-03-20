@@ -17,9 +17,6 @@
         self.title = @"Create";
         self.releasedWhenClosed = NO;
         self.contentMinSize = NSMakeSize(400., 600.);
-        self.canBecomeVisibleWithoutLogin = YES;
-        self.restorable = YES;
-        self.allowsConcurrentViewDrawing = YES;
         
         CreateMachineViewController *contentViewController = [CreateMachineViewController new];
         self.contentViewController = contentViewController;

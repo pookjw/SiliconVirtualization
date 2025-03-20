@@ -76,7 +76,10 @@
                                                     bookmarkDataIsStale:&stale
                                                                   error:&error];
                 assert(error == nil);
-                assert(!stale);
+                
+                if (stale) {
+                    URL = [self _refreshStaleURL:URL];
+                }
                 
                 assert([URL startAccessingSecurityScopedResource]);
                 VZMacAuxiliaryStorage *macAuxiliaryStorage = [[VZMacAuxiliaryStorage alloc] initWithURL:URL];
@@ -205,7 +208,10 @@
                                                 bookmarkDataIsStale:&stale
                                                               error:&error];
             assert(error == nil);
-            assert(!stale);
+           
+            if (stale) {
+                URL = [self _refreshStaleURL:URL];
+            }
             
             assert([URL startAccessingSecurityScopedResource]);
             attachment = [[VZDiskImageStorageDeviceAttachment alloc] initWithURL:URL
@@ -417,6 +423,25 @@
     }
     
     return [storageDeviceObjects autorelease];
+}
+
+- (NSURL *)_refreshStaleURL:(NSURL *)URL NS_RETURNS_RETAINED {
+    __block NSURL *newURL;
+    dispatch_sync(dispatch_get_main_queue(), ^{
+        NSOpenPanel *openPanel = [NSOpenPanel new];
+        
+        openPanel.canChooseFiles = YES;
+        openPanel.canChooseDirectories = NO;
+        openPanel.directoryURL = URL;
+        
+        [openPanel runModal];
+        
+        newURL = [openPanel.URL copy];
+        assert(newURL != nil);
+        [openPanel release];
+    });
+    
+    return newURL;
 }
 
 @end

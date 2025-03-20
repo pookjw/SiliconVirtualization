@@ -9,6 +9,7 @@
 #include <ranges>
 #import <objc/message.h>
 #import <objc/runtime.h>
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 @interface EditMachinePlatformViewController ()
 @property (retain, nonatomic, readonly, getter=_gridView) NSGridView *gridView;
@@ -26,6 +27,10 @@
 @property (retain, nonatomic, readonly, getter=_macOS_machineIdentifierLabel) NSTextField *macOS_machineIdentifierLabel;
 @property (retain, nonatomic, readonly, getter=_macOS_machineIdentifierECIDLabel) NSTextField *macOS_machineIdentifierECIDLabel;
 @property (retain, nonatomic, readonly, getter=_macOS_regenerateMachineIdentifierButton) NSButton *macOS_regenerateMachineIdentifierButton;
+
+@property (retain, nonatomic, readonly, getter=_macOS_hardwareModelLabel) NSTextField *macOS_hardwareModelLabel;
+@property (retain, nonatomic, readonly, getter=_macOS_hardwareModelPlatformVersionLabel) NSTextField *macOS_hardwareModelPlatformVersionLabel;
+@property (retain, nonatomic, readonly, getter=_macOS_hardwareModelButton) NSButton *macOS_hardwareModelButton;
 
 @property (retain, nonatomic, readonly, getter=_macOS_auxiliaryStorageLabel) NSTextField *macOS_auxiliaryStorageLabel;
 @property (retain, nonatomic, readonly, getter=_macOS_auxiliaryStorageURLLabel) NSTextField *macOS_auxiliaryStorageURLLabel;
@@ -47,6 +52,9 @@
 @synthesize macOS_auxiliaryStorageLabel = _macOS_auxiliaryStorageLabel;
 @synthesize macOS_auxiliaryStorageURLLabel = _macOS_auxiliaryStorageURLLabel;
 @synthesize macOS_auxiliaryStorageMenuButton = _macOS_auxiliaryStorageMenuButton;
+@synthesize macOS_hardwareModelLabel = _macOS_hardwareModelLabel;
+@synthesize macOS_hardwareModelPlatformVersionLabel = _macOS_hardwareModelPlatformVersionLabel;
+@synthesize macOS_hardwareModelButton = _macOS_hardwareModelButton;
 
 - (instancetype)initWithConfiguration:(VZVirtualMachineConfiguration *)configuration {
     if (self = [super initWithNibName:nil bundle:nil]) {
@@ -72,6 +80,10 @@
     [_macOS_auxiliaryStorageLabel release];
     [_macOS_auxiliaryStorageURLLabel release];
     [_macOS_auxiliaryStorageMenuButton release];
+    [_macOS_hardwareModelLabel release];
+    [_macOS_hardwareModelPlatformVersionLabel release];
+    [_macOS_hardwareModelButton release];
+    
     [super dealloc];
 }
 
@@ -303,6 +315,81 @@
     [configuration release];
 }
 
+- (NSTextField *)_macOS_hardwareModelLabel {
+    if (auto macOS_hardwareModelLabel = _macOS_hardwareModelLabel) return macOS_hardwareModelLabel;
+    
+    NSTextField *macOS_hardwareModelLabel = [NSTextField wrappingLabelWithString:@"Hardware Model"];
+    macOS_hardwareModelLabel.selectable = NO;
+    
+    _macOS_hardwareModelLabel = [macOS_hardwareModelLabel retain];
+    return macOS_hardwareModelLabel;
+}
+
+- (NSTextField *)_macOS_hardwareModelPlatformVersionLabel {
+    if (auto macOS_hardwareModelPlatformVersionLabel = _macOS_hardwareModelPlatformVersionLabel) return macOS_hardwareModelPlatformVersionLabel;
+    
+    NSTextField *macOS_hardwareModelPlatformVersionLabel = [NSTextField wrappingLabelWithString:@"(null)"];
+    macOS_hardwareModelPlatformVersionLabel.selectable = NO;
+    
+    _macOS_hardwareModelPlatformVersionLabel = [macOS_hardwareModelPlatformVersionLabel retain];
+    return macOS_hardwareModelPlatformVersionLabel;
+}
+
+- (NSButton *)_macOS_hardwareModelButton {
+    if (auto macOS_hardwareModelButton = _macOS_hardwareModelButton) return macOS_hardwareModelButton;
+    
+    NSButton *macOS_hardwareModelButton = [NSButton new];
+    macOS_hardwareModelButton.title = @"Open IPSW";
+    macOS_hardwareModelButton.target = self;
+    macOS_hardwareModelButton.action = @selector(_macOS_didTriggerHardwareModelButton:);
+    
+    _macOS_hardwareModelButton = macOS_hardwareModelButton;
+    return macOS_hardwareModelButton;
+}
+
+- (void)_macOS_didTriggerHardwareModelButton:(NSButton *)sender {
+    NSOpenPanel *openPanel = [NSOpenPanel new];
+    openPanel.canChooseFiles = YES;
+    openPanel.canChooseDirectories = NO;
+    openPanel.resolvesAliases = YES;
+    openPanel.allowsMultipleSelection = NO;
+    openPanel.allowedContentTypes = @[[UTType typeWithIdentifier:@"com.apple.itunes.ipsw"]];
+    
+#warning TODO Indicator
+    
+    [openPanel beginSheetModalForWindow:self.view.window completionHandler:^(NSModalResponse result) {
+        if (NSURL *URL = openPanel.URL) {
+            [VZMacOSRestoreImage loadFileURL:URL completionHandler:^(VZMacOSRestoreImage * _Nullable restoreImage, NSError * _Nullable error) {
+                assert(error == nil);
+                
+                VZMacOSConfigurationRequirements *mostFeaturefulSupportedConfiguration = restoreImage.mostFeaturefulSupportedConfiguration;
+                assert(mostFeaturefulSupportedConfiguration != nil);
+                VZMacHardwareModel *hardwareModel = mostFeaturefulSupportedConfiguration.hardwareModel;
+                assert(hardwareModel.supported);
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    VZVirtualMachineConfiguration *configuration = [self.configuration copy];
+                    auto platformConfiguration = static_cast<VZMacPlatformConfiguration *>(configuration.platform);
+                    assert([platformConfiguration isKindOfClass:[VZMacPlatformConfiguration class]]);
+                    
+                    platformConfiguration.hardwareModel = hardwareModel;
+                    
+                    configuration.platform = platformConfiguration;
+                    self.configuration = configuration;
+                    
+                    if (auto delegate = self.delegate) {
+                        [delegate editMachinePlatformViewController:self didUpdateConfiguration:configuration];
+                    }
+                    
+                    [configuration release];
+                });
+            }];
+        }
+    }];
+    
+    [openPanel release];
+}
+
 - (NSTextField *)_macOS_auxiliaryStorageLabel {
     if (auto macOS_auxiliaryStorageLabel = _macOS_auxiliaryStorageLabel) return macOS_auxiliaryStorageLabel;
     
@@ -368,7 +455,7 @@
     NSMenuItem *createNewItem = [NSMenuItem new];
     createNewItem.title = @"Create new...";
     createNewItem.target = self;
-    createNewItem.action = @selector(_macOS_didTriggerCreateNewuxiliaryStorageItem:);
+    createNewItem.action = @selector(_macOS_didTriggerCreateNewAuxiliaryStorageItem:);
     [menu addItem:createNewItem];
     [createNewItem release];
     
@@ -407,17 +494,15 @@
     [panel release];
 }
 
-- (void)_macOS_didTriggerCreateNewuxiliaryStorageItem:(NSMenuItem *)sender {
-    NSSavePanel *panel = [NSSavePanel new];
+- (void)_macOS_didTriggerCreateNewAuxiliaryStorageItem:(NSMenuItem *)sender {
+    NSSavePanel *savePanel = [NSSavePanel new];
     
-    [panel beginSheetModalForWindow:self.view.window completionHandler:^(NSModalResponse result) {
-        if (NSURL *URL = panel.URL) {
+    [savePanel beginSheetModalForWindow:self.view.window completionHandler:^(NSModalResponse result) {
+        if (NSURL *URL = savePanel.URL) {
             VZVirtualMachineConfiguration *configuration = [self.configuration copy];
-            
             auto platformConfiguration = static_cast<VZMacPlatformConfiguration *>(configuration.platform);
             assert([platformConfiguration isKindOfClass:[VZMacPlatformConfiguration class]]);
             
-#warning TODO https://x.com/_silgen_name/status/1902379843045748996
             NSError * _Nullable error = nil;
             VZMacAuxiliaryStorage *auxiliaryStorage = [[VZMacAuxiliaryStorage alloc] initCreatingStorageAtURL:URL hardwareModel:platformConfiguration.hardwareModel options:VZMacAuxiliaryStorageInitializationOptionAllowOverwrite error:&error];
             assert(error == nil);
@@ -436,7 +521,7 @@
         }
     }];
     
-    [panel release];
+    [savePanel release];
 }
 
 - (void)_setupGridViewWithGenericPlatform {
@@ -475,8 +560,24 @@
     [self _removeGridRowsWithoutCommonRows];
     
     NSGridView *gridView = self.gridView;
-    [gridView addRowWithViews:@[self.macOS_machineIdentifierLabel, self.macOS_machineIdentifierECIDLabel, self.macOS_regenerateMachineIdentifierButton]];
-    [gridView addRowWithViews:@[self.macOS_auxiliaryStorageLabel, self.macOS_auxiliaryStorageURLLabel, self.macOS_auxiliaryStorageMenuButton]];
+    
+    [gridView addRowWithViews:@[
+        self.macOS_machineIdentifierLabel,
+        self.macOS_machineIdentifierECIDLabel,
+        self.macOS_regenerateMachineIdentifierButton
+    ]];
+    
+    [gridView addRowWithViews:@[
+        self.macOS_hardwareModelLabel,
+        self.macOS_hardwareModelPlatformVersionLabel,
+        self.macOS_hardwareModelButton
+    ]];
+    
+    [gridView addRowWithViews:@[
+        self.macOS_auxiliaryStorageLabel,
+        self.macOS_auxiliaryStorageURLLabel,
+        self.macOS_auxiliaryStorageMenuButton
+    ]];
     
     //
     
@@ -491,6 +592,21 @@
         NSUInteger ECID = reinterpret_cast<NSUInteger (*)(id, SEL)>(objc_msgSend)(platformConfiguration.machineIdentifier, sel_registerName("_ECID"));
         assert(ECID != 0);
         self.macOS_machineIdentifierECIDLabel.stringValue = @(ECID).stringValue;
+    }
+    
+    {
+        NSData *dataRepresentation = platformConfiguration.hardwareModel.dataRepresentation;
+        NSError * _Nullable error = nil;
+        NSDictionary<NSString *, id> *dic = [NSPropertyListSerialization propertyListWithData:dataRepresentation options:0 format:NULL error:&error];
+        assert(error == nil);
+        
+        auto platformVersionNumber = static_cast<NSNumber *>(dic[@"PlatformVersion"]);
+        
+        if (platformVersionNumber) {
+            self.macOS_hardwareModelPlatformVersionLabel.stringValue = platformVersionNumber.stringValue;
+        } else {
+            self.macOS_hardwareModelPlatformVersionLabel.stringValue = @"(null)";
+        }
     }
     
     {

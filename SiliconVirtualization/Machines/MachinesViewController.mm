@@ -14,10 +14,13 @@
 #import "EditMachineConfigurationObjectWindow.h"
 #import "SVCoreDataStack+VirtualizationSupport.h"
 #import <Virtualization/Virtualization.h>
+#import "InstallMacOSViewController.h"
+#import "VirtualMachineWindow.h"
 
 OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self class] }; */
 
-@interface MachinesViewController () <NSToolbarDelegate, NSCollectionViewDelegate, NSMenuDelegate>
+@interface MachinesViewController () <NSToolbarDelegate, NSCollectionViewDelegate, NSMenuDelegate, InstallMacOSViewControllerDelegate>
+@property (class, nonatomic, readonly, getter=_installationKey) void *installationKey;
 @property (class, nonatomic, readonly, getter=_itemIdentifier) NSUserInterfaceItemIdentifier itemIdentifier;
 @property (retain, nonatomic, readonly, getter=_scrollView) NSScrollView *scrollView;
 @property (retain, nonatomic, readonly, getter=_collectionView) NSCollectionView *collectionView;
@@ -33,6 +36,11 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
 @synthesize toolbar = _toolbar;
 @synthesize viewModel = _viewModel;
 @synthesize dataSource = _dataSource;
+
++ (void *)_installationKey {
+    static void *key = &key;
+    return key;
+}
 
 + (NSUserInterfaceItemIdentifier)_itemIdentifier {
     return NSStringFromClass([MachinesCollectionViewItem class]);
@@ -259,6 +267,13 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     [menu addItem:validateItem];
     [validateItem release];
     
+    NSMenuItem *installMacOSItem = [NSMenuItem new];
+    installMacOSItem.title = @"Install macOS";
+    installMacOSItem.target = self;
+    installMacOSItem.action = @selector(_didTriggerInstallMacOSItem:);
+    [menu addItem:installMacOSItem];
+    [installMacOSItem release];
+    
     NSMenuItem *runItem = [NSMenuItem new];
     runItem.title = @"Run";
     runItem.target = self;
@@ -322,8 +337,59 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     self.menuIndexPath = nil;
 }
 
-- (void)_didTriggerRunItem:(NSMenuItem *)sender {
+- (void)_didTriggerInstallMacOSItem:(NSMenuItem *)sender {
+    NSIndexPath *menuIndexPath = self.menuIndexPath;
+    assert(menuIndexPath != nil);
     
+    [SVCoreDataStack.sharedInstance.backgroundContext performBlock:^{
+        SVVirtualMachineConfiguration *machineConfigurationObject = [self.viewModel isolated_machineConfigurationObjectAtIndexPath:menuIndexPath];
+        assert(machineConfigurationObject != nil);
+        
+        VZVirtualMachineConfiguration *configuration = [SVCoreDataStack.sharedInstance isolated_makeVirtualMachineConfigurationFromManagedObject:machineConfigurationObject];
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            InstallMacOSViewController *viewController = [[InstallMacOSViewController alloc] initWithVirtualMachineConfiguration:configuration];
+            objc_setAssociatedObject(viewController, MachinesViewController.installationKey, [NSNull null], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            viewController.delegate = self;
+            [self presentViewControllerAsSheet:viewController];
+            [viewController release];
+        });
+    }];
+    
+    self.menuIndexPath = nil;
+}
+
+- (void)_didTriggerRunItem:(NSMenuItem *)sender {
+    NSIndexPath *menuIndexPath = self.menuIndexPath;
+    assert(menuIndexPath != nil);
+    
+    [SVCoreDataStack.sharedInstance.backgroundContext performBlock:^{
+        SVVirtualMachineConfiguration *machineConfigurationObject = [self.viewModel isolated_machineConfigurationObjectAtIndexPath:menuIndexPath];
+        assert(machineConfigurationObject != nil);
+        
+        VZVirtualMachineConfiguration *configuration = [SVCoreDataStack.sharedInstance isolated_makeVirtualMachineConfigurationFromManagedObject:machineConfigurationObject];
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            VirtualMachineWindow *window = [[VirtualMachineWindow alloc] initWithMachineConfiguration:configuration];
+            [window makeKeyAndOrderFront:nil];
+            [window release];
+        });
+    }];
+    
+    self.menuIndexPath = nil;
+}
+
+- (void)installMacOSViewController:(InstallMacOSViewController *)installMacOSViewController didCompleteInstallationWithError:(NSError *)error {
+    assert(error == nil);
+    [self _dismissInstallMacOSViewControllers];
+}
+
+- (void)_dismissInstallMacOSViewControllers {
+    for (NSViewController *presentedViewController in self.presentedViewControllers) {
+        if (objc_getAssociatedObject(presentedViewController, MachinesViewController.installationKey)) {
+            [self dismissViewController:presentedViewController];
+        }
+    }
 }
 
 @end

@@ -179,7 +179,7 @@
     panel.canChooseDirectories = NO;
     panel.resolvesAliases = YES;
     panel.allowsMultipleSelection = NO;
-    panel.allowedContentTypes = @[[UTType typeWithIdentifier:@"com.apple.disk-image-udif"]];
+//    panel.allowedContentTypes = @[[UTType typeWithIdentifier:@"com.apple.disk-image-udif"]];
     
     [panel beginSheetModalForWindow:self.view.window completionHandler:^(NSModalResponse returnCode) {
         if (NSURL *URL = panel.URL) {

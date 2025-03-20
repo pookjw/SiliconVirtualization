@@ -47,9 +47,6 @@
         self.title = @"Edit";
         self.releasedWhenClosed = NO;
         self.contentMinSize = NSMakeSize(400., 600.);
-        self.canBecomeVisibleWithoutLogin = YES;
-        self.restorable = YES;
-        self.allowsConcurrentViewDrawing = YES;
         
         NSToolbar *toolbar = [[NSToolbar alloc] initWithIdentifier:@"EditMachine"];
         toolbar.delegate = self;
