@@ -14,6 +14,7 @@ typedef NS_ENUM(NSUInteger, EditMachineSidebarItemModelType) {
     EditMachineSidebarItemModelTypeMemory,
     EditMachineSidebarItemModelTypeKeyboards,
     EditMachineSidebarItemModelTypeGraphics,
+    EditMachineSidebarItemModelTypePointingDevices,
     EditMachineSidebarItemModelTypeStorages,
     EditMachineSidebarItemModelTypeBootLoader,
     EditMachineSidebarItemModelTypePlatform

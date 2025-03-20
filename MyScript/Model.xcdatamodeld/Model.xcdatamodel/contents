@@ -53,10 +53,13 @@
         <relationship name="hardwareModel" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="MacHardwareModel" inverseName="platform" inverseEntity="MacHardwareModel"/>
         <relationship name="machineIdentifier" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="MacMachineIdentifier" inverseName="platform" inverseEntity="MacMachineIdentifier"/>
     </entity>
+    <entity name="MacTrackpadConfiguration" representedClassName="SVMacTrackpadConfiguration" parentEntity="PointingDeviceConfiguration" syncable="YES" codeGenerationType="class"/>
     <entity name="PlatformConfiguration" representedClassName="SVPlatformConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="platform" inverseEntity="VirtualMachineConfiguration"/>
     </entity>
-    <entity name="PointingDeviceConfiguration" representedClassName="SVPointingDeviceConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class"/>
+    <entity name="PointingDeviceConfiguration" representedClassName="SVPointingDeviceConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class">
+        <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="pointingDevices" inverseEntity="VirtualMachineConfiguration"/>
+    </entity>
     <entity name="StorageDeviceAttachment" representedClassName="SVStorageDeviceAttachment" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <relationship name="storageDevice" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="StorageDeviceConfiguration" inverseName="attachment" inverseEntity="StorageDeviceConfiguration"/>
     </entity>
@@ -65,6 +68,7 @@
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="storageDevices" inverseEntity="VirtualMachineConfiguration"/>
     </entity>
     <entity name="USBKeyboardConfiguration" representedClassName="SVUSBKeyboardConfiguration" parentEntity="KeyboardConfiguration" syncable="YES" codeGenerationType="class"/>
+    <entity name="USBScreenCoordinatePointingDeviceConfiguration" representedClassName="SVUSBScreenCoordinatePointingDeviceConfiguration" parentEntity="PointingDeviceConfiguration" syncable="YES" codeGenerationType="class"/>
     <entity name="VirtioBlockDeviceConfiguration" representedClassName="SVVirtioBlockDeviceConfiguration" parentEntity="StorageDeviceConfiguration" syncable="YES" codeGenerationType="class"/>
     <entity name="VirtioGraphicsDeviceConfiguration" representedClassName="SVVirtioGraphicsDeviceConfiguration" parentEntity="GraphicsDeviceConfiguration" syncable="YES" codeGenerationType="class">
         <relationship name="scanouts" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="VirtioGraphicsScanoutConfiguration" inverseName="graphicsDevice" inverseEntity="VirtioGraphicsScanoutConfiguration"/>
@@ -82,6 +86,7 @@
         <relationship name="graphicsDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="GraphicsDeviceConfiguration" inverseName="machine" inverseEntity="GraphicsDeviceConfiguration"/>
         <relationship name="keyboards" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="KeyboardConfiguration" inverseName="machine" inverseEntity="KeyboardConfiguration"/>
         <relationship name="platform" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="PlatformConfiguration" inverseName="machine" inverseEntity="PlatformConfiguration"/>
+        <relationship name="pointingDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="PointingDeviceConfiguration" inverseName="machine" inverseEntity="PointingDeviceConfiguration"/>
         <relationship name="storageDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="StorageDeviceConfiguration" inverseName="machine" inverseEntity="StorageDeviceConfiguration"/>
     </entity>
 </model>

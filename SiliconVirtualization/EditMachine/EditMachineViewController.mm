@@ -14,10 +14,11 @@
 #import "EditMachineStoragesViewController.h"
 #import "EditMachineBootLoaderViewController.h"
 #import "EditMachinePlatformViewController.h"
+#import "EditMachinePointingDevicesViewController.h"
 #import <objc/message.h>
 #import <objc/runtime.h>
 
-@interface EditMachineViewController () <EditMachineSidebarViewControllerDelegate, EditMachineBootLoaderViewControllerDelegate, EditMachineCPUViewControllerDelegate, EditMachineMemoryViewControllerDelegate, EditMachineKeyboardsViewControllerDelegate, EditMachineGraphicsViewControllerDelegate, EditMachineStoragesViewControllerDelegate, EditMachinePlatformViewControllerDelegate>
+@interface EditMachineViewController () <EditMachineSidebarViewControllerDelegate, EditMachineBootLoaderViewControllerDelegate, EditMachineCPUViewControllerDelegate, EditMachineMemoryViewControllerDelegate, EditMachineKeyboardsViewControllerDelegate, EditMachinePointingDevicesViewControllerDelegate, EditMachineGraphicsViewControllerDelegate, EditMachineStoragesViewControllerDelegate, EditMachinePlatformViewControllerDelegate>
 @property (retain, nonatomic, readonly, getter=_splitViewController) NSSplitViewController *splitViewController;
 
 @property (retain, nonatomic, readonly, getter=_bootLoaderViewController) EditMachineBootLoaderViewController *bootLoaderViewController;
@@ -34,6 +35,9 @@
 
 @property (retain, nonatomic, readonly, getter=_keyboardsViewController) EditMachineKeyboardsViewController *keyboardsViewController;
 @property (retain, nonatomic, readonly, getter=_keyboardsSplitViewItem) NSSplitViewItem *keyboardsSplitViewItem;
+
+@property (retain, nonatomic, readonly, getter=_pointingDevicesViewController) EditMachinePointingDevicesViewController *pointingDevicesViewController;
+@property (retain, nonatomic, readonly, getter=_pointingDevicesSplitViewItem) NSSplitViewItem *pointingDevicesSplitViewItem;
 
 @property (retain, nonatomic, readonly, getter=_graphicsViewController) EditMachineGraphicsViewController *graphicsViewController;
 @property (retain, nonatomic, readonly, getter=_graphicsSplitViewItem) NSSplitViewItem *graphicsSplitViewItem;
@@ -57,6 +61,8 @@
 @synthesize memorySplitViewItem = _memorySplitViewItem;
 @synthesize keyboardsViewController = _keyboardsViewController;
 @synthesize keyboardsSplitViewItem = _keyboardsSplitViewItem;
+@synthesize pointingDevicesViewController = _pointingDevicesViewController;
+@synthesize pointingDevicesSplitViewItem = _pointingDevicesSplitViewItem;
 @synthesize graphicsViewController = _graphicsViewController;
 @synthesize graphicsSplitViewItem = _graphicsSplitViewItem;
 @synthesize storagesViewController = _storagesViewController;
@@ -85,6 +91,8 @@
     [_memorySplitViewItem release];
     [_keyboardsViewController release];
     [_keyboardsSplitViewItem release];
+    [_pointingDevicesViewController release];
+    [_pointingDevicesSplitViewItem release];
     [_graphicsViewController release];
     [_graphicsSplitViewItem release];
     [_storagesViewController release];
@@ -235,6 +243,25 @@
     return keyboardsSplitViewItem;
 }
 
+- (EditMachinePointingDevicesViewController *)_pointingDevicesViewController {
+    if (auto pointingDevicesViewController = _pointingDevicesViewController) return pointingDevicesViewController;
+    
+    EditMachinePointingDevicesViewController *pointingDevicesViewController = [[EditMachinePointingDevicesViewController alloc] initWithConfiguration:self.configuration];
+    pointingDevicesViewController.delegate = self;
+    
+    _pointingDevicesViewController = pointingDevicesViewController;
+    return pointingDevicesViewController;
+}
+
+- (NSSplitViewItem *)_pointingDevicesSplitViewItem {
+    if (auto pointingDevicesSplitViewItem = _pointingDevicesSplitViewItem) return pointingDevicesSplitViewItem;
+    
+    NSSplitViewItem *pointingDevicesSplitViewItem = [NSSplitViewItem contentListWithViewController:self.pointingDevicesViewController];
+    
+    _pointingDevicesSplitViewItem = [pointingDevicesSplitViewItem retain];
+    return pointingDevicesSplitViewItem;
+}
+
 - (EditMachineStoragesViewController *)_storagesViewController {
     if (auto storagesViewController = _storagesViewController) return storagesViewController;
     
@@ -301,6 +328,11 @@
             self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.memorySplitViewItem];
             break;
         }
+        case EditMachineSidebarItemModelTypePointingDevices: {
+            self.pointingDevicesViewController.configuration = self.configuration;
+            self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.pointingDevicesSplitViewItem];
+            break;
+        }
         case EditMachineSidebarItemModelTypeKeyboards: {
             self.keyboardsViewController.configuration = self.configuration;
             self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.keyboardsSplitViewItem];
@@ -342,6 +374,11 @@
 }
 
 - (void)editMachineKeyboardsViewController:(EditMachineKeyboardsViewController *)editMachineKeyboardsViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
+    self.configuration = configuration;
+    [self _notifyDelegate];
+}
+
+- (void)editMachinePointingDevicesViewController:(EditMachinePointingDevicesViewController *)editMachinePointingDevicesViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
     self.configuration = configuration;
     [self _notifyDelegate];
 }

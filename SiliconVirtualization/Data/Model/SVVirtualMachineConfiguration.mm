@@ -19,6 +19,7 @@
 @dynamic graphicsDevices;
 @dynamic keyboards;
 @dynamic platform;
+@dynamic pointingDevices;
 @dynamic storageDevices;
 
 + (NSFetchRequest<SVVirtualMachineConfiguration *> *)fetchRequest {

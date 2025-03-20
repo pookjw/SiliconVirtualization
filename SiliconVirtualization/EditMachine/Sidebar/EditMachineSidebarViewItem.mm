@@ -109,6 +109,10 @@
             textField.stringValue = @"Keyboards";
             break;
         }
+        case EditMachineSidebarItemModelTypePointingDevices: {
+            textField.stringValue = @"Pointing Devices";
+            break;
+        }
         case EditMachineSidebarItemModelTypeGraphics: {
             textField.stringValue = @"Graphics";
             break;
@@ -141,6 +145,10 @@
         }
         case EditMachineSidebarItemModelTypeKeyboards: {
             imageView.image = [NSImage imageWithSystemSymbolName:selected ? @"keyboard.fill" : @"keyboard" accessibilityDescription:nil];
+            break;
+        }
+        case EditMachineSidebarItemModelTypePointingDevices: {
+            imageView.image = [NSImage imageWithSystemSymbolName:@"cursorarrow" accessibilityDescription:nil];
             break;
         }
         case EditMachineSidebarItemModelTypeMemory: {

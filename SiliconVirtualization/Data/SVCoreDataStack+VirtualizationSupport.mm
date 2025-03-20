@@ -21,6 +21,7 @@
     virtualMachineConfigurationObject.memorySize = @(virtualMachineConfiguration.memorySize);
     
     virtualMachineConfigurationObject.keyboards = [self _isolated_makeManagedObjectsFromKeyboards:virtualMachineConfiguration.keyboards];
+    virtualMachineConfigurationObject.pointingDevices = [self _isolated_makeManagedObjectsFromPointingDevices:virtualMachineConfiguration.pointingDevices];
     virtualMachineConfigurationObject.graphicsDevices = [self _isolated_makeManagedObjectsFromGraphicsDevices:virtualMachineConfiguration.graphicsDevices];
     virtualMachineConfigurationObject.storageDevices = [self _isolated_makeManagedObjectsFromStorageDevices:virtualMachineConfiguration.storageDevices];
     
@@ -139,6 +140,27 @@
     
     virtualMachineConfiguration.platform = platformConfiguration;
     [platformConfiguration release];
+    
+    //
+    
+    NSMutableArray<__kindof VZPointingDeviceConfiguration *> *pointingDevices = [[NSMutableArray alloc] initWithCapacity:virtualMachineConfigurationObject.pointingDevices.count];
+    
+    for (__kindof SVPointingDeviceConfiguration *pointingDeviceConfiguration in virtualMachineConfigurationObject.pointingDevices) {
+        if ([pointingDeviceConfiguration isKindOfClass:[SVUSBScreenCoordinatePointingDeviceConfiguration class]]) {
+            VZUSBScreenCoordinatePointingDeviceConfiguration *configuration = [[VZUSBScreenCoordinatePointingDeviceConfiguration alloc] init];
+            [pointingDevices addObject:configuration];
+            [configuration release];
+        } else if ([pointingDeviceConfiguration isKindOfClass:[SVMacTrackpadConfiguration class]]) {
+            VZMacTrackpadConfiguration *configuration = [[VZMacTrackpadConfiguration alloc] init];
+            [pointingDevices addObject:configuration];
+            [configuration release];
+        } else {
+            abort();
+        }
+    }
+    
+    virtualMachineConfiguration.pointingDevices = pointingDevices;
+    [pointingDevices release];
     
     //
     
@@ -279,6 +301,7 @@
     [virtualMachineConfiguration removeStorageDevicesAtIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, virtualMachineConfiguration.storageDevices.count)]];
     
     virtualMachineConfiguration.keyboards = [self _isolated_makeManagedObjectsFromKeyboards:machineConfiguration.keyboards];
+    virtualMachineConfiguration.pointingDevices = [self _isolated_makeManagedObjectsFromPointingDevices:machineConfiguration.pointingDevices];
     virtualMachineConfiguration.graphicsDevices = [self _isolated_makeManagedObjectsFromGraphicsDevices:machineConfiguration.graphicsDevices];
     virtualMachineConfiguration.storageDevices = [self _isolated_makeManagedObjectsFromStorageDevices:machineConfiguration.storageDevices];
 }
@@ -374,6 +397,27 @@
     }
     
     return [keyboardObjects autorelease];
+}
+
+- (NSOrderedSet<__kindof SVPointingDeviceConfiguration *> *)_isolated_makeManagedObjectsFromPointingDevices:(NSArray<__kindof VZPointingDeviceConfiguration *> *)pointingDevices {
+    NSManagedObjectContext *managedObjectContext = self.backgroundContext;
+    NSMutableOrderedSet<__kindof SVPointingDeviceConfiguration *> *pointingDeviceObjects = [[NSMutableOrderedSet alloc] initWithCapacity:pointingDevices.count];
+    
+    for (__kindof VZPointingDeviceConfiguration *pointingDevice in pointingDevices) {
+        if ([pointingDevice isKindOfClass:[VZUSBScreenCoordinatePointingDeviceConfiguration class]]) {
+            SVUSBScreenCoordinatePointingDeviceConfiguration *object = [[SVUSBScreenCoordinatePointingDeviceConfiguration alloc] initWithContext:managedObjectContext];
+            [pointingDeviceObjects addObject:object];
+            [object release];
+        } else if ([pointingDevice isKindOfClass:[VZMacTrackpadConfiguration class]]) {
+            SVMacTrackpadConfiguration *object = [[SVMacTrackpadConfiguration alloc] initWithContext:managedObjectContext];
+            [pointingDeviceObjects addObject:object];
+            [object release];
+        } else {
+            abort();
+        }
+    }
+    
+    return [pointingDeviceObjects autorelease];
 }
 
 - (NSOrderedSet<__kindof SVGraphicsDeviceConfiguration *> *)_isolated_makeManagedObjectsFromGraphicsDevices:(NSArray<__kindof VZGraphicsDeviceConfiguration *> *)graphicsDevices {

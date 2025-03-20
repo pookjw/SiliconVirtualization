@@ -160,6 +160,7 @@
     EditMachineSidebarItemModel *memoryItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeMemory];
     EditMachineSidebarItemModel *keyboardsItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeKeyboards];
     EditMachineSidebarItemModel *graphicsItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeGraphics];
+    EditMachineSidebarItemModel *pointingDevicesItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypePointingDevices];
     EditMachineSidebarItemModel *storagesItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeStorages];
     
     [snapshot appendItemsWithIdentifiers:@[
@@ -169,6 +170,7 @@
         memoryItemModel,
         keyboardsItemModel,
         graphicsItemModel,
+        pointingDevicesItemModel,
         storagesItemModel
     ]
                intoSectionWithIdentifier:[NSNull null]];
@@ -179,6 +181,7 @@
     [memoryItemModel release];
     [keyboardsItemModel release];
     [graphicsItemModel release];
+    [pointingDevicesItemModel release];
     [storagesItemModel release];
     
     [self.dataSource applySnapshot:snapshot animatingDifferences:YES];

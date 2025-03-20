@@ -11,6 +11,7 @@
 #import "SVBootLoader.h"
 #import "SVPlatformConfiguration.h"
 #import "SVKeyboardConfiguration.h"
+#import "SVPointingDeviceConfiguration.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -23,6 +24,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (retain, nonatomic, nullable) NSOrderedSet<SVGraphicsDeviceConfiguration *> *graphicsDevices;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVKeyboardConfiguration *> *keyboards;
 @property (retain, nonatomic, nullable) SVPlatformConfiguration *platform;
+@property (retain, nonatomic, nullable) NSOrderedSet<SVPointingDeviceConfiguration *> *pointingDevices;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVStorageDeviceConfiguration *> *storageDevices;
 
 - (void)insertObject:(SVGraphicsDeviceConfiguration *)value inGraphicsDevicesAtIndex:(NSUInteger)idx;
@@ -46,6 +48,17 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)removeKeyboardsObject:(SVKeyboardConfiguration *)value;
 - (void)addKeyboards:(NSOrderedSet<SVKeyboardConfiguration *> *)values;
 - (void)removeKeyboards:(NSOrderedSet<SVKeyboardConfiguration *> *)values;
+
+- (void)insertObject:(SVPointingDeviceConfiguration *)value inPointingDevicesAtIndex:(NSUInteger)idx;
+- (void)removeObjectFromPointingDevicesAtIndex:(NSUInteger)idx;
+- (void)insertPointingDevices:(NSArray<SVPointingDeviceConfiguration *> *)value atIndexes:(NSIndexSet *)indexes;
+- (void)removePointingDevicesAtIndexes:(NSIndexSet *)indexes;
+- (void)replaceObjectInPointingDevicesAtIndex:(NSUInteger)idx withObject:(SVPointingDeviceConfiguration *)value;
+- (void)replacePointingDevicesAtIndexes:(NSIndexSet *)indexes withPointingDevices:(NSArray<SVPointingDeviceConfiguration *> *)values;
+- (void)addPointingDevicesObject:(SVPointingDeviceConfiguration *)value;
+- (void)removePointingDevicesObject:(SVPointingDeviceConfiguration *)value;
+- (void)addPointingDevices:(NSOrderedSet<SVPointingDeviceConfiguration *> *)values;
+- (void)removePointingDevices:(NSOrderedSet<SVPointingDeviceConfiguration *> *)values;
 
 - (void)insertObject:(SVStorageDeviceConfiguration *)value inStorageDevicesAtIndex:(NSUInteger)idx;
 - (void)removeObjectFromStorageDevicesAtIndex:(NSUInteger)idx;

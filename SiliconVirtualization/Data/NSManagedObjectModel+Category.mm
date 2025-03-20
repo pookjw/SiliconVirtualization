@@ -344,6 +344,29 @@
         keyboardConfigurationEntity.subentities = @[usbKeyboardConfigurationEntity ,macKeyboardConfigurationEntity];
     }
     
+    NSEntityDescription *USBScreenCoordinatePointingDeviceConfigurationEntity;
+    {
+        USBScreenCoordinatePointingDeviceConfigurationEntity = [NSEntityDescription new];
+        USBScreenCoordinatePointingDeviceConfigurationEntity.name = @"USBScreenCoordinatePointingDeviceConfiguration";
+        USBScreenCoordinatePointingDeviceConfigurationEntity.managedObjectClassName = NSStringFromClass([SVUSBScreenCoordinatePointingDeviceConfiguration class]);
+    }
+    
+    NSEntityDescription *macTrackpadConfigurationEntity;
+    {
+        macTrackpadConfigurationEntity = [NSEntityDescription new];
+        macTrackpadConfigurationEntity.name = @"MacTrackpadConfiguration";
+        macTrackpadConfigurationEntity.managedObjectClassName = NSStringFromClass([SVMacTrackpadConfiguration class]);
+    }
+    
+    NSEntityDescription *pointingDeviceConfigurationEntity;
+    {
+        pointingDeviceConfigurationEntity = [NSEntityDescription new];
+        pointingDeviceConfigurationEntity.name = @"PointingDeviceConfiguration";
+        pointingDeviceConfigurationEntity.managedObjectClassName = NSStringFromClass([SVPointingDeviceConfiguration class]);
+        pointingDeviceConfigurationEntity.abstract = YES;
+        pointingDeviceConfigurationEntity.subentities = @[USBScreenCoordinatePointingDeviceConfigurationEntity, macTrackpadConfigurationEntity];
+    }
+    
     //
     
     {
@@ -699,6 +722,36 @@
         [keyboardConfiguration_machine_relationship release];
     }
     
+    {
+        NSRelationshipDescription *virtualMachineConfiguration_pointingDevices_relationship = [NSRelationshipDescription new];
+        virtualMachineConfiguration_pointingDevices_relationship.name = @"pointingDevices";
+        virtualMachineConfiguration_pointingDevices_relationship.optional = YES;
+        virtualMachineConfiguration_pointingDevices_relationship.minCount = 0;
+        virtualMachineConfiguration_pointingDevices_relationship.maxCount = 0;
+        assert(virtualMachineConfiguration_pointingDevices_relationship.toMany);
+        virtualMachineConfiguration_pointingDevices_relationship.ordered = YES;
+        virtualMachineConfiguration_pointingDevices_relationship.destinationEntity = pointingDeviceConfigurationEntity;
+        virtualMachineConfiguration_pointingDevices_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *pointingDeviceConfiguration_machine_relationship = [NSRelationshipDescription new];
+        pointingDeviceConfiguration_machine_relationship.name = @"machine";
+        pointingDeviceConfiguration_machine_relationship.optional = YES;
+        pointingDeviceConfiguration_machine_relationship.minCount = 0;
+        pointingDeviceConfiguration_machine_relationship.maxCount = 1;
+        assert(!pointingDeviceConfiguration_machine_relationship.toMany);
+        pointingDeviceConfiguration_machine_relationship.destinationEntity = virtualMachineConfigurationEntity;
+        pointingDeviceConfiguration_machine_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        virtualMachineConfiguration_pointingDevices_relationship.inverseRelationship = pointingDeviceConfiguration_machine_relationship;
+        pointingDeviceConfiguration_machine_relationship.inverseRelationship = virtualMachineConfiguration_pointingDevices_relationship;
+        
+        virtualMachineConfigurationEntity.properties = [virtualMachineConfigurationEntity.properties arrayByAddingObject:virtualMachineConfiguration_pointingDevices_relationship];
+        pointingDeviceConfigurationEntity.properties = [pointingDeviceConfigurationEntity.properties arrayByAddingObject:pointingDeviceConfiguration_machine_relationship];
+        
+        [virtualMachineConfiguration_pointingDevices_relationship release];
+        [pointingDeviceConfiguration_machine_relationship release];
+    }
+    
     //
     
     managedObjectModel.entities = @[
@@ -724,7 +777,10 @@
         genericMachineIdentifierEntity,
         usbKeyboardConfigurationEntity,
         macKeyboardConfigurationEntity,
-        keyboardConfigurationEntity
+        keyboardConfigurationEntity,
+        USBScreenCoordinatePointingDeviceConfigurationEntity,
+        macTrackpadConfigurationEntity,
+        pointingDeviceConfigurationEntity
     ];
     
     [macOSBootLoaderEntity release];
@@ -750,6 +806,9 @@
     [usbKeyboardConfigurationEntity release];
     [macKeyboardConfigurationEntity release];
     [keyboardConfigurationEntity release];
+    [USBScreenCoordinatePointingDeviceConfigurationEntity release];
+    [macTrackpadConfigurationEntity release];
+    [pointingDeviceConfigurationEntity release];
     
     return [managedObjectModel autorelease];
 }

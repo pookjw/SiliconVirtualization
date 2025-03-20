@@ -28,3 +28,6 @@
 #import "SVKeyboardConfiguration.h"
 #import "SVMacKeyboardConfiguration.h"
 #import "SVUSBKeyboardConfiguration.h"
+#import "SVPointingDeviceConfiguration.h"
+#import "SVUSBScreenCoordinatePointingDeviceConfiguration.h"
+#import "SVMacTrackpadConfiguration.h"
