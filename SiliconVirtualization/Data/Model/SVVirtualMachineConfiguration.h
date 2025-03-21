@@ -12,6 +12,7 @@
 #import "SVPlatformConfiguration.h"
 #import "SVKeyboardConfiguration.h"
 #import "SVPointingDeviceConfiguration.h"
+#import "SVNetworkDeviceConfiguration.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -25,6 +26,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (retain, nonatomic, nullable) NSOrderedSet<SVGraphicsDeviceConfiguration *> *graphicsDevices;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVKeyboardConfiguration *> *keyboards;
 @property (retain, nonatomic, nullable) SVVirtualMachine *machine;
+@property (retain, nonatomic, nullable) NSOrderedSet<SVNetworkDeviceConfiguration *> *networkDevices;
 @property (retain, nonatomic, nullable) SVPlatformConfiguration *platform;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVPointingDeviceConfiguration *> *pointingDevices;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVStorageDeviceConfiguration *> *storageDevices;
@@ -50,6 +52,17 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)removeKeyboardsObject:(SVKeyboardConfiguration *)value;
 - (void)addKeyboards:(NSOrderedSet<SVKeyboardConfiguration *> *)values;
 - (void)removeKeyboards:(NSOrderedSet<SVKeyboardConfiguration *> *)values;
+
+- (void)insertObject:(SVNetworkDeviceConfiguration *)value inNetworkDevicesAtIndex:(NSUInteger)idx;
+- (void)removeObjectFromNetworkDevicesAtIndex:(NSUInteger)idx;
+- (void)insertNetworkDevices:(NSArray<SVNetworkDeviceConfiguration *> *)value atIndexes:(NSIndexSet *)indexes;
+- (void)removeNetworkDevicesAtIndexes:(NSIndexSet *)indexes;
+- (void)replaceObjectInNetworkDevicesAtIndex:(NSUInteger)idx withObject:(SVNetworkDeviceConfiguration *)value;
+- (void)replaceNetworkDevicesAtIndexes:(NSIndexSet *)indexes withNetworkDevices:(NSArray<SVNetworkDeviceConfiguration *> *)values;
+- (void)addNetworkDevicesObject:(SVNetworkDeviceConfiguration *)value;
+- (void)removeNetworkDevicesObject:(SVNetworkDeviceConfiguration *)value;
+- (void)addNetworkDevices:(NSOrderedSet<SVNetworkDeviceConfiguration *> *)values;
+- (void)removeNetworkDevices:(NSOrderedSet<SVNetworkDeviceConfiguration *> *)values;
 
 - (void)insertObject:(SVPointingDeviceConfiguration *)value inPointingDevicesAtIndex:(NSUInteger)idx;
 - (void)removeObjectFromPointingDevicesAtIndex:(NSUInteger)idx;

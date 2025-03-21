@@ -21,6 +21,7 @@
     virtualMachineConfigurationObject.memorySize = @(virtualMachineConfiguration.memorySize);
     
     virtualMachineConfigurationObject.keyboards = [self _isolated_makeManagedObjectsFromKeyboards:virtualMachineConfiguration.keyboards];
+    virtualMachineConfigurationObject.networkDevices = [self _isolated_makeManagedObjectsFromNetworkDevices:virtualMachineConfiguration.networkDevices];
     virtualMachineConfigurationObject.pointingDevices = [self _isolated_makeManagedObjectsFromPointingDevices:virtualMachineConfiguration.pointingDevices];
     virtualMachineConfigurationObject.graphicsDevices = [self _isolated_makeManagedObjectsFromGraphicsDevices:virtualMachineConfiguration.graphicsDevices];
     virtualMachineConfigurationObject.storageDevices = [self _isolated_makeManagedObjectsFromStorageDevices:virtualMachineConfiguration.storageDevices];
@@ -185,6 +186,43 @@
     
     //
     
+    NSMutableArray<__kindof VZNetworkDeviceConfiguration *> *networkDevices = [[NSMutableArray alloc] initWithCapacity:virtualMachineConfigurationObject.networkDevices.count];
+    
+    for (__kindof SVNetworkDeviceConfiguration *networkDeviceObject in virtualMachineConfigurationObject.networkDevices) {
+        if ([networkDeviceObject isKindOfClass:[SVVirtioNetworkDeviceConfiguration class]]) {
+            auto virtioNetworkDeviceConfigurationObject = static_cast<SVVirtioNetworkDeviceConfiguration *>(networkDeviceObject);
+            
+            VZVirtioNetworkDeviceConfiguration *networkDevice = [[VZVirtioNetworkDeviceConfiguration alloc] init];
+            
+            {
+                NSData *ethernetAddressData = virtioNetworkDeviceConfigurationObject.macAddress.ethernetAddress;
+                assert(ethernetAddressData != nil);
+                ether_addr_t ethernetAddress;
+                [ethernetAddressData getBytes:&ethernetAddress length:sizeof(ether_addr_t)];
+                
+                VZMACAddress *MACAddress = [[VZMACAddress alloc] initWithEthernetAddress:ethernetAddress];
+                networkDevice.MACAddress = MACAddress;
+                [MACAddress release];
+            }
+            
+            __kindof SVNetworkDeviceAttachment *attachmentObject = virtioNetworkDeviceConfigurationObject.attachment;
+            if ([attachmentObject isKindOfClass:[SVNATNetworkDeviceAttachment class]]) {
+                VZNATNetworkDeviceAttachment *attachment = [[VZNATNetworkDeviceAttachment alloc] init];
+                networkDevice.attachment = attachment;
+                [attachment release];
+            } else {
+                abort();
+            }
+        } else {
+            abort();
+        }
+    }
+    
+    virtualMachineConfiguration.networkDevices = networkDevices;
+    [networkDevices release];
+    
+    //
+    
     NSMutableArray<__kindof VZGraphicsDeviceConfiguration *> *graphicsDevices = [[NSMutableArray alloc] initWithCapacity:virtualMachineConfigurationObject.graphicsDevices.count];
     
     for (__kindof SVGraphicsDeviceConfiguration *graphicsDeviceConfigurationObject in virtualMachineConfigurationObject.graphicsDevices) {
@@ -252,7 +290,7 @@
                                                 bookmarkDataIsStale:&stale
                                                               error:&error];
             assert(error == nil);
-           
+            
             if (stale) {
                 URL = [self _refreshStaleURL:URL];
             }
@@ -301,6 +339,7 @@
     [virtualMachineConfiguration removeStorageDevicesAtIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, virtualMachineConfiguration.storageDevices.count)]];
     
     virtualMachineConfiguration.keyboards = [self _isolated_makeManagedObjectsFromKeyboards:machineConfiguration.keyboards];
+    virtualMachineConfiguration.networkDevices = [self _isolated_makeManagedObjectsFromNetworkDevices:machineConfiguration.networkDevices];
     virtualMachineConfiguration.pointingDevices = [self _isolated_makeManagedObjectsFromPointingDevices:machineConfiguration.pointingDevices];
     virtualMachineConfiguration.graphicsDevices = [self _isolated_makeManagedObjectsFromGraphicsDevices:machineConfiguration.graphicsDevices];
     virtualMachineConfiguration.storageDevices = [self _isolated_makeManagedObjectsFromStorageDevices:machineConfiguration.storageDevices];
@@ -397,6 +436,38 @@
     }
     
     return [keyboardObjects autorelease];
+}
+
+- (NSOrderedSet<__kindof SVNetworkDeviceConfiguration *> *)_isolated_makeManagedObjectsFromNetworkDevices:(NSArray<__kindof VZNetworkDeviceConfiguration *> *)networkDevices {
+    NSManagedObjectContext *managedObjectContext = self.backgroundContext;
+    NSMutableOrderedSet<__kindof SVNetworkDeviceConfiguration *> *networkDeviceObjects = [[NSMutableOrderedSet alloc] initWithCapacity:networkDevices.count];
+    
+    for (__kindof VZNetworkDeviceConfiguration *networkDevice in networkDevices) {
+        if ([networkDevice isKindOfClass:[VZVirtioNetworkDeviceConfiguration class]]) {
+            auto virtioNetworkDeviceConfiguration = static_cast<VZVirtioNetworkDeviceConfiguration *>(networkDevice);
+            
+            SVVirtioNetworkDeviceConfiguration *networkDeviceObject = [[SVVirtioNetworkDeviceConfiguration alloc] initWithContext:managedObjectContext];
+            
+            __kindof VZNetworkDeviceAttachment *attachment = virtioNetworkDeviceConfiguration.attachment;
+            if ([attachment isKindOfClass:[VZNATNetworkDeviceAttachment class]]) {
+                SVNATNetworkDeviceAttachment *attachmentObject = [[SVNATNetworkDeviceAttachment alloc] initWithContext:managedObjectContext];
+                networkDeviceObject.attachment = attachmentObject;
+                [attachmentObject release];
+            } else {
+                abort();
+            }
+            
+            SVMACAddress *MACAddressObject = [[SVMACAddress alloc] initWithContext:managedObjectContext];
+            ether_addr_t ethernetAddress = virtioNetworkDeviceConfiguration.MACAddress.ethernetAddress;
+            MACAddressObject.ethernetAddress = [NSData dataWithBytes:&ethernetAddress length:sizeof(ether_addr_t)];
+            networkDeviceObject.macAddress = MACAddressObject;
+            [MACAddressObject release];
+        } else {
+            abort();
+        }
+    }
+    
+    return [networkDeviceObjects autorelease];
 }
 
 - (NSOrderedSet<__kindof SVPointingDeviceConfiguration *> *)_isolated_makeManagedObjectsFromPointingDevices:(NSArray<__kindof VZPointingDeviceConfiguration *> *)pointingDevices {

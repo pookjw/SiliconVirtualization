@@ -408,6 +408,55 @@
         pointingDeviceConfigurationEntity.subentities = @[USBScreenCoordinatePointingDeviceConfigurationEntity, macTrackpadConfigurationEntity];
     }
     
+    NSEntityDescription *virtioNetworkDeviceConfigurationEntity;
+    {
+        virtioNetworkDeviceConfigurationEntity = [NSEntityDescription new];
+        virtioNetworkDeviceConfigurationEntity.name = @"VirtioNetworkDeviceConfiguration";
+        virtioNetworkDeviceConfigurationEntity.managedObjectClassName = NSStringFromClass([SVVirtioNetworkDeviceConfiguration class]);
+    }
+    
+    NSEntityDescription *networkDeviceConfigurationEntity;
+    {
+        networkDeviceConfigurationEntity = [NSEntityDescription new];
+        networkDeviceConfigurationEntity.name = @"NetworkDeviceConfiguration";
+        networkDeviceConfigurationEntity.managedObjectClassName = NSStringFromClass([SVNetworkDeviceConfiguration class]);
+        
+        networkDeviceConfigurationEntity.abstract = YES;
+        networkDeviceConfigurationEntity.subentities = @[virtioNetworkDeviceConfigurationEntity];
+    }
+    
+    NSEntityDescription *NATNetworkDeviceAttachmentEntity;
+    {
+        NATNetworkDeviceAttachmentEntity = [NSEntityDescription new];
+        NATNetworkDeviceAttachmentEntity.name = @"NATNetworkDeviceAttachment";
+        NATNetworkDeviceAttachmentEntity.managedObjectClassName = NSStringFromClass([SVNATNetworkDeviceAttachment class]);
+    }
+    
+    NSEntityDescription *networkDeviceAttachmentEntity;
+    {
+        networkDeviceAttachmentEntity = [NSEntityDescription new];
+        networkDeviceAttachmentEntity.name = @"NetworkDeviceAttachment";
+        networkDeviceAttachmentEntity.managedObjectClassName = NSStringFromClass([SVNetworkDeviceAttachment class]);
+        
+        networkDeviceAttachmentEntity.abstract = YES;
+        networkDeviceAttachmentEntity.subentities = @[NATNetworkDeviceAttachmentEntity];
+    }
+    
+    NSEntityDescription *MACAddressEntity;
+    {
+        MACAddressEntity = [NSEntityDescription new];
+        MACAddressEntity.name = @"MACAddress";
+        MACAddressEntity.managedObjectClassName = NSStringFromClass([SVMACAddress class]);
+        
+        NSAttributeDescription *ethernetAddressAttribute = [NSAttributeDescription new];
+        ethernetAddressAttribute.name = @"ethernetAddress";
+        ethernetAddressAttribute.optional = YES;
+        ethernetAddressAttribute.attributeType = NSBinaryDataAttributeType;
+        
+        MACAddressEntity.properties = @[ethernetAddressAttribute];
+        [ethernetAddressAttribute release];
+    }
+    
     //
     
     {
@@ -851,6 +900,94 @@
         [pointingDeviceConfiguration_machine_relationship release];
     }
     
+    {
+        NSRelationshipDescription *virtualMachineConfiguration_networkDevices_relationship = [NSRelationshipDescription new];
+        virtualMachineConfiguration_networkDevices_relationship.name = @"networkDevices";
+        virtualMachineConfiguration_networkDevices_relationship.optional = YES;
+        virtualMachineConfiguration_networkDevices_relationship.minCount = 0;
+        virtualMachineConfiguration_networkDevices_relationship.maxCount = 0;
+        assert(virtualMachineConfiguration_networkDevices_relationship.toMany);
+        virtualMachineConfiguration_networkDevices_relationship.ordered = YES;
+        virtualMachineConfiguration_networkDevices_relationship.destinationEntity = networkDeviceConfigurationEntity;
+        virtualMachineConfiguration_networkDevices_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *networkDeviceConfiguration_machine_relationship = [NSRelationshipDescription new];
+        networkDeviceConfiguration_machine_relationship.name = @"machine";
+        networkDeviceConfiguration_machine_relationship.optional = YES;
+        networkDeviceConfiguration_machine_relationship.minCount = 0;
+        networkDeviceConfiguration_machine_relationship.maxCount = 1;
+        assert(!networkDeviceConfiguration_machine_relationship.toMany);
+        networkDeviceConfiguration_machine_relationship.destinationEntity = virtualMachineConfigurationEntity;
+        networkDeviceConfiguration_machine_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        virtualMachineConfiguration_networkDevices_relationship.inverseRelationship = networkDeviceConfiguration_machine_relationship;
+        networkDeviceConfiguration_machine_relationship.inverseRelationship = virtualMachineConfiguration_networkDevices_relationship;
+        
+        virtualMachineConfigurationEntity.properties = [virtualMachineConfigurationEntity.properties arrayByAddingObject:virtualMachineConfiguration_networkDevices_relationship];
+        networkDeviceConfigurationEntity.properties = [networkDeviceConfigurationEntity.properties arrayByAddingObject:networkDeviceConfiguration_machine_relationship];
+        
+        [virtualMachineConfiguration_networkDevices_relationship release];
+        [networkDeviceConfiguration_machine_relationship release];
+    }
+    
+    {
+        NSRelationshipDescription *networkDeviceConfiguration_attachment_relationship = [NSRelationshipDescription new];
+        networkDeviceConfiguration_attachment_relationship.name = @"attachment";
+        networkDeviceConfiguration_attachment_relationship.optional = YES;
+        networkDeviceConfiguration_attachment_relationship.minCount = 0;
+        networkDeviceConfiguration_attachment_relationship.maxCount = 1;
+        assert(!networkDeviceConfiguration_attachment_relationship.toMany);
+        networkDeviceConfiguration_attachment_relationship.destinationEntity = networkDeviceAttachmentEntity;
+        networkDeviceConfiguration_attachment_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *networkDeviceAttachment_networkDevice_relationship = [NSRelationshipDescription new];
+        networkDeviceAttachment_networkDevice_relationship.name = @"networkDevice";
+        networkDeviceAttachment_networkDevice_relationship.optional = YES;
+        networkDeviceAttachment_networkDevice_relationship.minCount = 0;
+        networkDeviceAttachment_networkDevice_relationship.maxCount = 1;
+        assert(!networkDeviceAttachment_networkDevice_relationship.toMany);
+        networkDeviceAttachment_networkDevice_relationship.destinationEntity = networkDeviceConfigurationEntity;
+        networkDeviceAttachment_networkDevice_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        networkDeviceConfiguration_attachment_relationship.inverseRelationship = networkDeviceAttachment_networkDevice_relationship;
+        networkDeviceAttachment_networkDevice_relationship.inverseRelationship = networkDeviceConfiguration_attachment_relationship;
+        
+        networkDeviceConfigurationEntity.properties = [networkDeviceConfigurationEntity.properties arrayByAddingObject:networkDeviceConfiguration_attachment_relationship];
+        networkDeviceAttachmentEntity.properties = [networkDeviceAttachmentEntity.properties arrayByAddingObject:networkDeviceAttachment_networkDevice_relationship];
+        
+        [networkDeviceConfiguration_attachment_relationship release];
+        [networkDeviceAttachment_networkDevice_relationship release];
+    }
+    
+    {
+        NSRelationshipDescription *networkDeviceConfiguration_macAdress_relationship = [NSRelationshipDescription new];
+        networkDeviceConfiguration_macAdress_relationship.name = @"macAdress";
+        networkDeviceConfiguration_macAdress_relationship.optional = YES;
+        networkDeviceConfiguration_macAdress_relationship.minCount = 0;
+        networkDeviceConfiguration_macAdress_relationship.maxCount = 1;
+        assert(!networkDeviceConfiguration_macAdress_relationship.toMany);
+        networkDeviceConfiguration_macAdress_relationship.destinationEntity = MACAddressEntity;
+        networkDeviceConfiguration_macAdress_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *MACAddress_networkDevice_relationship = [NSRelationshipDescription new];
+        MACAddress_networkDevice_relationship.name = @"networkDevice";
+        MACAddress_networkDevice_relationship.optional = YES;
+        MACAddress_networkDevice_relationship.minCount = 0;
+        MACAddress_networkDevice_relationship.maxCount = 1;
+        assert(!MACAddress_networkDevice_relationship.toMany);
+        MACAddress_networkDevice_relationship.destinationEntity = networkDeviceConfigurationEntity;
+        MACAddress_networkDevice_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        networkDeviceConfiguration_macAdress_relationship.inverseRelationship = MACAddress_networkDevice_relationship;
+        MACAddress_networkDevice_relationship.inverseRelationship = networkDeviceConfiguration_macAdress_relationship;
+        
+        networkDeviceConfigurationEntity.properties = [networkDeviceConfigurationEntity.properties arrayByAddingObject:networkDeviceConfiguration_macAdress_relationship];
+        MACAddressEntity.properties = [MACAddressEntity.properties arrayByAddingObject:MACAddress_networkDevice_relationship];
+        
+        [networkDeviceConfiguration_macAdress_relationship release];
+        [MACAddress_networkDevice_relationship release];
+    }
+    
     //
     
     managedObjectModel.entities = @[
@@ -882,7 +1019,12 @@
         keyboardConfigurationEntity,
         USBScreenCoordinatePointingDeviceConfigurationEntity,
         macTrackpadConfigurationEntity,
-        pointingDeviceConfigurationEntity
+        pointingDeviceConfigurationEntity,
+        virtioNetworkDeviceConfigurationEntity,
+        networkDeviceConfigurationEntity,
+        NATNetworkDeviceAttachmentEntity,
+        networkDeviceAttachmentEntity,
+        MACAddressEntity
     ];
     
     [virtualMachineEntity release];
@@ -914,6 +1056,11 @@
     [USBScreenCoordinatePointingDeviceConfigurationEntity release];
     [macTrackpadConfigurationEntity release];
     [pointingDeviceConfigurationEntity release];
+    [virtioNetworkDeviceConfigurationEntity release];
+    [networkDeviceConfigurationEntity release];
+    [NATNetworkDeviceAttachmentEntity release];
+    [networkDeviceAttachmentEntity release];
+    [MACAddressEntity release];
     
     return [managedObjectModel autorelease];
 }

@@ -17,6 +17,7 @@
 @dynamic bootLoader;
 @dynamic graphicsDevices;
 @dynamic keyboards;
+@dynamic networkDevices;
 @dynamic machine;
 @dynamic platform;
 @dynamic pointingDevices;

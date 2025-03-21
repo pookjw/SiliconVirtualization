@@ -25,6 +25,10 @@
     <entity name="KeyboardConfiguration" representedClassName="SVKeyboardConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="keyboards" inverseEntity="VirtualMachineConfiguration"/>
     </entity>
+    <entity name="MACAddress" representedClassName="SVMACAddress" syncable="YES" codeGenerationType="class">
+        <attribute name="ethernetAddress" optional="YES" attributeType="Binary" valueTransformerName="NSSecureUnarchiveFromData" customClassName="NSValue"/>
+        <relationship name="networkDevice" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="NetworkDeviceConfiguration" inverseName="macAddress" inverseEntity="NetworkDeviceConfiguration"/>
+    </entity>
     <entity name="MacAuxiliaryStorage" representedClassName="SVMacAuxiliaryStorage" syncable="YES" codeGenerationType="class">
         <attribute name="bookmarkData" optional="YES" attributeType="Binary"/>
         <relationship name="platform" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MacPlatformConfiguration" inverseName="auxiliaryStorage" inverseEntity="MacPlatformConfiguration"/>
@@ -57,6 +61,15 @@
         <relationship name="machineIdentifier" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="MacMachineIdentifier" inverseName="platform" inverseEntity="MacMachineIdentifier"/>
     </entity>
     <entity name="MacTrackpadConfiguration" representedClassName="SVMacTrackpadConfiguration" parentEntity="PointingDeviceConfiguration" syncable="YES" codeGenerationType="class"/>
+    <entity name="NATNetworkDeviceAttachment" representedClassName="SVNATNetworkDeviceAttachment" parentEntity="NetworkDeviceAttachment" syncable="YES" codeGenerationType="class"/>
+    <entity name="NetworkDeviceAttachment" representedClassName="SVNetworkDeviceAttachment" isAbstract="YES" syncable="YES" codeGenerationType="class">
+        <relationship name="networkDevice" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="NetworkDeviceConfiguration" inverseName="attachment" inverseEntity="NetworkDeviceConfiguration"/>
+    </entity>
+    <entity name="NetworkDeviceConfiguration" representedClassName="SVNetworkDeviceConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class">
+        <relationship name="attachment" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="NetworkDeviceAttachment" inverseName="networkDevice" inverseEntity="NetworkDeviceAttachment"/>
+        <relationship name="macAddress" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="MACAddress" inverseName="networkDevice" inverseEntity="MACAddress"/>
+        <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="networkDevices" inverseEntity="VirtualMachineConfiguration"/>
+    </entity>
     <entity name="PlatformConfiguration" representedClassName="SVPlatformConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="platform" inverseEntity="VirtualMachineConfiguration"/>
     </entity>
@@ -81,6 +94,7 @@
         <attribute name="widthInPixels" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <relationship name="graphicsDevice" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtioGraphicsDeviceConfiguration" inverseName="scanouts" inverseEntity="VirtioGraphicsDeviceConfiguration"/>
     </entity>
+    <entity name="VirtioNetworkDeviceConfiguration" representedClassName="SVVirtioNetworkDeviceConfiguration" parentEntity="NetworkDeviceConfiguration" syncable="YES" codeGenerationType="class"/>
     <entity name="VirtualMachine" representedClassName="SVVirtualMachine" syncable="YES" codeGenerationType="class">
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="configuration" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="VirtualMachineConfiguration" inverseName="machine" inverseEntity="VirtualMachineConfiguration"/>
@@ -93,6 +107,7 @@
         <relationship name="graphicsDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="GraphicsDeviceConfiguration" inverseName="machine" inverseEntity="GraphicsDeviceConfiguration"/>
         <relationship name="keyboards" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="KeyboardConfiguration" inverseName="machine" inverseEntity="KeyboardConfiguration"/>
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachine" inverseName="configuration" inverseEntity="VirtualMachine"/>
+        <relationship name="networkDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="NetworkDeviceConfiguration" inverseName="machine" inverseEntity="NetworkDeviceConfiguration"/>
         <relationship name="platform" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="PlatformConfiguration" inverseName="machine" inverseEntity="PlatformConfiguration"/>
         <relationship name="pointingDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="PointingDeviceConfiguration" inverseName="machine" inverseEntity="PointingDeviceConfiguration"/>
         <relationship name="storageDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="StorageDeviceConfiguration" inverseName="machine" inverseEntity="StorageDeviceConfiguration"/>

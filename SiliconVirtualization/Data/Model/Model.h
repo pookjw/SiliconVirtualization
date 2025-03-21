@@ -34,3 +34,8 @@
 #import "SVPointingDeviceConfiguration.h"
 #import "SVUSBScreenCoordinatePointingDeviceConfiguration.h"
 #import "SVMacTrackpadConfiguration.h"
+#import "SVNetworkDeviceConfiguration.h"
+#import "SVVirtioNetworkDeviceConfiguration.h"
+#import "SVNetworkDeviceAttachment.h"
+#import "SVNATNetworkDeviceAttachment.h"
+#import "SVMACAddress.h"

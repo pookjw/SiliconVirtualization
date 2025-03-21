@@ -109,6 +109,10 @@
             textField.stringValue = @"Keyboards";
             break;
         }
+        case EditMachineSidebarItemModelTypeNetworks: {
+            textField.stringValue = @"Networks";
+            break;
+        }
         case EditMachineSidebarItemModelTypePointingDevices: {
             textField.stringValue = @"Pointing Devices";
             break;
@@ -145,6 +149,10 @@
         }
         case EditMachineSidebarItemModelTypeKeyboards: {
             imageView.image = [NSImage imageWithSystemSymbolName:selected ? @"keyboard.fill" : @"keyboard" accessibilityDescription:nil];
+            break;
+        }
+        case EditMachineSidebarItemModelTypeNetworks: {
+            imageView.image = [NSImage imageWithSystemSymbolName:@"network" accessibilityDescription:nil];
             break;
         }
         case EditMachineSidebarItemModelTypePointingDevices: {
