@@ -8,6 +8,8 @@
 #import "VirtualMachineViewModel.h"
 #import "SVCoreDataStack.h"
 #import "SVCoreDataStack+VirtualizationSupport.h"
+#import <objc/message.h>
+#import <objc/runtime.h>
 
 @interface VirtualMachineViewModel ()
 @property (retain, nonatomic, nullable, setter=_isolated_setVirtualMachine:) VZVirtualMachine *isolated_virtualMachine;
@@ -64,6 +66,26 @@
         assert(configurationObject != nil);
         
         VZVirtualMachineConfiguration *configuration = [stack isolated_makeVirtualMachineConfigurationFromManagedObject:configurationObject];
+        
+//        {
+//            id tdc = [objc_lookUpClass("_VZMacTouchIDDeviceConfiguration") new];
+//            reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(configuration, sel_registerName("_setBiometricDevices:"), @[tdc]);
+//            [tdc release];
+//            
+//            NSError * _Nullable error = nil;
+//            [configuration validateWithError:&error];
+//            assert(error == nil);
+//        }
+//        
+//        {
+//            id nedc = [objc_lookUpClass("_VZMacNeuralEngineDeviceConfiguration") new];
+//            reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(configuration, sel_registerName("_setAcceleratorDevices:"), @[nedc]);
+//            [nedc release];
+//            
+//            NSError * _Nullable error = nil;
+//            [configuration validateWithError:&error];
+//            assert(error == nil);
+//        }
         
         BOOL startUpFromMacOSRecovery;
         __kindof SVVirtualMachineStartOptions *startOptions = virtualMachineObject.startOptions;
