@@ -351,8 +351,18 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     
     [panel beginSheetModalForWindow:self.view.window completionHandler:^(NSModalResponse result) {
         if (NSURL *URL = panel.URL) {
+            VZVirtualMachine *virtualMachine = self.virtualMachine;
+            assert(virtualMachine != nil);
+            
             dispatch_async(self.virtualMachineQueue, ^{
-                [self.virtualMachine saveMachineStateToURL:URL completionHandler:^(NSError * _Nullable errorOrNil) {
+                NSFileManager *fileManager = NSFileManager.defaultManager;
+                if ([fileManager fileExistsAtPath:URL.path]) {
+                    NSError * _Nullable error = nil;
+                    [fileManager removeItemAtURL:URL error:&error];
+                    assert(error == nil);
+                }
+                
+                [virtualMachine saveMachineStateToURL:URL completionHandler:^(NSError * _Nullable errorOrNil) {
                     assert(errorOrNil == nil);
                     
                     dispatch_async(dispatch_get_main_queue(), ^{
@@ -379,20 +389,25 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     
     [panel beginSheetModalForWindow:self.view.window completionHandler:^(NSModalResponse result) {
         if (NSURL *URL = panel.URL) {
-            [self.virtualMachine restoreMachineStateFromURL:URL completionHandler:^(NSError * _Nullable errorOrNil) {
-                assert(errorOrNil != nil);
-                
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    NSAlert *alert = [NSAlert new];
-                    alert.messageText = @"Saved!";
-                    alert.informativeText = URL.path;
+            VZVirtualMachine *virtualMachine = self.virtualMachine;
+            assert(virtualMachine != nil);
+            
+            dispatch_async(self.virtualMachineQueue, ^{
+                [virtualMachine restoreMachineStateFromURL:URL completionHandler:^(NSError * _Nullable errorOrNil) {
+                    assert(errorOrNil == nil);
                     
-                    [alert beginSheetModalForWindow:self.view.window completionHandler:^(NSModalResponse returnCode) {
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        NSAlert *alert = [NSAlert new];
+                        alert.messageText = @"Restored!";
+                        alert.informativeText = URL.path;
                         
-                    }];
-                    [alert release];
-                });
-            }];
+                        [alert beginSheetModalForWindow:self.view.window completionHandler:^(NSModalResponse returnCode) {
+                            
+                        }];
+                        [alert release];
+                    });
+                }];
+            });
         }
     }];
     

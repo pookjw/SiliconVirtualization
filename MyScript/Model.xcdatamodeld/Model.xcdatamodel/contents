@@ -48,6 +48,9 @@
         <relationship name="platform" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MacPlatformConfiguration" inverseName="machineIdentifier" inverseEntity="MacPlatformConfiguration"/>
     </entity>
     <entity name="MacOSBootLoader" representedClassName="SVMacOSBootLoader" parentEntity="BootLoader" syncable="YES" codeGenerationType="class"/>
+    <entity name="MacOSVirtualMachineStartOptions" representedClassName="SVMacOSVirtualMachineStartOptions" parentEntity="VirtualMachineStartOptions" syncable="YES" codeGenerationType="class">
+        <attribute name="startUpFromMacOSRecovery" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+    </entity>
     <entity name="MacPlatformConfiguration" representedClassName="SVMacPlatformConfiguration" parentEntity="PlatformConfiguration" syncable="YES" codeGenerationType="class">
         <relationship name="auxiliaryStorage" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="MacAuxiliaryStorage" inverseName="platform" inverseEntity="MacAuxiliaryStorage"/>
         <relationship name="hardwareModel" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="MacHardwareModel" inverseName="platform" inverseEntity="MacHardwareModel"/>
@@ -78,15 +81,20 @@
         <attribute name="widthInPixels" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <relationship name="graphicsDevice" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtioGraphicsDeviceConfiguration" inverseName="scanouts" inverseEntity="VirtioGraphicsDeviceConfiguration"/>
     </entity>
+    <entity name="VirtualMachine" representedClassName="SVVirtualMachine" syncable="YES" codeGenerationType="class">
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="configuration" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="VirtualMachineConfiguration" inverseName="machine" inverseEntity="VirtualMachineConfiguration"/>
+    </entity>
     <entity name="VirtualMachineConfiguration" representedClassName="SVVirtualMachineConfiguration" syncable="YES" codeGenerationType="class">
         <attribute name="cpuCount" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromData" customClassName="NSNumber"/>
         <attribute name="memorySize" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromData" customClassName="NSNumber"/>
-        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="bootLoader" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="BootLoader" inverseName="machine" inverseEntity="BootLoader"/>
         <relationship name="graphicsDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="GraphicsDeviceConfiguration" inverseName="machine" inverseEntity="GraphicsDeviceConfiguration"/>
         <relationship name="keyboards" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="KeyboardConfiguration" inverseName="machine" inverseEntity="KeyboardConfiguration"/>
+        <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachine" inverseName="configuration" inverseEntity="VirtualMachine"/>
         <relationship name="platform" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="PlatformConfiguration" inverseName="machine" inverseEntity="PlatformConfiguration"/>
         <relationship name="pointingDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="PointingDeviceConfiguration" inverseName="machine" inverseEntity="PointingDeviceConfiguration"/>
         <relationship name="storageDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="StorageDeviceConfiguration" inverseName="machine" inverseEntity="StorageDeviceConfiguration"/>
     </entity>
+    <entity name="VirtualMachineStartOptions" representedClassName="SVVirtualMachineStartOptions" isAbstract="YES" syncable="YES" codeGenerationType="class"/>
 </model>
