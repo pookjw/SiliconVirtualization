@@ -106,13 +106,18 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     
     [context performBlock:^{
         SVVirtualMachineConfiguration *configuration = [stack isolated_makeManagedObjectFromVirtualMachineConfiguration:machineConfiguration];
-        configuration.timestamp = NSDate.now;
+        SVVirtualMachine *virtualMachine = [[SVVirtualMachine alloc] initWithContext:context];
+        virtualMachine.configuration = configuration;
+        virtualMachine.timestamp = [NSDate now];
+        
         NSError * _Nullable error = nil;
         // 이걸 해줘야 NSFetchedResultsController에서 이상한 Object ID가 안 날라옴
-        [context obtainPermanentIDsForObjects:@[configuration] error:&error];
+        [context obtainPermanentIDsForObjects:@[virtualMachine] error:&error];
         assert(error == nil);
         [context save:&error];
         assert(error == nil);
+        
+        [virtualMachine release];
     }];
 }
 

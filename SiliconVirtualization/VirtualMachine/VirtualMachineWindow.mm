@@ -10,7 +10,7 @@
 
 @implementation VirtualMachineWindow
 
-- (instancetype)initWithMachineConfiguration:(VZVirtualMachineConfiguration *)machineConfiguration {
+- (instancetype)initWithVirtualMachineObject:(SVVirtualMachine *)virtualMachineObject {
     self = [super initWithContentRect:NSMakeRect(0., 0., 1280, 800.) styleMask:NSWindowStyleMaskBorderless | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable | NSWindowStyleMaskTitled backing:NSBackingStoreBuffered defer:NO];
     
     if (self) {
@@ -18,10 +18,8 @@
         self.releasedWhenClosed = NO;
         self.contentMinSize = NSMakeSize(1280, 800.);
         
-        VZVirtualMachine *virtualMachine = [[VZVirtualMachine alloc] initWithConfiguration:machineConfiguration queue:dispatch_get_global_queue(0, 0)];
         VirtualMachineViewController *contentViewController = [VirtualMachineViewController new];
-        contentViewController.virtualMachine = virtualMachine;
-        [virtualMachine release];
+        [contentViewController setVirtualMachineObject:virtualMachineObject completionHandler:nil];
         self.contentViewController = contentViewController;
         [contentViewController release];
     }

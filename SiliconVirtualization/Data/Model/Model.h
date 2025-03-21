@@ -5,6 +5,9 @@
 //  Created by Jinwoo Kim on 3/18/25.
 //
 
+#import "SVVirtualMachine.h"
+#import "SVVirtualMachineStartOptions.h"
+#import "SVMacOSVirtualMachineStartOptions.h"
 #import "SVVirtualMachineConfiguration.h"
 #import "SVGraphicsDeviceConfiguration.h"
 #import "SVMacGraphicsDeviceConfiguration.h"

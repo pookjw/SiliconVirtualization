@@ -15,14 +15,16 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@class SVVirtualMachine;
+
 @interface SVVirtualMachineConfiguration : NSManagedObject
 + (NSFetchRequest<SVVirtualMachineConfiguration *> *)fetchRequest;
 @property (retain, nonatomic, nullable) NSNumber *cpuCount;
 @property (retain, nonatomic, nullable) NSNumber *memorySize;
-@property (copy, nonatomic, nullable) NSDate *timestamp;
 @property (retain, nonatomic, nullable) SVBootLoader *bootLoader;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVGraphicsDeviceConfiguration *> *graphicsDevices;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVKeyboardConfiguration *> *keyboards;
+@property (retain, nonatomic, nullable) SVVirtualMachine *machine;
 @property (retain, nonatomic, nullable) SVPlatformConfiguration *platform;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVPointingDeviceConfiguration *> *pointingDevices;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVStorageDeviceConfiguration *> *storageDevices;

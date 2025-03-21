@@ -10,7 +10,7 @@
 
 @interface MachinesViewModel () <NSFetchedResultsControllerDelegate>
 @property (retain, nonatomic, readonly, getter=_dataSource) NSCollectionViewDiffableDataSource<NSString *, NSManagedObjectID *> *dataSource;
-@property (retain, nonatomic, getter=_isolated_fetchedResultsController, setter=_isolated_setFetchedResultsController:) NSFetchedResultsController<SVVirtualMachineConfiguration *> *isolated_fetchedResultsController;
+@property (retain, nonatomic, getter=_isolated_fetchedResultsController, setter=_isolated_setFetchedResultsController:) NSFetchedResultsController<SVVirtualMachine *> *isolated_fetchedResultsController;
 @end
 
 @implementation MachinesViewModel
@@ -43,7 +43,7 @@
     }];
 }
 
-- (SVVirtualMachineConfiguration *)isolated_machineConfigurationObjectAtIndexPath:(NSIndexPath *)indexPath {
+- (SVVirtualMachine *)isolated_virtualMachineObjectAtIndexPath:(NSIndexPath *)indexPath {
     assert(self.isolated_fetchedResultsController != nil);
     return [self.isolated_fetchedResultsController objectAtIndexPath:indexPath];
 }
@@ -56,15 +56,15 @@
     
     NSManagedObjectContext *context = stack.backgroundContext;
     
-    NSFetchRequest<SVVirtualMachineConfiguration *> *fetchRequest = [SVVirtualMachineConfiguration fetchRequest];
+    NSFetchRequest<SVVirtualMachine *> *fetchRequest = [SVVirtualMachine fetchRequest];
     fetchRequest.sortDescriptors = @[
-        [NSSortDescriptor sortDescriptorWithKey:@"timestamp" ascending:YES]
+        [NSSortDescriptor sortDescriptorWithKey:@"timestamp" ascending:NO]
     ];
     
-    NSFetchedResultsController<SVVirtualMachineConfiguration *> *fetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest
-                                                                                                                                managedObjectContext:context
-                                                                                                                                  sectionNameKeyPath:nil
-                                                                                                                                           cacheName:nil];
+    NSFetchedResultsController<SVVirtualMachine *> *fetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest
+                                                                                                                   managedObjectContext:context
+                                                                                                                     sectionNameKeyPath:nil
+                                                                                                                              cacheName:nil];
     fetchedResultsController.delegate = self;
     
     self.isolated_fetchedResultsController = fetchedResultsController;

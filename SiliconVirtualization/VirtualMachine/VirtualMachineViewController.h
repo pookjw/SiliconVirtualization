@@ -6,12 +6,12 @@
 //
 
 #import <Cocoa/Cocoa.h>
-#import <Virtualization/Virtualization.h>
+#import "SVVirtualMachine.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface VirtualMachineViewController : NSViewController
-@property (retain, nonatomic, nullable) VZVirtualMachine *virtualMachine;
+- (void)setVirtualMachineObject:(SVVirtualMachine *)virtualMachineObject completionHandler:(void (^ _Nullable)(void))completionHandler;
 @end
 
 NS_ASSUME_NONNULL_END

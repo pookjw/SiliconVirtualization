@@ -65,8 +65,6 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     [self.view addSubview:scrollView];
     
     [self _viewModel];
-    
-    [self _showCreateMachineWindow];
 }
 
 - (void)_viewDidMoveToWindow:(NSWindow * _Nullable)newWindow fromWindow:(NSWindow * _Nullable)oldWindow {
@@ -253,6 +251,13 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     
     self.menuIndexPath = indexPath;
     
+    NSMenuItem *deleteItem = [NSMenuItem new];
+    deleteItem.title = @"Delete";
+    deleteItem.target = self;
+    deleteItem.action = @selector(_didTriggerDeleteItem:);
+    [menu addItem:deleteItem];
+    [deleteItem release];
+    
     NSMenuItem *editItem = [NSMenuItem new];
     editItem.title = @"Edit";
     editItem.target = self;
@@ -282,12 +287,29 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     [runItem release];
 }
 
+- (void)_didTriggerDeleteItem:(NSMenuItem *)sender {
+    NSIndexPath *menuIndexPath = self.menuIndexPath;
+    assert(menuIndexPath != nil);
+    
+    NSManagedObjectContext *context = SVCoreDataStack.sharedInstance.backgroundContext;
+    
+    [context performBlock:^{
+        SVVirtualMachine *virtualMachineObject = [self.viewModel isolated_virtualMachineObjectAtIndexPath:menuIndexPath];
+        [context deleteObject:virtualMachineObject];
+        
+        NSError * _Nullable error = nil;
+        [context save:&error];
+        assert(error == nil);
+    }];
+}
+
 - (void)_didTriggerEditItem:(NSMenuItem *)sender {
     NSIndexPath *menuIndexPath = self.menuIndexPath;
     assert(menuIndexPath != nil);
     
     [SVCoreDataStack.sharedInstance.backgroundContext performBlock:^{
-        SVVirtualMachineConfiguration *machineConfigurationObject = [self.viewModel isolated_machineConfigurationObjectAtIndexPath:menuIndexPath];
+        SVVirtualMachine *virtualMachineObject = [self.viewModel isolated_virtualMachineObjectAtIndexPath:menuIndexPath];
+        SVVirtualMachineConfiguration *machineConfigurationObject = virtualMachineObject.configuration;
         assert(machineConfigurationObject != nil);
         
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -305,7 +327,8 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     assert(menuIndexPath != nil);
     
     [SVCoreDataStack.sharedInstance.backgroundContext performBlock:^{
-        SVVirtualMachineConfiguration *machineConfigurationObject = [self.viewModel isolated_machineConfigurationObjectAtIndexPath:menuIndexPath];
+        SVVirtualMachine *virtualMachineObject = [self.viewModel isolated_virtualMachineObjectAtIndexPath:menuIndexPath];
+        SVVirtualMachineConfiguration *machineConfigurationObject = virtualMachineObject.configuration;
         assert(machineConfigurationObject != nil);
         
         VZVirtualMachineConfiguration *configuration = [SVCoreDataStack.sharedInstance isolated_makeVirtualMachineConfigurationFromManagedObject:machineConfigurationObject];
@@ -342,7 +365,8 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     assert(menuIndexPath != nil);
     
     [SVCoreDataStack.sharedInstance.backgroundContext performBlock:^{
-        SVVirtualMachineConfiguration *machineConfigurationObject = [self.viewModel isolated_machineConfigurationObjectAtIndexPath:menuIndexPath];
+        SVVirtualMachine *virtualMachineObject = [self.viewModel isolated_virtualMachineObjectAtIndexPath:menuIndexPath];
+        SVVirtualMachineConfiguration *machineConfigurationObject = virtualMachineObject.configuration;
         assert(machineConfigurationObject != nil);
         
         VZVirtualMachineConfiguration *configuration = [SVCoreDataStack.sharedInstance isolated_makeVirtualMachineConfigurationFromManagedObject:machineConfigurationObject];
@@ -364,13 +388,11 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     assert(menuIndexPath != nil);
     
     [SVCoreDataStack.sharedInstance.backgroundContext performBlock:^{
-        SVVirtualMachineConfiguration *machineConfigurationObject = [self.viewModel isolated_machineConfigurationObjectAtIndexPath:menuIndexPath];
-        assert(machineConfigurationObject != nil);
-        
-        VZVirtualMachineConfiguration *configuration = [SVCoreDataStack.sharedInstance isolated_makeVirtualMachineConfigurationFromManagedObject:machineConfigurationObject];
+        SVVirtualMachine *virtualMachineObject = [self.viewModel isolated_virtualMachineObjectAtIndexPath:menuIndexPath];
+        assert(virtualMachineObject != nil);
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            VirtualMachineWindow *window = [[VirtualMachineWindow alloc] initWithMachineConfiguration:configuration];
+            VirtualMachineWindow *window = [[VirtualMachineWindow alloc] initWithVirtualMachineObject:virtualMachineObject];
             [window makeKeyAndOrderFront:nil];
             [window release];
         });

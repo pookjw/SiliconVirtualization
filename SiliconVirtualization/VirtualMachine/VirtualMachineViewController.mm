@@ -6,13 +6,15 @@
 //
 
 #import "VirtualMachineViewController.h"
+#import <Virtualization/Virtualization.h>
 #import <objc/message.h>
 #import <objc/runtime.h>
 #import "NSStringFromVZVirtualMachineState.h"
+#import "VirtualMachineViewModel.h"
 
 OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self class] }; */
 
-@interface VirtualMachineViewController () <VZVirtualMachineDelegate, NSToolbarDelegate, NSMenuDelegate>
+@interface VirtualMachineViewController () <NSToolbarDelegate, NSMenuDelegate>
 @property (class, nonatomic, readonly, getter=_stopMenuItemTag) NSInteger stopMenuItemTag;
 @property (class, nonatomic, readonly, getter=_requestStopMenuItemTag) NSInteger requestStopMenuItemTag;
 
@@ -30,7 +32,7 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
 @property (retain, nonatomic, readonly, getter=_moreMenuToolbarItem) NSMenuToolbarItem *moreMenuToolbarItem;
 @property (retain, nonatomic, readonly, getter=_stateToolbarItem) NSToolbarItem *stateToolbarItem;
 
-@property (nonatomic, readonly, nullable, getter=_virtualMachineQueue) dispatch_queue_t virtualMachineQueue;
+@property (retain, nonatomic, readonly, getter=_viewModel) VirtualMachineViewModel *viewModel;
 @end
 
 @implementation VirtualMachineViewController
@@ -44,6 +46,7 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
 @synthesize restoreMachineStateToolbarItem = _restoreMachineStateToolbarItem;
 @synthesize moreMenuToolbarItem = _moreMenuToolbarItem;
 @synthesize stateToolbarItem = _stateToolbarItem;
+@synthesize viewModel = _viewModel;
 
 + (NSInteger)_stopMenuItemTag { return 1001; }
 + (NSInteger)_requestStopMenuItemTag { return 1002; }
@@ -62,6 +65,7 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     [_restoreMachineStateToolbarItem release];
     [_moreMenuToolbarItem release];
     [_stateToolbarItem release];
+    [_viewModel release];
     [super dealloc];
 }
 
@@ -78,34 +82,41 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     return [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
 }
 
-- (VZVirtualMachine *)virtualMachine {
-    return self.virtualMachineView.virtualMachine;
+- (void)setVirtualMachineObject:(SVVirtualMachine *)virtualMachineObject completionHandler:(void (^)())completionHandler {
+    VirtualMachineViewModel *viewModel = self.viewModel;
+    
+    dispatch_async(viewModel.queue, ^{
+        [viewModel isolated_setVirtualMachineObject:virtualMachineObject completionHandler:^{
+            VZVirtualMachine *newVirtualMachine = viewModel.isolated_virtualMachine;
+            assert(newVirtualMachine != nil);
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                VZVirtualMachineView *virtualMachineView = self.virtualMachineView;
+                
+                if (VZVirtualMachine *oldVirtualMachine = virtualMachineView.virtualMachine) {
+                    [oldVirtualMachine removeObserver:self forKeyPath:@"state"];
+                    [oldVirtualMachine release];
+                }
+                
+                virtualMachineView.virtualMachine = newVirtualMachine;
+                [newVirtualMachine addObserver:self forKeyPath:@"state" options:NSKeyValueObservingOptionNew context:NULL];
+                [self _updateToolbarItems];
+                
+                if (completionHandler) completionHandler();
+            });
+        }];
+    });
 }
 
-- (void)setVirtualMachine:(VZVirtualMachine *)virtualMachine {
-    VZVirtualMachineView *virtualMachineView = self.virtualMachineView;
+- (VirtualMachineViewModel *)_viewModel {
+    dispatch_assert_queue(dispatch_get_main_queue());
     
-    if (VZVirtualMachine *oldVirtualMachine = virtualMachineView.virtualMachine) {
-        [oldVirtualMachine removeObserver:self forKeyPath:@"state"];
-        [oldVirtualMachine release];
-    }
+    if (auto viewModel = _viewModel) return viewModel;
     
-    self.virtualMachineView.virtualMachine = virtualMachine;
+    VirtualMachineViewModel *viewModel = [VirtualMachineViewModel new];
     
-    if (virtualMachine != nil) {
-        assert(virtualMachine.delegate == nil);
-        virtualMachine.delegate = self;
-        [virtualMachine addObserver:self forKeyPath:@"state" options:NSKeyValueObservingOptionNew context:NULL];
-    }
-}
-
-- (dispatch_queue_t)_virtualMachineQueue {
-    VZVirtualMachine *virtualMachine = self.virtualMachineView.virtualMachine;
-    if (virtualMachine == nil) return nil;
-    
-    dispatch_queue_t _queue = nil;
-    assert(object_getInstanceVariable(virtualMachine, "_queue", reinterpret_cast<void **>(&_queue)) != NULL);
-    return _queue;
+    _viewModel = viewModel;
+    return viewModel;
 }
 
 - (void)viewDidLoad {
@@ -162,6 +173,7 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     startToolbarItem.target = self;
     startToolbarItem.action = @selector(_didTriggerStartToolbarItem:);
     startToolbarItem.autovalidates = NO;
+    startToolbarItem.hidden = YES;
     
     _startToolbarItem = startToolbarItem;
     return startToolbarItem;
@@ -176,6 +188,7 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     resumeToolbarItem.target = self;
     resumeToolbarItem.action = @selector(_didTriggerResumeToolbarItem:);
     resumeToolbarItem.autovalidates = NO;
+    resumeToolbarItem.hidden = YES;
     
     _resumeToolbarItem = resumeToolbarItem;
     return resumeToolbarItem;
@@ -187,6 +200,7 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     NSMenuToolbarItem *stopMenuToolbarItem = [[NSMenuToolbarItem alloc] initWithItemIdentifier:@"Stop"];
     stopMenuToolbarItem.image = [NSImage imageWithSystemSymbolName:@"stop.fill" accessibilityDescription:nil];
     stopMenuToolbarItem.label = @"Stop";
+    stopMenuToolbarItem.hidden = YES;
     
     {
         NSMenu *menu = [NSMenu new];
@@ -225,6 +239,7 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     pauseToolbarItem.label = @"Pause";
     pauseToolbarItem.target = self;
     pauseToolbarItem.action = @selector(_didTriggerPauseToolbarItem:);
+    pauseToolbarItem.hidden = YES;
     
     _pauseToolbarItem = pauseToolbarItem;
     return pauseToolbarItem;
@@ -239,6 +254,7 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     saveMachineStateToolbarItem.toolTip = @"Save Machine State";
     saveMachineStateToolbarItem.target = self;
     saveMachineStateToolbarItem.action = @selector(_didTriggerSaveMachineStateToolbarItem:);
+    saveMachineStateToolbarItem.hidden = YES;
     
     _saveMachineStateToolbarItem = saveMachineStateToolbarItem;
     return saveMachineStateToolbarItem;
@@ -253,6 +269,7 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     restoreMachineStateToolbarItem.toolTip = @"Restore Machine State";
     restoreMachineStateToolbarItem.target = self;
     restoreMachineStateToolbarItem.action = @selector(_didTriggerRestoreMachineStateToolbarItem:);
+    restoreMachineStateToolbarItem.hidden = YES;
     
     _restoreMachineStateToolbarItem = restoreMachineStateToolbarItem;
     return restoreMachineStateToolbarItem;
@@ -286,14 +303,16 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
 }
 
 - (void)_didTriggerStartToolbarItem:(NSToolbarItem *)sender {
-    VZVirtualMachine *virtualMachine = self.virtualMachine;
-    assert(virtualMachine != nil);
+    VirtualMachineViewModel *viewModel = self.viewModel;
     
-    dispatch_async(self.virtualMachineQueue, ^{
+    dispatch_async(viewModel.queue, ^{
+        VZVirtualMachine *virtualMachine = viewModel.isolated_virtualMachine;
+        assert(virtualMachine != nil);
+        
         [self _queue_startAccessingSecurityScopedResourcesWithVirtualMachine:virtualMachine];
         
         VZMacOSVirtualMachineStartOptions *options = [VZMacOSVirtualMachineStartOptions new];
-        options.startUpFromMacOSRecovery = YES;
+        options.startUpFromMacOSRecovery = viewModel.startUpFromMacOSRecovery;
         [virtualMachine startWithOptions:options completionHandler:^(NSError * _Nullable errorOrNil) {
             assert(errorOrNil == nil);
         }];
@@ -302,10 +321,12 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
 }
 
 - (void)_didTriggerResumeToolbarItem:(NSToolbarItem *)sender {
-    VZVirtualMachine *virtualMachine = self.virtualMachine;
-    assert(virtualMachine != nil);
+    VirtualMachineViewModel *viewModel = self.viewModel;
     
-    dispatch_async(self.virtualMachineQueue, ^{
+    dispatch_async(viewModel.queue, ^{
+        VZVirtualMachine *virtualMachine = viewModel.isolated_virtualMachine;
+        assert(virtualMachine != nil);
+        
         [virtualMachine resumeWithCompletionHandler:^(NSError * _Nullable errorOrNil) {
             assert(errorOrNil == nil);
         }];
@@ -313,10 +334,12 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
 }
 
 - (void)_didTriggerStopMenuItem:(NSMenuItem *)sender {
-    VZVirtualMachine *virtualMachine = self.virtualMachine;
-    assert(virtualMachine != nil);
+    VirtualMachineViewModel *viewModel = self.viewModel;
     
-    dispatch_async(self.virtualMachineQueue, ^{
+    dispatch_async(viewModel.queue, ^{
+        VZVirtualMachine *virtualMachine = viewModel.isolated_virtualMachine;
+        assert(virtualMachine != nil);
+        
         [virtualMachine stopWithCompletionHandler:^(NSError * _Nullable errorOrNil) {
             assert(errorOrNil == nil);
         }];
@@ -324,10 +347,12 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
 }
 
 - (void)_didTriggerRequestStopMenuItem:(NSMenuItem *)sender {
-    VZVirtualMachine *virtualMachine = self.virtualMachine;
-    assert(virtualMachine != nil);
+    VirtualMachineViewModel *viewModel = self.viewModel;
     
-    dispatch_async(self.virtualMachineQueue, ^{
+    dispatch_async(viewModel.queue, ^{
+        VZVirtualMachine *virtualMachine = viewModel.isolated_virtualMachine;
+        assert(virtualMachine != nil);
+        
         NSError * _Nullable error = nil;
         [virtualMachine requestStopWithError:&error];
         assert(error == nil);
@@ -335,10 +360,12 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
 }
 
 - (void)_didTriggerPauseToolbarItem:(NSMenuItem *)sender {
-    VZVirtualMachine *virtualMachine = self.virtualMachine;
-    assert(virtualMachine != nil);
+    VirtualMachineViewModel *viewModel = self.viewModel;
     
-    dispatch_async(self.virtualMachineQueue, ^{
+    dispatch_async(viewModel.queue, ^{
+        VZVirtualMachine *virtualMachine = viewModel.isolated_virtualMachine;
+        assert(virtualMachine != nil);
+        
         [virtualMachine pauseWithCompletionHandler:^(NSError * _Nullable errorOrNil) {
             assert(errorOrNil == nil);
         }];
@@ -351,10 +378,12 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     
     [panel beginSheetModalForWindow:self.view.window completionHandler:^(NSModalResponse result) {
         if (NSURL *URL = panel.URL) {
-            VZVirtualMachine *virtualMachine = self.virtualMachine;
-            assert(virtualMachine != nil);
+            VirtualMachineViewModel *viewModel = self.viewModel;
             
-            dispatch_async(self.virtualMachineQueue, ^{
+            dispatch_async(viewModel.queue, ^{
+                VZVirtualMachine *virtualMachine = viewModel.isolated_virtualMachine;
+                assert(virtualMachine != nil);
+                
                 NSFileManager *fileManager = NSFileManager.defaultManager;
                 if ([fileManager fileExistsAtPath:URL.path]) {
                     NSError * _Nullable error = nil;
@@ -389,10 +418,12 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     
     [panel beginSheetModalForWindow:self.view.window completionHandler:^(NSModalResponse result) {
         if (NSURL *URL = panel.URL) {
-            VZVirtualMachine *virtualMachine = self.virtualMachine;
-            assert(virtualMachine != nil);
+            VirtualMachineViewModel *viewModel = self.viewModel;
             
-            dispatch_async(self.virtualMachineQueue, ^{
+            dispatch_async(viewModel.queue, ^{
+                VZVirtualMachine *virtualMachine = viewModel.isolated_virtualMachine;
+                assert(virtualMachine != nil);
+                
                 [virtualMachine restoreMachineStateFromURL:URL completionHandler:^(NSError * _Nullable errorOrNil) {
                     assert(errorOrNil == nil);
                     
@@ -467,58 +498,50 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
 }
 
 - (void)_updateToolbarItems {
-    VZVirtualMachine *virtualMachine = self.virtualMachineView.virtualMachine;
-    if (virtualMachine == nil) {
-        self.stateToolbarItem.hidden = YES;
-        self.startToolbarItem.hidden = YES;
-        self.resumeToolbarItem.hidden = YES;
-        self.stopMenuToolbarItem.hidden = YES;
-        self.pauseToolbarItem.hidden = YES;
-        self.saveMachineStateToolbarItem.hidden = YES;
-        self.restoreMachineStateToolbarItem.hidden = YES;
-        return;
-    }
+    VirtualMachineViewModel *viewModel = self.viewModel;
     
-    dispatch_async(self.virtualMachineQueue, ^{
-        VZVirtualMachineState state = virtualMachine.state;
-        NSString *stateString = NSStringFromVZVirtualMachineState(state);
-        BOOL canStart = virtualMachine.canStart;
-        BOOL canResume = virtualMachine.canResume;
-        BOOL canStop = virtualMachine.canStop;
-        BOOL canRequestStop = virtualMachine.canRequestStop;
-        BOOL canPause = virtualMachine.canPause;
+    dispatch_async(viewModel.queue, ^{
+        VZVirtualMachine *virtualMachine = viewModel.isolated_virtualMachine;
         
-        dispatch_async(dispatch_get_main_queue(), ^{
-            NSToolbarItem *stateToolbarItem = self.stateToolbarItem;
-            stateToolbarItem.hidden = NO;
-            stateToolbarItem.title = stateString;
+        if (virtualMachine == nil) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                self.stateToolbarItem.hidden = YES;
+                self.startToolbarItem.hidden = YES;
+                self.resumeToolbarItem.hidden = YES;
+                self.stopMenuToolbarItem.hidden = YES;
+                self.pauseToolbarItem.hidden = YES;
+                self.saveMachineStateToolbarItem.hidden = YES;
+                self.restoreMachineStateToolbarItem.hidden = YES;
+            });
+        } else {
+            VZVirtualMachineState state = virtualMachine.state;
+            NSString *stateString = NSStringFromVZVirtualMachineState(state);
+            BOOL canStart = virtualMachine.canStart;
+            BOOL canResume = virtualMachine.canResume;
+            BOOL canStop = virtualMachine.canStop;
+            BOOL canRequestStop = virtualMachine.canRequestStop;
+            BOOL canPause = virtualMachine.canPause;
             
-            self.startToolbarItem.hidden = !canStart;
-            self.resumeToolbarItem.hidden = !canResume;
-            
-            NSMenuToolbarItem *stopMenuToolbarItem = self.stopMenuToolbarItem;
-            [stopMenuToolbarItem.menu itemWithTag:VirtualMachineViewController.stopMenuItemTag].hidden = !canStop;
-            [stopMenuToolbarItem.menu itemWithTag:VirtualMachineViewController.requestStopMenuItemTag].hidden = !canRequestStop;
-            stopMenuToolbarItem.hidden = !canStop && !canRequestStop;
-            
-            self.pauseToolbarItem.hidden = !canPause;
-            
-            self.saveMachineStateToolbarItem.hidden = (state != VZVirtualMachineStatePaused);
-            self.restoreMachineStateToolbarItem.hidden = (state != VZVirtualMachineStateStopped);
-        });
+            dispatch_async(dispatch_get_main_queue(), ^{
+                NSToolbarItem *stateToolbarItem = self.stateToolbarItem;
+                stateToolbarItem.hidden = NO;
+                stateToolbarItem.title = stateString;
+                
+                self.startToolbarItem.hidden = !canStart;
+                self.resumeToolbarItem.hidden = !canResume;
+                
+                NSMenuToolbarItem *stopMenuToolbarItem = self.stopMenuToolbarItem;
+                [stopMenuToolbarItem.menu itemWithTag:VirtualMachineViewController.stopMenuItemTag].hidden = !canStop;
+                [stopMenuToolbarItem.menu itemWithTag:VirtualMachineViewController.requestStopMenuItemTag].hidden = !canRequestStop;
+                stopMenuToolbarItem.hidden = !canStop && !canRequestStop;
+                
+                self.pauseToolbarItem.hidden = !canPause;
+                
+                self.saveMachineStateToolbarItem.hidden = (state != VZVirtualMachineStatePaused);
+                self.restoreMachineStateToolbarItem.hidden = (state != VZVirtualMachineStateStopped);
+            });
+        }
     });
-}
-
-- (void)guestDidStopVirtualMachine:(VZVirtualMachine *)virtualMachine {
-    abort();
-}
-
-- (void)virtualMachine:(VZVirtualMachine *)virtualMachine didStopWithError:(NSError *)error {
-    abort();
-}
-
-- (void)virtualMachine:(VZVirtualMachine *)virtualMachine networkDevice:(VZNetworkDevice *)networkDevice attachmentWasDisconnectedWithError:(NSError *)error {
-    abort();
 }
 
 - (NSArray<NSToolbarItemIdentifier> *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar {
@@ -581,6 +604,16 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
         capturesSystemKeysItem.state = self.virtualMachineView.capturesSystemKeys ? NSControlStateValueOn : NSControlStateValueOff;
         [menu addItem:capturesSystemKeysItem];
         [capturesSystemKeysItem release];
+        
+        [menu addItem:[NSMenuItem separatorItem]];
+        
+        NSMenuItem *startUpFromMacOSRecoveryItem = [NSMenuItem new];
+        startUpFromMacOSRecoveryItem.title = @"Start Up From macOS Recovery";
+        startUpFromMacOSRecoveryItem.target = self;
+        startUpFromMacOSRecoveryItem.action = @selector(_didTriggerStartUpFromMacOSRecoveryItem:);
+        startUpFromMacOSRecoveryItem.state = self.viewModel.startUpFromMacOSRecovery ? NSControlStateValueOn : NSControlStateValueOff;
+        [menu addItem:startUpFromMacOSRecoveryItem];
+        [startUpFromMacOSRecoveryItem release];
     } else {
         abort();
     }
@@ -588,12 +621,16 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
 
 - (void)_didTriggerAutomaticallyReconfiguresDisplayItem:(NSMenuItem *)sender {
     VZVirtualMachineView *virtualMachineView = self.virtualMachineView;
-    virtualMachineView.automaticallyReconfiguresDisplay = !virtualMachineView.automaticallyReconfiguresDisplay;
+    virtualMachineView.automaticallyReconfiguresDisplay = (sender.state != NSControlStateValueOn);
 }
 
 - (void)_didTriggerCapturesSystemKeysItem:(NSMenuItem *)sender {
     VZVirtualMachineView *virtualMachineView = self.virtualMachineView;
-    virtualMachineView.capturesSystemKeys = !virtualMachineView.capturesSystemKeys;
+    virtualMachineView.capturesSystemKeys = (sender.state != NSControlStateValueOn);
+}
+
+- (void)_didTriggerStartUpFromMacOSRecoveryItem:(NSMenuItem *)sender {
+    self.viewModel.startUpFromMacOSRecovery = (sender.state != NSControlStateValueOn);
 }
 
 @end

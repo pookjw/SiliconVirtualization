@@ -13,6 +13,54 @@
 + (NSManagedObjectModel *)sv_makeManagedObjectModel {
     NSManagedObjectModel *managedObjectModel = [NSManagedObjectModel new];
     
+    NSEntityDescription *virtualMachineEntity;
+    {
+        virtualMachineEntity = [NSEntityDescription new];
+        virtualMachineEntity.name = @"VirtualMachine";
+        virtualMachineEntity.managedObjectClassName = NSStringFromClass([SVVirtualMachine class]);
+        
+        NSAttributeDescription *timestampAttribute = [NSAttributeDescription new];
+        timestampAttribute.name = @"timestamp";
+        timestampAttribute.optional = YES;
+        timestampAttribute.attributeType = NSDateAttributeType;
+        
+        virtualMachineEntity.properties = @[
+            timestampAttribute
+        ];
+        
+        [timestampAttribute release];
+    }
+    
+    NSEntityDescription *macOSVirtualMachineStartOptionsEntity;
+    {
+        macOSVirtualMachineStartOptionsEntity = [NSEntityDescription new];
+        macOSVirtualMachineStartOptionsEntity.name = @"MacOSVirtualMachineStartOptions";
+        macOSVirtualMachineStartOptionsEntity.managedObjectClassName = NSStringFromClass([SVMacOSVirtualMachineStartOptions class]);
+        
+        NSAttributeDescription *startUpFromMacOSRecoveryAttribute = [NSAttributeDescription new];
+        startUpFromMacOSRecoveryAttribute.name = @"startUpFromMacOSRecovery";
+        startUpFromMacOSRecoveryAttribute.optional = YES;
+        startUpFromMacOSRecoveryAttribute.attributeType = NSBooleanAttributeType;
+        
+        macOSVirtualMachineStartOptionsEntity.properties = @[
+            startUpFromMacOSRecoveryAttribute
+        ];
+        
+        [startUpFromMacOSRecoveryAttribute release];
+    }
+    
+    NSEntityDescription *virtualMachineStartOptionsEntity;
+    {
+        virtualMachineStartOptionsEntity = [NSEntityDescription new];
+        virtualMachineStartOptionsEntity.name = @"VirtualMachineStartOptions";
+        virtualMachineStartOptionsEntity.managedObjectClassName = NSStringFromClass([SVVirtualMachineStartOptions class]);
+        
+        virtualMachineStartOptionsEntity.abstract = YES;
+        virtualMachineStartOptionsEntity.subentities = @[
+            macOSVirtualMachineStartOptionsEntity
+        ];
+    }
+    
     NSEntityDescription *virtualMachineConfigurationEntity;
     {
         virtualMachineConfigurationEntity = [NSEntityDescription new];
@@ -33,20 +81,13 @@
         memorySizeAttribute.valueTransformerName = NSSecureUnarchiveFromDataTransformerName;
         memorySizeAttribute.attributeValueClassName = NSStringFromClass([NSNumber class]);
         
-        NSAttributeDescription *timestampAttribute = [NSAttributeDescription new];
-        timestampAttribute.name = @"timestamp";
-        timestampAttribute.optional = YES;
-        timestampAttribute.attributeType = NSDateAttributeType;
-        
         virtualMachineConfigurationEntity.properties = @[
             CPUCountAttribute,
-            memorySizeAttribute,
-            timestampAttribute
+            memorySizeAttribute
         ];
         
         [CPUCountAttribute release];
         [memorySizeAttribute release];
-        [timestampAttribute release];
     }
     
     //
@@ -368,6 +409,64 @@
     }
     
     //
+    
+    {
+        NSRelationshipDescription *virtualMachine_configuration_relationship = [NSRelationshipDescription new];
+        virtualMachine_configuration_relationship.name = @"configuration";
+        virtualMachine_configuration_relationship.optional = YES;
+        virtualMachine_configuration_relationship.minCount = 0;
+        virtualMachine_configuration_relationship.maxCount = 1;
+        assert(!virtualMachine_configuration_relationship.toMany);
+        virtualMachine_configuration_relationship.destinationEntity = virtualMachineConfigurationEntity;
+        virtualMachine_configuration_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *virtualMachineConfiguration_machine_relationship = [NSRelationshipDescription new];
+        virtualMachineConfiguration_machine_relationship.name = @"machine";
+        virtualMachineConfiguration_machine_relationship.optional = YES;
+        virtualMachineConfiguration_machine_relationship.minCount = 0;
+        virtualMachineConfiguration_machine_relationship.maxCount = 1;
+        assert(!virtualMachineConfiguration_machine_relationship.toMany);
+        virtualMachineConfiguration_machine_relationship.destinationEntity = virtualMachineEntity;
+        virtualMachineConfiguration_machine_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        virtualMachine_configuration_relationship.inverseRelationship = virtualMachineConfiguration_machine_relationship;
+        virtualMachineConfiguration_machine_relationship.inverseRelationship = virtualMachine_configuration_relationship;
+        
+        virtualMachineEntity.properties = [virtualMachineEntity.properties arrayByAddingObject:virtualMachine_configuration_relationship];
+        virtualMachineConfigurationEntity.properties = [virtualMachineConfigurationEntity.properties arrayByAddingObject:virtualMachineConfiguration_machine_relationship];
+        
+        [virtualMachine_configuration_relationship release];
+        [virtualMachineConfiguration_machine_relationship release];
+    }
+    
+    {
+        NSRelationshipDescription *virtualMachine_startOptions_relationship = [NSRelationshipDescription new];
+        virtualMachine_startOptions_relationship.name = @"startOptions";
+        virtualMachine_startOptions_relationship.optional = YES;
+        virtualMachine_startOptions_relationship.minCount = 0;
+        virtualMachine_startOptions_relationship.maxCount = 1;
+        assert(!virtualMachine_startOptions_relationship.toMany);
+        virtualMachine_startOptions_relationship.destinationEntity = virtualMachineStartOptionsEntity;
+        virtualMachine_startOptions_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *virtualMachineStartOptions_machine_relationship = [NSRelationshipDescription new];
+        virtualMachineStartOptions_machine_relationship.name = @"machine";
+        virtualMachineStartOptions_machine_relationship.optional = YES;
+        virtualMachineStartOptions_machine_relationship.minCount = 0;
+        virtualMachineStartOptions_machine_relationship.maxCount = 1;
+        assert(!virtualMachineStartOptions_machine_relationship.toMany);
+        virtualMachineStartOptions_machine_relationship.destinationEntity = virtualMachineEntity;
+        virtualMachineStartOptions_machine_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        virtualMachine_startOptions_relationship.inverseRelationship = virtualMachineStartOptions_machine_relationship;
+        virtualMachineStartOptions_machine_relationship.inverseRelationship = virtualMachine_startOptions_relationship;
+        
+        virtualMachineEntity.properties = [virtualMachineEntity.properties arrayByAddingObject:virtualMachine_startOptions_relationship];
+        virtualMachineStartOptionsEntity.properties = [virtualMachineStartOptionsEntity.properties arrayByAddingObject:virtualMachineStartOptions_machine_relationship];
+        
+        [virtualMachine_startOptions_relationship release];
+        [virtualMachineStartOptions_machine_relationship release];
+    }
     
     {
         NSRelationshipDescription *virtualMachineConfiguration_bootLoader_relationship = [NSRelationshipDescription new];
@@ -755,6 +854,9 @@
     //
     
     managedObjectModel.entities = @[
+        virtualMachineEntity,
+        macOSVirtualMachineStartOptionsEntity,
+        virtualMachineStartOptionsEntity,
         macOSBootLoaderEntity,
         bootLoaderEntity,
         virtualMachineConfigurationEntity,
@@ -783,6 +885,9 @@
         pointingDeviceConfigurationEntity
     ];
     
+    [virtualMachineEntity release];
+    [macOSVirtualMachineStartOptionsEntity release];
+    [virtualMachineStartOptionsEntity release];
     [macOSBootLoaderEntity release];
     [bootLoaderEntity release];
     [virtualMachineConfigurationEntity release];

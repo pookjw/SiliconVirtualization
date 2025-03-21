@@ -57,11 +57,8 @@
     NSManagedObjectContext *managedObjectContext = SVCoreDataStack.sharedInstance.backgroundContext;
     
     [managedObjectContext performBlock:^{
-        SVVirtualMachineConfiguration * _Nullable configuration = [managedObjectContext objectWithID:objectID];
-        NSDate * _Nullable timestamp = configuration.timestamp;
-        if (configuration != nil) {
-            assert(timestamp != nil);
-        }
+        SVVirtualMachine * _Nullable virtualMachine = [managedObjectContext objectWithID:objectID];
+        NSDate * _Nullable timestamp = virtualMachine.timestamp;
         
         dispatch_async(dispatch_get_main_queue(), ^{
             if ([self.objectID isEqual:objectID] or (self.objectID == nil and objectID == nil)) {

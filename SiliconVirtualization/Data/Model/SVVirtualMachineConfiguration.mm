@@ -14,10 +14,10 @@
 
 @dynamic cpuCount;
 @dynamic memorySize;
-@dynamic timestamp;
 @dynamic bootLoader;
 @dynamic graphicsDevices;
 @dynamic keyboards;
+@dynamic machine;
 @dynamic platform;
 @dynamic pointingDevices;
 @dynamic storageDevices;

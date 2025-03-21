@@ -6,7 +6,7 @@
 //
 
 #import <Cocoa/Cocoa.h>
-#import "SVVirtualMachineConfiguration.h"
+#import "Model.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -14,7 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (instancetype)new NS_UNAVAILABLE;
 - (instancetype)init NS_UNAVAILABLE;
 - (instancetype)initWithDataSource:(NSCollectionViewDiffableDataSource<NSString *, NSManagedObjectID *> *)dataSource;
-- (SVVirtualMachineConfiguration * _Nullable)isolated_machineConfigurationObjectAtIndexPath:(NSIndexPath *)indexPath;
+- (SVVirtualMachine * _Nullable)isolated_virtualMachineObjectAtIndexPath:(NSIndexPath *)indexPath;
 @end
 
 NS_ASSUME_NONNULL_END

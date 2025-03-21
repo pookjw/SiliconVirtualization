@@ -84,6 +84,7 @@
     <entity name="VirtualMachine" representedClassName="SVVirtualMachine" syncable="YES" codeGenerationType="class">
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="configuration" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="VirtualMachineConfiguration" inverseName="machine" inverseEntity="VirtualMachineConfiguration"/>
+        <relationship name="startOptions" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="VirtualMachineStartOptions" inverseName="machine" inverseEntity="VirtualMachineStartOptions"/>
     </entity>
     <entity name="VirtualMachineConfiguration" representedClassName="SVVirtualMachineConfiguration" syncable="YES" codeGenerationType="class">
         <attribute name="cpuCount" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromData" customClassName="NSNumber"/>
@@ -96,5 +97,7 @@
         <relationship name="pointingDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="PointingDeviceConfiguration" inverseName="machine" inverseEntity="PointingDeviceConfiguration"/>
         <relationship name="storageDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="StorageDeviceConfiguration" inverseName="machine" inverseEntity="StorageDeviceConfiguration"/>
     </entity>
-    <entity name="VirtualMachineStartOptions" representedClassName="SVVirtualMachineStartOptions" isAbstract="YES" syncable="YES" codeGenerationType="class"/>
+    <entity name="VirtualMachineStartOptions" representedClassName="SVVirtualMachineStartOptions" isAbstract="YES" syncable="YES" codeGenerationType="class">
+        <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachine" inverseName="startOptions" inverseEntity="VirtualMachine"/>
+    </entity>
 </model>

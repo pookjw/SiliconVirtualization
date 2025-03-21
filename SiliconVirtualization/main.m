@@ -8,7 +8,7 @@
 #import <Cocoa/Cocoa.h>
 #import "AppDelegate.h"
 
-#warning _VZIOUSBHostPassthroughDeviceConfiguration (VZUSBDeviceConfiguration)
+#warning _VZIOUSBHostPassthroughDeviceConfiguration (VZUSBDeviceConfiguration) _VZMacTouchIDDeviceConfiguration (_setBiometricDevices:)
 
 int main(int argc, const char * argv[]) {
     AppDelegate *delegate = [AppDelegate new];
