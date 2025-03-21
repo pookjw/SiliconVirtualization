@@ -346,11 +346,57 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
 }
 
 - (void)_didTriggerSaveMachineStateToolbarItem:(NSMenuItem *)sender {
-    abort();
+    NSSavePanel *panel = [NSSavePanel new];
+    panel.canCreateDirectories = YES;
+    
+    [panel beginSheetModalForWindow:self.view.window completionHandler:^(NSModalResponse result) {
+        if (NSURL *URL = panel.URL) {
+            dispatch_async(self.virtualMachineQueue, ^{
+                [self.virtualMachine saveMachineStateToURL:URL completionHandler:^(NSError * _Nullable errorOrNil) {
+                    assert(errorOrNil == nil);
+                    
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        NSAlert *alert = [NSAlert new];
+                        alert.messageText = @"Saved!";
+                        alert.informativeText = URL.path;
+                        
+                        [alert beginSheetModalForWindow:self.view.window completionHandler:^(NSModalResponse returnCode) {
+                            
+                        }];
+                        [alert release];
+                    });
+                }];
+            });
+        }
+    }];
+    
+    [panel release];
 }
 
 - (void)_didTriggerRestoreMachineStateToolbarItem:(NSMenuItem *)sender {
-    abort();
+    NSOpenPanel *panel = [NSOpenPanel new];
+    panel.canChooseFiles = YES;
+    
+    [panel beginSheetModalForWindow:self.view.window completionHandler:^(NSModalResponse result) {
+        if (NSURL *URL = panel.URL) {
+            [self.virtualMachine restoreMachineStateFromURL:URL completionHandler:^(NSError * _Nullable errorOrNil) {
+                assert(errorOrNil != nil);
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    NSAlert *alert = [NSAlert new];
+                    alert.messageText = @"Saved!";
+                    alert.informativeText = URL.path;
+                    
+                    [alert beginSheetModalForWindow:self.view.window completionHandler:^(NSModalResponse returnCode) {
+                        
+                    }];
+                    [alert release];
+                });
+            }];
+        }
+    }];
+    
+    [panel release];
 }
 
 - (void)_queue_startAccessingSecurityScopedResourcesWithVirtualMachine:(VZVirtualMachine *)virtualMachine {
