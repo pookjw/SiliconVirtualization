@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "4F52C3302D85E53200FE2881"
-               BuildableName = "SiliconVirtualization.app"
-               BlueprintName = "SiliconVirtualization"
+               BlueprintIdentifier = "4F4F5CC32D8EF7C5005B1606"
+               BuildableName = "SiliconVirtualizationHelper"
+               BlueprintName = "SiliconVirtualizationHelper"
                ReferencedContainer = "container:SiliconVirtualization.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -34,40 +34,24 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      launchStyle = "0"
+      debugAsWhichUser = "root"
+      launchStyle = "1"
       useCustomWorkingDirectory = "NO"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
-      allowLocationSimulation = "YES">
+      allowLocationSimulation = "YES"
+      viewDebuggingEnabled = "No">
       <BuildableProductRunnable
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "4F52C3302D85E53200FE2881"
-            BuildableName = "SiliconVirtualization.app"
-            BlueprintName = "SiliconVirtualization"
+            BlueprintIdentifier = "4F4F5CC32D8EF7C5005B1606"
+            BuildableName = "SiliconVirtualizationHelper"
+            BlueprintName = "SiliconVirtualizationHelper"
             ReferencedContainer = "container:SiliconVirtualization.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <CommandLineArguments>
-         <CommandLineArgument
-            argument = "-com.apple.CoreData.ConcurrencyDebug 1"
-            isEnabled = "YES">
-         </CommandLineArgument>
-      </CommandLineArguments>
-      <AdditionalOptions>
-         <AdditionalOption
-            key = "MallocStackLogging"
-            value = ""
-            isEnabled = "YES">
-         </AdditionalOption>
-         <AdditionalOption
-            key = "PrefersMallocStackLoggingLite"
-            value = ""
-            isEnabled = "YES">
-         </AdditionalOption>
-      </AdditionalOptions>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -79,9 +63,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "4F52C3302D85E53200FE2881"
-            BuildableName = "SiliconVirtualization.app"
-            BlueprintName = "SiliconVirtualization"
+            BlueprintIdentifier = "4F4F5CC32D8EF7C5005B1606"
+            BuildableName = "SiliconVirtualizationHelper"
+            BlueprintName = "SiliconVirtualizationHelper"
             ReferencedContainer = "container:SiliconVirtualization.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

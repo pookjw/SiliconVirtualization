@@ -7,12 +7,42 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4F4F5E6C2D8EFB68005B1606 /* SiliconVirtualizationHelper in Resources */ = {isa = PBXBuildFile; fileRef = 4F4F5CC42D8EF7C5005B1606 /* SiliconVirtualizationHelper */; };
+		4F4F5E722D8EFBB8005B1606 /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F4F5E712D8EFBB8005B1606 /* ServiceManagement.framework */; };
 		4F52C4E82D85EC3300FE2881 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F52C4E72D85EC3300FE2881 /* AppKit.framework */; };
 		4F52C51A2D85F00300FE2881 /* Virtualization.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F52C5192D85F00300FE2881 /* Virtualization.framework */; };
 		4F52C59A2D87297D00FE2881 /* UniformTypeIdentifiers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F52C5992D87297D00FE2881 /* UniformTypeIdentifiers.framework */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		4F4F5E672D8EFB45005B1606 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4F52C3292D85E53200FE2881 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4F4F5CC32D8EF7C5005B1606;
+			remoteInfo = SiliconVirtualizationHelper;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
+		4F4F5CC22D8EF7C5005B1606 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		4F4F5E692D8EFB4B005B1606 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/Library/LaunchDaemons;
+			dstSubfolderSpec = 1;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		4FD7A61F2D886B4C00EDD35E /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -25,6 +55,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		4F4F5CC42D8EF7C5005B1606 /* SiliconVirtualizationHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = SiliconVirtualizationHelper; sourceTree = BUILT_PRODUCTS_DIR; };
+		4F4F5E592D8EF807005B1606 /* libxpc.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libxpc.tbd; path = usr/lib/system/libxpc.tbd; sourceTree = SDKROOT; };
+		4F4F5E712D8EFBB8005B1606 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = System/Library/Frameworks/ServiceManagement.framework; sourceTree = SDKROOT; };
 		4F52C3312D85E53200FE2881 /* SiliconVirtualization.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SiliconVirtualization.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4F52C4E72D85EC3300FE2881 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		4F52C5192D85F00300FE2881 /* Virtualization.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Virtualization.framework; path = System/Library/Frameworks/Virtualization.framework; sourceTree = SDKROOT; };
@@ -32,9 +65,43 @@
 		4FD7A6212D886B4C00EDD35E /* MyScript */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = MyScript; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		4F4F5E662D8EFB2B005B1606 /* Exceptions for "SiliconVirtualization" folder in "SiliconVirtualization" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				com.pookjw.SiliconVirtualization.Helper.plist,
+			);
+			target = 4F52C3302D85E53200FE2881 /* SiliconVirtualization */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		4F4F5E6B2D8EFB55005B1606 /* Exceptions for "SiliconVirtualization" folder in "Copy Files" phase from "SiliconVirtualization" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 4F4F5E692D8EFB4B005B1606 /* CopyFiles */;
+			membershipExceptions = (
+				com.pookjw.SiliconVirtualization.Helper.plist,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		4F4F5CC52D8EF7C5005B1606 /* SiliconVirtualizationHelper */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = SiliconVirtualizationHelper;
+			sourceTree = "<group>";
+		};
+		4F4F5E732D8EFBF5005B1606 /* Common */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Common;
+			sourceTree = "<group>";
+		};
 		4F52C3332D85E53200FE2881 /* SiliconVirtualization */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				4F4F5E662D8EFB2B005B1606 /* Exceptions for "SiliconVirtualization" folder in "SiliconVirtualization" target */,
+				4F4F5E6B2D8EFB55005B1606 /* Exceptions for "SiliconVirtualization" folder in "Copy Files" phase from "SiliconVirtualization" target */,
+			);
 			path = SiliconVirtualization;
 			sourceTree = "<group>";
 		};
@@ -46,11 +113,19 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		4F4F5CC12D8EF7C5005B1606 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		4F52C32E2D85E53200FE2881 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				4F52C59A2D87297D00FE2881 /* UniformTypeIdentifiers.framework in Frameworks */,
+				4F4F5E722D8EFBB8005B1606 /* ServiceManagement.framework in Frameworks */,
 				4F52C4E82D85EC3300FE2881 /* AppKit.framework in Frameworks */,
 				4F52C51A2D85F00300FE2881 /* Virtualization.framework in Frameworks */,
 			);
@@ -71,8 +146,10 @@
 			children = (
 				4F52C3332D85E53200FE2881 /* SiliconVirtualization */,
 				4FD7A6222D886B4C00EDD35E /* MyScript */,
+				4F4F5CC52D8EF7C5005B1606 /* SiliconVirtualizationHelper */,
 				4F52C4E62D85EC3300FE2881 /* Frameworks */,
 				4F52C3322D85E53200FE2881 /* Products */,
+				4F4F5E732D8EFBF5005B1606 /* Common */,
 			);
 			sourceTree = "<group>";
 		};
@@ -81,6 +158,7 @@
 			children = (
 				4F52C3312D85E53200FE2881 /* SiliconVirtualization.app */,
 				4FD7A6212D886B4C00EDD35E /* MyScript */,
+				4F4F5CC42D8EF7C5005B1606 /* SiliconVirtualizationHelper */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -88,6 +166,8 @@
 		4F52C4E62D85EC3300FE2881 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4F4F5E712D8EFBB8005B1606 /* ServiceManagement.framework */,
+				4F4F5E592D8EF807005B1606 /* libxpc.tbd */,
 				4F52C5992D87297D00FE2881 /* UniformTypeIdentifiers.framework */,
 				4F52C5192D85F00300FE2881 /* Virtualization.framework */,
 				4F52C4E72D85EC3300FE2881 /* AppKit.framework */,
@@ -98,6 +178,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		4F4F5CC32D8EF7C5005B1606 /* SiliconVirtualizationHelper */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4F4F5CC82D8EF7C5005B1606 /* Build configuration list for PBXNativeTarget "SiliconVirtualizationHelper" */;
+			buildPhases = (
+				4F4F5CC02D8EF7C5005B1606 /* Sources */,
+				4F4F5CC12D8EF7C5005B1606 /* Frameworks */,
+				4F4F5CC22D8EF7C5005B1606 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				4F4F5CC52D8EF7C5005B1606 /* SiliconVirtualizationHelper */,
+			);
+			name = SiliconVirtualizationHelper;
+			packageProductDependencies = (
+			);
+			productName = SiliconVirtualizationHelper;
+			productReference = 4F4F5CC42D8EF7C5005B1606 /* SiliconVirtualizationHelper */;
+			productType = "com.apple.product-type.tool";
+		};
 		4F52C3302D85E53200FE2881 /* SiliconVirtualization */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 4F52C3442D85E53300FE2881 /* Build configuration list for PBXNativeTarget "SiliconVirtualization" */;
@@ -105,10 +207,12 @@
 				4F52C32D2D85E53200FE2881 /* Sources */,
 				4F52C32E2D85E53200FE2881 /* Frameworks */,
 				4F52C32F2D85E53200FE2881 /* Resources */,
+				4F4F5E692D8EFB4B005B1606 /* CopyFiles */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				4F4F5E682D8EFB45005B1606 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				4F52C3332D85E53200FE2881 /* SiliconVirtualization */,
@@ -151,6 +255,9 @@
 				BuildIndependentTargetsInParallel = 1;
 				LastUpgradeCheck = 1630;
 				TargetAttributes = {
+					4F4F5CC32D8EF7C5005B1606 = {
+						CreatedOnToolsVersion = 16.3;
+					};
 					4F52C3302D85E53200FE2881 = {
 						CreatedOnToolsVersion = 16.3;
 					};
@@ -175,6 +282,7 @@
 			targets = (
 				4F52C3302D85E53200FE2881 /* SiliconVirtualization */,
 				4FD7A6202D886B4C00EDD35E /* MyScript */,
+				4F4F5CC32D8EF7C5005B1606 /* SiliconVirtualizationHelper */,
 			);
 		};
 /* End PBXProject section */
@@ -184,12 +292,20 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4F4F5E6C2D8EFB68005B1606 /* SiliconVirtualizationHelper in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		4F4F5CC02D8EF7C5005B1606 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		4F52C32D2D85E53200FE2881 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -206,7 +322,49 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		4F4F5E682D8EFB45005B1606 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4F4F5CC32D8EF7C5005B1606 /* SiliconVirtualizationHelper */;
+			targetProxy = 4F4F5E672D8EFB45005B1606 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		4F4F5CC92D8EF7C5005B1606 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = P53D29U9LJ;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = "$(SRCROOT)/SiliconVirtualizationHelper/Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SDKROOT)/usr/lib/system",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.apple.SiliconVirtualization.Helper;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		4F4F5CCA2D8EF7C5005B1606 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = P53D29U9LJ;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = "$(SRCROOT)/SiliconVirtualizationHelper/Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SDKROOT)/usr/lib/system",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.apple.SiliconVirtualization.Helper;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		4F52C3422D85E53300FE2881 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -407,6 +565,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		4F4F5CC82D8EF7C5005B1606 /* Build configuration list for PBXNativeTarget "SiliconVirtualizationHelper" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4F4F5CC92D8EF7C5005B1606 /* Debug */,
+				4F4F5CCA2D8EF7C5005B1606 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		4F52C32C2D85E53200FE2881 /* Build configuration list for PBXProject "SiliconVirtualization" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

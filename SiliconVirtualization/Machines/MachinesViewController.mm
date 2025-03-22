@@ -16,6 +16,7 @@
 #import <Virtualization/Virtualization.h>
 #import "InstallMacOSViewController.h"
 #import "VirtualMachineWindow.h"
+#import "XPCWindow.h"
 
 OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self class] }; */
 
@@ -205,13 +206,15 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
 
 - (NSArray<NSToolbarItemIdentifier> *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar {
     return @[
-        @"AddMachine"
+        @"AddMachine",
+        @"XPC"
     ];
 }
 
 - (NSArray<NSToolbarItemIdentifier> *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar {
     return @[
-        @"AddMachine"
+        @"AddMachine",
+        @"XPC"
     ];
 }
 
@@ -223,9 +226,22 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
         toolbarItem.label = @"Add";
         toolbarItem.image = [NSImage imageWithSystemSymbolName:@"plus" accessibilityDescription:nil];
         return [toolbarItem autorelease];
+    } else if ([itemIdentifier isEqualToString:@"XPC"]) {
+        NSToolbarItem *toolbarItem = [[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier];
+        toolbarItem.target = self;
+        toolbarItem.action = @selector(_didTriggerXPCItem:);
+        toolbarItem.label = @"XPC";
+        toolbarItem.image = [NSImage imageWithSystemSymbolName:@"app.connected.to.app.below.fill" accessibilityDescription:nil];
+        return [toolbarItem autorelease];
     } else {
         abort();
     }
+}
+
+- (void)_didTriggerXPCItem:(NSToolbarItem *)sender {
+    XPCWindow *window = [XPCWindow new];
+    [window makeKeyAndOrderFront:nil];
+    [window release];
 }
 
 - (void)collectionView:(NSCollectionView *)collectionView didSelectItemsAtIndexPaths:(NSSet<NSIndexPath *> *)indexPaths {
