@@ -8,15 +8,16 @@
 #import "EditMachineBootLoaderViewController.h"
 
 @interface EditMachineBootLoaderViewController ()
-@property (retain, nonatomic, readonly, getter=_stackView) NSStackView *stackView;
-@property (retain, nonatomic, readonly, getter=_currentBootLoaderLabel) NSTextField *currentBootLoaderLabel;
-@property (retain, nonatomic, readonly, getter=_macOSBootLoaderButton) NSButton *macOSBootLoaderButton;
+@property (retain, nonatomic, readonly, getter=_gridView) NSGridView *gridView;
+
+@property (retain, nonatomic, readonly, getter=_bootLoaderLabel) NSTextField *bootLoaderLabel;
+@property (retain, nonatomic, readonly, getter=_bootLoaderPopUpButton) NSPopUpButton *bootLoaderPopUpButton;
 @end
 
 @implementation EditMachineBootLoaderViewController
-@synthesize stackView = _stackView;
-@synthesize currentBootLoaderLabel = _currentBootLoaderLabel;
-@synthesize macOSBootLoaderButton = _macOSBootLoaderButton;
+@synthesize gridView = _gridView;
+@synthesize bootLoaderLabel = _bootLoaderLabel;
+@synthesize bootLoaderPopUpButton = _bootLoaderPopUpButton;
 
 - (instancetype)initWithConfiguration:(VZVirtualMachineConfiguration *)configuration {
     if (self = [super init]) {
@@ -30,25 +31,21 @@
 
 - (void)dealloc {
     [_configuration release];
-    [_stackView release];
-    [_currentBootLoaderLabel release];
-    [_macOSBootLoaderButton release];
+    [_gridView release];
+    [_bootLoaderLabel release];
+    [_bootLoaderPopUpButton release];
     [super dealloc];
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    NSStackView *stackView = self.stackView;
-    stackView.translatesAutoresizingMaskIntoConstraints = NO;
-    [self.view addSubview:stackView];
+    NSGridView *gridView = self.gridView;
+    gridView.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.view addSubview:gridView];
     [NSLayoutConstraint activateConstraints:@[
-        [stackView.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
-        [stackView.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
-        [stackView.topAnchor constraintGreaterThanOrEqualToAnchor:self.view.topAnchor],
-        [stackView.leadingAnchor constraintGreaterThanOrEqualToAnchor:self.view.leadingAnchor],
-        [stackView.trailingAnchor constraintLessThanOrEqualToAnchor:self.view.trailingAnchor],
-        [stackView.bottomAnchor constraintLessThanOrEqualToAnchor:self.view.bottomAnchor]
+        [gridView.centerXAnchor constraintEqualToAnchor:self.view.layoutMarginsGuide.centerXAnchor],
+        [gridView.centerYAnchor constraintEqualToAnchor:self.view.layoutMarginsGuide.centerYAnchor]
     ]];
     
     [self _didChangeConfiguration];
@@ -62,55 +59,75 @@
 }
 
 - (void)_didChangeConfiguration {
-    if (__kindof VZBootLoader *bootLoader = self.configuration.bootLoader) {
-        self.currentBootLoaderLabel.stringValue = bootLoader.description;
+    __kindof VZBootLoader * _Nullable bootLoader = self.configuration.bootLoader;
+    if (bootLoader == nil) {
+        [self.bootLoaderPopUpButton selectItemWithTitle:@"(None)"];
+    } else if ([bootLoader isKindOfClass:[VZEFIBootLoader class]]) {
+        abort();
+    } else if ([bootLoader isKindOfClass:[VZLinuxBootLoader class]]) {
+        abort();
+    } else if ([bootLoader isKindOfClass:[VZMacOSBootLoader class]]) {
+        [self.bootLoaderPopUpButton selectItemWithTitle:@"macOS"];
     } else {
-        self.currentBootLoaderLabel.stringValue = @"(null)";
+        abort();
     }
 }
 
-- (NSStackView *)_stackView {
-    if (auto stackView = _stackView) return stackView;
+- (NSGridView *)_gridView {
+    if (auto gridView = _gridView) return gridView;
     
-    NSStackView *stackView = [NSStackView new];
-    [stackView addArrangedSubview:self.currentBootLoaderLabel];
-    [stackView addArrangedSubview:self.macOSBootLoaderButton];
+    NSGridView *gridView = [NSGridView new];
+    [gridView addRowWithViews:@[self.bootLoaderLabel, self.bootLoaderPopUpButton]];
     
-    stackView.orientation = NSUserInterfaceLayoutOrientationVertical;
-    stackView.alignment = NSLayoutAttributeCenterX;
-    stackView.distribution = NSStackViewDistributionFillProportionally;
-    
-    _stackView = stackView;
-    return stackView;
+    _gridView = gridView;
+    return gridView;
 }
 
-- (NSTextField *)_currentBootLoaderLabel {
-    if (auto currentBootLoaderLabel = _currentBootLoaderLabel) return currentBootLoaderLabel;
+- (NSTextField *)_bootLoaderLabel {
+    if (auto bootLoaderLabel = _bootLoaderLabel) return bootLoaderLabel;
     
-    NSTextField *currentBootLoaderLabel = [NSTextField wrappingLabelWithString:@""];
+    NSTextField *bootLoaderLabel = [NSTextField wrappingLabelWithString:@"Boot Loader"];
     
-    _currentBootLoaderLabel = [currentBootLoaderLabel retain];
-    return currentBootLoaderLabel;
+    _bootLoaderLabel = [bootLoaderLabel retain];
+    return bootLoaderLabel;
 }
 
-- (NSButton *)_macOSBootLoaderButton {
-    if (auto macOSBootLoaderButton = _macOSBootLoaderButton) return macOSBootLoaderButton;
+- (NSPopUpButton *)_bootLoaderPopUpButton {
+    if (auto bootLoaderPopUpButton = _bootLoaderPopUpButton) return bootLoaderPopUpButton;
     
-    NSButton *macOSBootLoaderButton = [NSButton new];
-    macOSBootLoaderButton.title = @"Set macOS BootLoader";
-    macOSBootLoaderButton.target = self;
-    macOSBootLoaderButton.action = @selector(_didTriggermacOSBootLoaderButton:);
+    NSPopUpButton *bootLoaderPopUpButton = [NSPopUpButton new];
     
-    _macOSBootLoaderButton = macOSBootLoaderButton;
-    return macOSBootLoaderButton;
+    [bootLoaderPopUpButton addItemsWithTitles:@[
+        @"(None)",
+        @"EFI",
+        @"Linux",
+        @"macOS"
+    ]];
+    
+    bootLoaderPopUpButton.target = self;
+    bootLoaderPopUpButton.action = @selector(_didTriggerBootLoaderPopUpButton:);
+    
+    _bootLoaderPopUpButton = bootLoaderPopUpButton;
+    return bootLoaderPopUpButton;
 }
 
-- (void)_didTriggermacOSBootLoaderButton:(NSButton *)sender {
-    VZMacOSBootLoader *macOSBootLoader = [[VZMacOSBootLoader alloc] init];
+- (void)_didTriggerBootLoaderPopUpButton:(NSPopUpButton *)sender {
+    __kindof VZBootLoader * _Nullable bootLoader;
+    if ([sender.titleOfSelectedItem isEqualToString:@"(None)"]) {
+        bootLoader = nil;
+    } else if ([sender.titleOfSelectedItem isEqualToString:@"EFI"]) {
+        abort();
+    } else if ([sender.titleOfSelectedItem isEqualToString:@"Linux"]) {
+        abort();
+    } else if ([sender.titleOfSelectedItem isEqualToString:@"macOS"]) {
+        bootLoader = [[VZMacOSBootLoader alloc] init];
+    } else {
+        abort();
+    }
     
     VZVirtualMachineConfiguration *configuration = [self.configuration copy];
-    configuration.bootLoader = macOSBootLoader;
-    [macOSBootLoader release];
+    configuration.bootLoader = bootLoader;
+    [bootLoader release];
     
     self.configuration = configuration;
     
