@@ -19,7 +19,8 @@ typedef NS_ENUM(NSUInteger, EditMachineSidebarItemModelType) {
     EditMachineSidebarItemModelTypePointingDevices,
     EditMachineSidebarItemModelTypeStorages,
     EditMachineSidebarItemModelTypeBootLoader,
-    EditMachineSidebarItemModelTypePlatform
+    EditMachineSidebarItemModelTypePlatform,
+    EditMachineSidebarItemModelTypeUSB
 };
 
 @interface EditMachineSidebarItemModel : NSObject

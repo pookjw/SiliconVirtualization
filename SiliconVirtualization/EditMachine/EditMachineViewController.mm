@@ -17,10 +17,11 @@
 #import "EditMachinePointingDevicesViewController.h"
 #import "EditMachineNetworksViewController.h"
 #import "EditMachineAudioDevicesViewController.h"
+#import "EditMachineUSBViewController.h"
 #import <objc/message.h>
 #import <objc/runtime.h>
 
-@interface EditMachineViewController () <EditMachineSidebarViewControllerDelegate, EditMachineBootLoaderViewControllerDelegate, EditMachineCPUViewControllerDelegate, EditMachineMemoryViewControllerDelegate, EditMachineKeyboardsViewControllerDelegate, EditMachineNetworksViewControllerDelegate, EditMachinePointingDevicesViewControllerDelegate, EditMachineGraphicsViewControllerDelegate, EditMachineStoragesViewControllerDelegate, EditMachinePlatformViewControllerDelegate, EditMachineAudioDevicesViewControllerDelegate>
+@interface EditMachineViewController () <EditMachineSidebarViewControllerDelegate, EditMachineBootLoaderViewControllerDelegate, EditMachineCPUViewControllerDelegate, EditMachineMemoryViewControllerDelegate, EditMachineKeyboardsViewControllerDelegate, EditMachineNetworksViewControllerDelegate, EditMachinePointingDevicesViewControllerDelegate, EditMachineGraphicsViewControllerDelegate, EditMachineStoragesViewControllerDelegate, EditMachinePlatformViewControllerDelegate, EditMachineAudioDevicesViewControllerDelegate, EditMachineUSBViewControllerDelegate>
 @property (retain, nonatomic, readonly, getter=_splitViewController) NSSplitViewController *splitViewController;
 
 @property (retain, nonatomic, readonly, getter=_bootLoaderViewController) EditMachineBootLoaderViewController *bootLoaderViewController;
@@ -55,6 +56,9 @@
 
 @property (retain, nonatomic, readonly, getter=_platformViewController) EditMachinePlatformViewController *platformViewController;
 @property (retain, nonatomic, readonly, getter=_platformSplitViewItem) NSSplitViewItem *platformSplitViewItem;
+
+@property (retain, nonatomic, readonly, getter=_usbViewController) EditMachineUSBViewController *usbViewController;
+@property (retain, nonatomic, readonly, getter=_usbSplitViewItem) NSSplitViewItem *usbSplitViewItem;
 @end
 
 @implementation EditMachineViewController
@@ -81,6 +85,8 @@
 @synthesize storagesSplitViewItem = _storagesSplitViewItem;
 @synthesize platformViewController = _platformViewController;
 @synthesize platformSplitViewItem = _platformSplitViewItem;
+@synthesize usbViewController = _usbViewController;
+@synthesize usbSplitViewItem = _usbSplitViewItem;
 
 - (instancetype)initWithConfiguration:(VZVirtualMachineConfiguration *)configuration {
     if (self = [super init]) {
@@ -127,7 +133,7 @@
     [self.view addSubview:splitViewController.view];
     [self addChildViewController:splitViewController];
     
-    EditMachineSidebarItemModel *itemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeAudio];
+    EditMachineSidebarItemModel *itemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeUSB];
     [self.sidebarViewController setItemModel:itemModel notifyingDelegate:YES];
     [itemModel release];
 }
@@ -354,6 +360,25 @@
     return platformSplitViewItem;
 }
 
+- (EditMachineUSBViewController *)_usbViewController {
+    if (auto usbViewController = _usbViewController) return usbViewController;
+    
+    EditMachineUSBViewController *usbViewController = [[EditMachineUSBViewController alloc] initWithConfiguration:self.configuration];
+    usbViewController.delegate = self;
+    
+    _usbViewController = usbViewController;
+    return usbViewController;
+}
+
+- (NSSplitViewItem *)_usbSplitViewItem {
+    if (auto usbSplitViewItem = _usbSplitViewItem) return usbSplitViewItem;
+    
+    NSSplitViewItem *usbSplitViewItem = [NSSplitViewItem contentListWithViewController:self.usbViewController];
+    
+    _usbSplitViewItem = [usbSplitViewItem retain];
+    return usbSplitViewItem;
+}
+
 - (void)_notifyDelegate {
     if (auto delegate = self.delegate) {
         [delegate editMachineViewController:self didUpdateConfiguration:self.configuration];
@@ -412,6 +437,11 @@
             self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.storagesSplitViewItem];
             break;
         }
+        case EditMachineSidebarItemModelTypeUSB: {
+            self.usbViewController.configuration = self.configuration;
+            self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.usbSplitViewItem];
+            break;
+        }
         default:
             abort();
     }
@@ -463,6 +493,11 @@
 }
 
 - (void)editMachineAudioDevicesViewController:(EditMachineAudioDevicesViewController *)editMachineAudioDevicesViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
+    self.configuration = configuration;
+    [self _notifyDelegate];
+}
+
+- (void)editMachineUSBViewController:(EditMachineUSBViewController *)editMachineUSBViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
     self.configuration = configuration;
     [self _notifyDelegate];
 }

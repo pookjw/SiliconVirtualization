@@ -48,3 +48,7 @@
 #import "SVHostAudioInputStreamSource.h"
 #import "SVAudioOutputStreamSink.h"
 #import "SVHostAudioOutputStreamSink.h"
+#import "SVUSBControllerConfiguration.h"
+#import "SVXHCIControllerConfiguration.h"
+#import "SVUSBMassStorageDeviceConfiguration.h"
+#import "SVDiskBlockDeviceStorageDeviceAttachment.h"

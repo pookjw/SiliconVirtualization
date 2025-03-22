@@ -12,6 +12,11 @@
     <entity name="BootLoader" representedClassName="SVBootLoader" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="bootLoader" inverseEntity="VirtualMachineConfiguration"/>
     </entity>
+    <entity name="DiskBlockDeviceStorageDeviceAttachment" representedClassName="SVDiskBlockDeviceStorageDeviceAttachment" parentEntity="StorageDeviceAttachment" syncable="YES" codeGenerationType="class">
+        <attribute name="fileHandle" optional="YES" transient="YES" attributeType="Transformable" valueTransformerName="FileHandleTransformer" customClassName="NSFileHandle"/>
+        <attribute name="readOnly" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="synchronizationMode" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+    </entity>
     <entity name="DiskImageStorageDeviceAttachment" representedClassName="SVDiskImageStorageDeviceAttachment" parentEntity="StorageDeviceAttachment" syncable="YES" codeGenerationType="class">
         <attribute name="bookmarkData" optional="YES" attributeType="Binary"/>
         <attribute name="cachingMode" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
@@ -94,7 +99,14 @@
         <relationship name="attachment" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="StorageDeviceAttachment" inverseName="storageDevice" inverseEntity="StorageDeviceAttachment"/>
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="storageDevices" inverseEntity="VirtualMachineConfiguration"/>
     </entity>
+    <entity name="USBControllerConfiguration" representedClassName="SVUSBControllerConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class">
+        <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="usbControllers" inverseEntity="VirtualMachineConfiguration"/>
+        <relationship name="usbMassStorageDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="USBMassStorageDeviceConfiguration" inverseName="usbController" inverseEntity="USBMassStorageDeviceConfiguration"/>
+    </entity>
     <entity name="USBKeyboardConfiguration" representedClassName="SVUSBKeyboardConfiguration" parentEntity="KeyboardConfiguration" syncable="YES" codeGenerationType="class"/>
+    <entity name="USBMassStorageDeviceConfiguration" representedClassName="SVUSBMassStorageDeviceConfiguration" parentEntity="StorageDeviceConfiguration" syncable="YES" codeGenerationType="class">
+        <relationship name="usbController" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="USBControllerConfiguration" inverseName="usbMassStorageDevices" inverseEntity="USBControllerConfiguration"/>
+    </entity>
     <entity name="USBScreenCoordinatePointingDeviceConfiguration" representedClassName="SVUSBScreenCoordinatePointingDeviceConfiguration" parentEntity="PointingDeviceConfiguration" syncable="YES" codeGenerationType="class"/>
     <entity name="VirtioBlockDeviceConfiguration" representedClassName="SVVirtioBlockDeviceConfiguration" parentEntity="StorageDeviceConfiguration" syncable="YES" codeGenerationType="class"/>
     <entity name="VirtioGraphicsDeviceConfiguration" representedClassName="SVVirtioGraphicsDeviceConfiguration" parentEntity="GraphicsDeviceConfiguration" syncable="YES" codeGenerationType="class">
@@ -135,8 +147,10 @@
         <relationship name="platform" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="PlatformConfiguration" inverseName="machine" inverseEntity="PlatformConfiguration"/>
         <relationship name="pointingDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="PointingDeviceConfiguration" inverseName="machine" inverseEntity="PointingDeviceConfiguration"/>
         <relationship name="storageDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="StorageDeviceConfiguration" inverseName="machine" inverseEntity="StorageDeviceConfiguration"/>
+        <relationship name="usbControllers" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="USBControllerConfiguration" inverseName="machine" inverseEntity="USBControllerConfiguration"/>
     </entity>
     <entity name="VirtualMachineStartOptions" representedClassName="SVVirtualMachineStartOptions" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachine" inverseName="startOptions" inverseEntity="VirtualMachine"/>
     </entity>
+    <entity name="XHCIControllerConfiguration" representedClassName="SVXHCIControllerConfiguration" parentEntity="USBControllerConfiguration" syncable="YES" codeGenerationType="class"/>
 </model>

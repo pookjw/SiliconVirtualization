@@ -26,6 +26,7 @@
     virtualMachineConfigurationObject.pointingDevices = [self _isolated_makeManagedObjectsFromPointingDevices:virtualMachineConfiguration.pointingDevices];
     virtualMachineConfigurationObject.graphicsDevices = [self _isolated_makeManagedObjectsFromGraphicsDevices:virtualMachineConfiguration.graphicsDevices];
     virtualMachineConfigurationObject.storageDevices = [self _isolated_makeManagedObjectsFromStorageDevices:virtualMachineConfiguration.storageDevices];
+    virtualMachineConfigurationObject.usbControllers = [self _isolated_makeManagedObjectsFromUSBControllers:virtualMachineConfiguration.usbControllers];
     
     //
     
@@ -402,6 +403,54 @@
     
     //
     
+    NSMutableArray<__kindof VZUSBControllerConfiguration *> *usbControllers = [[NSMutableArray alloc] initWithCapacity:virtualMachineConfigurationObject.usbControllers.count];
+    
+    for (__kindof SVUSBControllerConfiguration *USBControllerObject in virtualMachineConfigurationObject.usbControllers) {
+        if ([USBControllerObject isKindOfClass:[SVXHCIControllerConfiguration class]]) {
+            auto XHCIControllerConfigurationObject = static_cast<SVXHCIControllerConfiguration *>(USBControllerObject);
+            VZXHCIControllerConfiguration *XHCIControllerConfiguration = [[VZXHCIControllerConfiguration alloc] init];
+            
+            NSMutableArray<VZUSBMassStorageDeviceConfiguration *> *usbDevices = [NSMutableArray new];
+            
+            for (SVUSBMassStorageDeviceConfiguration *USBMassStorageDeviceConfigurationObject in XHCIControllerConfigurationObject.usbMassStorageDevices) {
+                __kindof SVStorageDeviceAttachment *attachmentObject = USBMassStorageDeviceConfigurationObject.attachment;
+                assert([attachmentObject isKindOfClass:[SVDiskBlockDeviceStorageDeviceAttachment class]]);
+                auto diskBlockDeviceStorageDeviceAttachmentObject = static_cast<SVDiskBlockDeviceStorageDeviceAttachment *>(attachmentObject);
+                
+                if (NSFileHandle *fileHandle = diskBlockDeviceStorageDeviceAttachmentObject.fileHandle) {
+                    NSError * _Nullable error = nil;
+                    
+                    VZDiskBlockDeviceStorageDeviceAttachment *attachment = [[VZDiskBlockDeviceStorageDeviceAttachment alloc] initWithFileHandle:fileHandle
+                                                                                                                                       readOnly:diskBlockDeviceStorageDeviceAttachmentObject.readOnly
+                                                                                                                            synchronizationMode:static_cast<VZDiskSynchronizationMode>(diskBlockDeviceStorageDeviceAttachmentObject.synchronizationMode)
+                                                                                                                                          error:&error];
+                    assert(error == nil);
+                    
+                    VZUSBMassStorageDeviceConfiguration *USBMassStorageDeviceConfiguration = [[VZUSBMassStorageDeviceConfiguration alloc] initWithAttachment:attachment];
+                    [attachment release];
+                    
+                    [usbDevices addObject:USBMassStorageDeviceConfiguration];
+                    [USBMassStorageDeviceConfiguration release];
+                } else {
+                    NSLog(@"Missing File Handle!");
+                }
+            }
+            
+            XHCIControllerConfiguration.usbDevices = usbDevices;
+            [usbDevices release];
+            
+            [usbControllers addObject:XHCIControllerConfiguration];
+            [XHCIControllerConfiguration release];
+        } else {
+            abort();
+        }
+    }
+    
+    virtualMachineConfiguration.usbControllers = usbControllers;
+    [usbControllers release];
+    
+    //
+    
     return [virtualMachineConfiguration autorelease];
 }
 
@@ -421,6 +470,7 @@
     virtualMachineConfiguration.pointingDevices = [self _isolated_makeManagedObjectsFromPointingDevices:machineConfiguration.pointingDevices];
     virtualMachineConfiguration.graphicsDevices = [self _isolated_makeManagedObjectsFromGraphicsDevices:machineConfiguration.graphicsDevices];
     virtualMachineConfiguration.storageDevices = [self _isolated_makeManagedObjectsFromStorageDevices:machineConfiguration.storageDevices];
+    virtualMachineConfiguration.usbControllers = [self _isolated_makeManagedObjectsFromUSBControllers:machineConfiguration.usbControllers];
 }
 
 - (__kindof SVBootLoader * _Nullable)_isolated_makeManagedObjectFromBootLoader:(__kindof VZBootLoader * _Nullable)bootLoader {
@@ -735,6 +785,57 @@
     }
     
     return [storageDeviceObjects autorelease];
+}
+
+
+
+- (NSOrderedSet<__kindof SVUSBControllerConfiguration *> *)_isolated_makeManagedObjectsFromUSBControllers:(NSArray<__kindof VZUSBControllerConfiguration *> *)USBControllers {
+    NSManagedObjectContext *managedObjectContext = self.backgroundContext;
+    NSMutableOrderedSet<__kindof SVUSBControllerConfiguration *> *USBControllerObjects = [[NSMutableOrderedSet alloc] initWithCapacity:USBControllers.count];
+    
+    for (__kindof VZUSBControllerConfiguration *USBController in USBControllers) {
+        if ([USBController isKindOfClass:[VZXHCIControllerConfiguration class]]) {
+            auto XHCIControllerConfiguration = static_cast<VZXHCIControllerConfiguration *>(USBController);
+            SVXHCIControllerConfiguration *XHCIControllerConfigurationObject = [[SVXHCIControllerConfiguration alloc] initWithContext:managedObjectContext];
+            
+            NSMutableOrderedSet<SVUSBMassStorageDeviceConfiguration *> *usbMassStorageDevicesObjects = [NSMutableOrderedSet new];
+            
+            for (id<VZUSBDeviceConfiguration> usbDevice in XHCIControllerConfiguration.usbDevices) {
+                if ([usbDevice isKindOfClass:[VZUSBMassStorageDeviceConfiguration class]]) {
+                    auto USBMassStorageDeviceConfiguration = static_cast<VZUSBMassStorageDeviceConfiguration *>(usbDevice);
+                    
+                    SVUSBMassStorageDeviceConfiguration *USBMassStorageDeviceConfigurationObject = [[SVUSBMassStorageDeviceConfiguration alloc] initWithContext:managedObjectContext];
+                    
+                    __kindof VZStorageDeviceAttachment *attachment = USBMassStorageDeviceConfiguration.attachment;
+                    assert([attachment isKindOfClass:[VZDiskBlockDeviceStorageDeviceAttachment class]]);
+                    
+                    auto diskBlockDeviceStorageDeviceAttachment = static_cast<VZDiskBlockDeviceStorageDeviceAttachment *>(attachment);
+                    SVDiskBlockDeviceStorageDeviceAttachment *diskBlockDeviceStorageDeviceAttachmentObject = [[SVDiskBlockDeviceStorageDeviceAttachment alloc] initWithContext:managedObjectContext];
+                    diskBlockDeviceStorageDeviceAttachmentObject.fileHandle = diskBlockDeviceStorageDeviceAttachment.fileHandle;
+                    diskBlockDeviceStorageDeviceAttachmentObject.readOnly = diskBlockDeviceStorageDeviceAttachment.readOnly;
+                    diskBlockDeviceStorageDeviceAttachmentObject.synchronizationMode = diskBlockDeviceStorageDeviceAttachment.synchronizationMode;
+                    
+                    USBMassStorageDeviceConfigurationObject.attachment = diskBlockDeviceStorageDeviceAttachmentObject;
+                    [diskBlockDeviceStorageDeviceAttachmentObject release];
+                    
+                    [usbMassStorageDevicesObjects addObject:USBMassStorageDeviceConfigurationObject];
+                    [USBMassStorageDeviceConfigurationObject release];
+                } else {
+                    abort();
+                }
+            }
+            
+            XHCIControllerConfigurationObject.usbMassStorageDevices = usbMassStorageDevicesObjects;
+            [usbMassStorageDevicesObjects release];
+            
+            [USBControllerObjects addObject:XHCIControllerConfigurationObject];
+            [XHCIControllerConfigurationObject release];
+        } else {
+            abort();
+        }
+    }
+    
+    return [USBControllerObjects autorelease];
 }
 
 - (NSURL *)_refreshStaleURL:(NSURL *)URL NS_RETURNS_RETAINED {

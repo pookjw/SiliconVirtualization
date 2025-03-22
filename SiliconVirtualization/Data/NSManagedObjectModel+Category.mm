@@ -7,6 +7,7 @@
 
 #import "NSManagedObjectModel+Category.h"
 #import "Model.h"
+#import "FileHandleTransformer.h"
 
 @implementation NSManagedObjectModel (Category)
 
@@ -214,13 +215,23 @@
         virtioBlockDeviceConfigurationEntity.managedObjectClassName = NSStringFromClass([SVVirtioBlockDeviceConfiguration class]);
     }
     
+    NSEntityDescription *USBMassStorageDeviceConfigurationEntity;
+    {
+        USBMassStorageDeviceConfigurationEntity = [NSEntityDescription new];
+        USBMassStorageDeviceConfigurationEntity.name = @"USBMassStorageDeviceConfiguration";
+        USBMassStorageDeviceConfigurationEntity.managedObjectClassName = NSStringFromClass([SVUSBMassStorageDeviceConfiguration class]);
+    }
+    
     NSEntityDescription *storageDeviceConfigurationEntity;
     {
         storageDeviceConfigurationEntity = [NSEntityDescription new];
         storageDeviceConfigurationEntity.name = @"StorageDeviceConfiguration";
         storageDeviceConfigurationEntity.managedObjectClassName = NSStringFromClass([SVStorageDeviceConfiguration class]);
         storageDeviceConfigurationEntity.abstract = YES;
-        storageDeviceConfigurationEntity.subentities = @[virtioBlockDeviceConfigurationEntity];
+        storageDeviceConfigurationEntity.subentities = @[
+            virtioBlockDeviceConfigurationEntity,
+            USBMassStorageDeviceConfigurationEntity
+        ];
     }
     
     NSEntityDescription *diskImageStorageDeviceAttachmentEntity;
@@ -262,13 +273,51 @@
         [synchronizationModeAttribute release];
     }
     
+    NSEntityDescription *diskBlockDeviceStorageDeviceAttachmentEntity;
+    {
+        diskBlockDeviceStorageDeviceAttachmentEntity = [NSEntityDescription new];
+        diskBlockDeviceStorageDeviceAttachmentEntity.name = @"DiskBlockDeviceStorageDeviceAttachment";
+        diskBlockDeviceStorageDeviceAttachmentEntity.managedObjectClassName = NSStringFromClass([SVDiskBlockDeviceStorageDeviceAttachment class]);
+        
+        NSAttributeDescription *fileHandleAttribute = [NSAttributeDescription new];
+        fileHandleAttribute.name = @"fileHandle";
+        fileHandleAttribute.optional = YES;
+        fileHandleAttribute.attributeType = NSTransformableAttributeType;
+        fileHandleAttribute.valueTransformerName = FileHandleTransformer.transformerName;
+        fileHandleAttribute.attributeValueClassName = NSStringFromClass([NSFileHandle class]);
+        
+        NSAttributeDescription *readOnlyAttribute = [NSAttributeDescription new];
+        readOnlyAttribute.name = @"readOnly";
+        readOnlyAttribute.optional = YES;
+        readOnlyAttribute.attributeType = NSBooleanAttributeType;
+        
+        NSAttributeDescription *synchronizationModeAttribute = [NSAttributeDescription new];
+        synchronizationModeAttribute.name = @"synchronizationMode";
+        synchronizationModeAttribute.optional = YES;
+        synchronizationModeAttribute.attributeType = NSInteger64AttributeType;
+        
+        diskBlockDeviceStorageDeviceAttachmentEntity.properties = @[
+            fileHandleAttribute,
+            readOnlyAttribute,
+            synchronizationModeAttribute
+        ];
+        
+        [fileHandleAttribute release];
+        [readOnlyAttribute release];
+        [synchronizationModeAttribute release];
+    }
+    
     NSEntityDescription *storageDeviceAttachmentEntity;
     {
         storageDeviceAttachmentEntity = [NSEntityDescription new];
         storageDeviceAttachmentEntity.name = @"StorageDeviceAttachment";
         storageDeviceAttachmentEntity.managedObjectClassName = NSStringFromClass([SVStorageDeviceAttachment class]);
+        
         storageDeviceAttachmentEntity.abstract = YES;
-        storageDeviceAttachmentEntity.subentities = @[diskImageStorageDeviceAttachmentEntity];
+        storageDeviceAttachmentEntity.subentities = @[
+            diskImageStorageDeviceAttachmentEntity,
+            diskBlockDeviceStorageDeviceAttachmentEntity
+        ];
     }
     
     NSEntityDescription *macAuxiliaryStorageEntity;
@@ -533,6 +582,23 @@
         
         audioOutputStreamSinkEntity.abstract = YES;
         audioOutputStreamSinkEntity.subentities = @[hostAudioOutputStreamSinkEntity];
+    }
+    
+    NSEntityDescription *XHCIControllerConfigurationEntity;
+    {
+        XHCIControllerConfigurationEntity = [NSEntityDescription new];
+        XHCIControllerConfigurationEntity.name = @"XHCIControllerConfiguration";
+        XHCIControllerConfigurationEntity.managedObjectClassName = NSStringFromClass([SVXHCIControllerConfiguration class]);
+    }
+    
+    NSEntityDescription *USBControllerConfigurationEntity;
+    {
+        USBControllerConfigurationEntity = [NSEntityDescription new];
+        USBControllerConfigurationEntity.name = @"USBControllerConfiguration";
+        USBControllerConfigurationEntity.managedObjectClassName = NSStringFromClass([SVUSBControllerConfiguration class]);
+        
+        USBControllerConfigurationEntity.abstract = YES;
+        USBControllerConfigurationEntity.subentities = @[XHCIControllerConfigurationEntity];
     }
     
     //
@@ -1184,6 +1250,65 @@
         [audioInputStreamSource_inputStream_relationship release];
     }
     
+    {
+        NSRelationshipDescription *virtualMachineConfiguration_usbControllers_relationship = [NSRelationshipDescription new];
+        virtualMachineConfiguration_usbControllers_relationship.name = @"usbControllers";
+        virtualMachineConfiguration_usbControllers_relationship.optional = YES;
+        virtualMachineConfiguration_usbControllers_relationship.minCount = 0;
+        virtualMachineConfiguration_usbControllers_relationship.maxCount = 0;
+        assert(virtualMachineConfiguration_usbControllers_relationship.toMany);
+        virtualMachineConfiguration_usbControllers_relationship.ordered = YES;
+        virtualMachineConfiguration_usbControllers_relationship.destinationEntity = USBControllerConfigurationEntity;
+        virtualMachineConfiguration_usbControllers_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *USBControllerConfiguration_machine_relationship = [NSRelationshipDescription new];
+        USBControllerConfiguration_machine_relationship.name = @"";
+        USBControllerConfiguration_machine_relationship.optional = YES;
+        USBControllerConfiguration_machine_relationship.minCount = 0;
+        USBControllerConfiguration_machine_relationship.maxCount = 1;
+        assert(!USBControllerConfiguration_machine_relationship.toMany);
+        USBControllerConfiguration_machine_relationship.destinationEntity = virtualMachineConfigurationEntity;
+        USBControllerConfiguration_machine_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        virtualMachineConfiguration_usbControllers_relationship.inverseRelationship = USBControllerConfiguration_machine_relationship;
+        USBControllerConfiguration_machine_relationship.inverseRelationship = virtualMachineConfiguration_usbControllers_relationship;
+        
+        virtualMachineConfigurationEntity.properties = [virtualMachineConfigurationEntity.properties arrayByAddingObject:virtualMachineConfiguration_usbControllers_relationship];
+        USBControllerConfigurationEntity.properties = [USBControllerConfigurationEntity.properties arrayByAddingObject:USBControllerConfiguration_machine_relationship];
+        
+        [virtualMachineConfiguration_usbControllers_relationship release];
+        [USBControllerConfiguration_machine_relationship release];
+    }
+    
+    {
+        NSRelationshipDescription *USBControllerConfiguration_usbMassStorageDevices_relationship = [NSRelationshipDescription new];
+        USBControllerConfiguration_usbMassStorageDevices_relationship.name = @"usbMassStorageDevices";
+        USBControllerConfiguration_usbMassStorageDevices_relationship.optional = YES;
+        USBControllerConfiguration_usbMassStorageDevices_relationship.minCount = 0;
+        USBControllerConfiguration_usbMassStorageDevices_relationship.maxCount = 0;
+        assert(USBControllerConfiguration_usbMassStorageDevices_relationship.toMany);
+        USBControllerConfiguration_usbMassStorageDevices_relationship.ordered = YES;
+        USBControllerConfiguration_usbMassStorageDevices_relationship.destinationEntity = USBMassStorageDeviceConfigurationEntity;
+        USBControllerConfiguration_usbMassStorageDevices_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *USBMassStorageDeviceConfiguration_usbController_relationship = [NSRelationshipDescription new];
+        USBMassStorageDeviceConfiguration_usbController_relationship.name = @"usbController";
+        USBMassStorageDeviceConfiguration_usbController_relationship.optional = YES;
+        USBMassStorageDeviceConfiguration_usbController_relationship.minCount = 0;
+        USBMassStorageDeviceConfiguration_usbController_relationship.maxCount = 1;
+        assert(!USBMassStorageDeviceConfiguration_usbController_relationship.toMany);
+        USBMassStorageDeviceConfiguration_usbController_relationship.destinationEntity = USBControllerConfigurationEntity;
+        USBMassStorageDeviceConfiguration_usbController_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        USBControllerConfiguration_usbMassStorageDevices_relationship.inverseRelationship = USBMassStorageDeviceConfiguration_usbController_relationship;
+        USBMassStorageDeviceConfiguration_usbController_relationship.inverseRelationship = USBControllerConfiguration_usbMassStorageDevices_relationship;
+        
+        USBControllerConfigurationEntity.properties = [USBControllerConfigurationEntity.properties arrayByAddingObject:USBControllerConfiguration_usbMassStorageDevices_relationship];
+        USBMassStorageDeviceConfigurationEntity.properties = [USBMassStorageDeviceConfigurationEntity.properties arrayByAddingObject:USBMassStorageDeviceConfiguration_usbController_relationship];
+        
+        [USBControllerConfiguration_usbMassStorageDevices_relationship release];
+    }
+    
     //
     
     managedObjectModel.entities = @[
@@ -1200,8 +1325,10 @@
         virtioGraphicsScanoutConfigurationEntity,
         graphicsDisplayConfigurationEntity,
         virtioBlockDeviceConfigurationEntity,
+        USBMassStorageDeviceConfigurationEntity,
         storageDeviceConfigurationEntity,
         diskImageStorageDeviceAttachmentEntity,
+        diskBlockDeviceStorageDeviceAttachmentEntity,
         storageDeviceAttachmentEntity,
         macAuxiliaryStorageEntity,
         macHardwareModelEntity,
@@ -1229,7 +1356,9 @@
         hostAudioInputStreamSourceEntity,
         audioInputStreamSourceEntity,
         hostAudioOutputStreamSinkEntity,
-        audioOutputStreamSinkEntity
+        audioOutputStreamSinkEntity,
+        XHCIControllerConfigurationEntity,
+        USBControllerConfigurationEntity
     ];
     
     [virtualMachineEntity release];
@@ -1245,8 +1374,10 @@
     [virtioGraphicsScanoutConfigurationEntity release];
     [graphicsDisplayConfigurationEntity release];
     [virtioBlockDeviceConfigurationEntity release];
+    [USBMassStorageDeviceConfigurationEntity release];
     [storageDeviceConfigurationEntity release];
     [diskImageStorageDeviceAttachmentEntity release];
+    [diskBlockDeviceStorageDeviceAttachmentEntity release];
     [storageDeviceAttachmentEntity release];
     [macAuxiliaryStorageEntity release];
     [macHardwareModelEntity release];
@@ -1275,6 +1406,8 @@
     [audioInputStreamSourceEntity release];
     [hostAudioOutputStreamSinkEntity release];
     [audioOutputStreamSinkEntity release];
+    [XHCIControllerConfigurationEntity release];
+    [USBControllerConfigurationEntity release];
     
     return [managedObjectModel autorelease];
 }

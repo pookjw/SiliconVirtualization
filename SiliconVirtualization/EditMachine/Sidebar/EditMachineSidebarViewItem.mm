@@ -129,6 +129,10 @@
             textField.stringValue = @"Storages";
             break;
         }
+        case EditMachineSidebarItemModelTypeUSB: {
+            textField.stringValue = @"USB";
+            break;
+        }
         default:
             abort();
     }
@@ -177,6 +181,10 @@
         }
         case EditMachineSidebarItemModelTypeStorages: {
             imageView.image = [NSImage imageWithSystemSymbolName:selected ? @"externaldrive.fill" : @"externaldrive" accessibilityDescription:nil];
+            break;
+        }
+        case EditMachineSidebarItemModelTypeUSB: {
+            imageView.image = [NSImage imageWithSystemSymbolName:@"cable.connector" accessibilityDescription:nil];
             break;
         }
         default:

@@ -24,9 +24,101 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
 @synthesize toolbar = _toolbar;
 @synthesize nextToolbarItem = _nextToolbarItem;
 
++ (VZVirtualMachineConfiguration *)_makeDefaultVirtualMachineConfiguration {
+    VZVirtualMachineConfiguration *virtualMachineConfiguration = [VZVirtualMachineConfiguration new];
+    
+    virtualMachineConfiguration.CPUCount = 10;
+    virtualMachineConfiguration.memorySize = 16 * 1024ull * 1024ull * 1024ull;
+    
+    {
+        VZMacOSBootLoader *bootLoader = [[VZMacOSBootLoader alloc] init];
+        virtualMachineConfiguration.bootLoader = bootLoader;
+        [bootLoader release];
+    }
+    
+    {
+        VZMacPlatformConfiguration *platform = [[VZMacPlatformConfiguration alloc] init];
+        
+        NSDictionary *dic = @{
+            @"DataRepresentationVersion": @2,
+            @"MinimumSupportedOS": @[@13, @0, @0],
+            @"PlatformVersion": @2
+        };
+        NSData *data = [NSPropertyListSerialization dataWithPropertyList:dic format:NSPropertyListBinaryFormat_v1_0 options:0 error:nil];
+        VZMacHardwareModel *hardwareModel = [[VZMacHardwareModel alloc] initWithDataRepresentation:data];
+        platform.hardwareModel = hardwareModel;
+        [hardwareModel release];
+        
+        virtualMachineConfiguration.platform = platform;
+        [platform release];
+    }
+    
+    {
+        VZVirtioSoundDeviceConfiguration *virtioSoundDeviceConfiguration = [[VZVirtioSoundDeviceConfiguration alloc] init];
+        
+        {
+            VZVirtioSoundDeviceOutputStreamConfiguration *outputConfiguration = [[VZVirtioSoundDeviceOutputStreamConfiguration alloc] init];
+            VZHostAudioOutputStreamSink *sink = [[VZHostAudioOutputStreamSink alloc] init];
+            outputConfiguration.sink = sink;
+            [sink release];
+            
+            virtioSoundDeviceConfiguration.streams = [virtioSoundDeviceConfiguration.streams arrayByAddingObject:outputConfiguration];
+            [outputConfiguration release];
+        }
+        
+        {
+            VZVirtioSoundDeviceInputStreamConfiguration *inputConfiguration = [[VZVirtioSoundDeviceInputStreamConfiguration alloc] init];
+            VZHostAudioInputStreamSource *source = [[VZHostAudioInputStreamSource alloc] init];
+            inputConfiguration.source = source;
+            [source release];
+            
+            virtioSoundDeviceConfiguration.streams = [virtioSoundDeviceConfiguration.streams arrayByAddingObject:inputConfiguration];
+            [inputConfiguration release];
+        }
+        
+        virtualMachineConfiguration.audioDevices = [virtualMachineConfiguration.audioDevices arrayByAddingObject:virtioSoundDeviceConfiguration];
+        [virtioSoundDeviceConfiguration release];
+    }
+    
+    {
+        VZMacKeyboardConfiguration *macKeyboardConfiguration = [[VZMacKeyboardConfiguration alloc] init];
+        virtualMachineConfiguration.keyboards = [virtualMachineConfiguration.keyboards arrayByAddingObject:macKeyboardConfiguration];
+        [macKeyboardConfiguration release];
+    }
+    
+    {
+        VZVirtioNetworkDeviceConfiguration *virtioNetworkDeviceConfiguration = [[VZVirtioNetworkDeviceConfiguration alloc] init];
+        VZNATNetworkDeviceAttachment *attachment = [[VZNATNetworkDeviceAttachment alloc] init];
+        virtioNetworkDeviceConfiguration.attachment = attachment;
+        [attachment release];
+        
+        virtualMachineConfiguration.networkDevices = [virtualMachineConfiguration.networkDevices arrayByAddingObject:virtioNetworkDeviceConfiguration];
+        [virtioNetworkDeviceConfiguration release];
+    }
+    
+    {
+        VZMacGraphicsDeviceConfiguration *deviceConfiguration = [[VZMacGraphicsDeviceConfiguration alloc] init];
+        
+        VZMacGraphicsDisplayConfiguration *displayConfiguration = [[VZMacGraphicsDisplayConfiguration alloc] initWithWidthInPixels:1920 heightInPixels:1080 pixelsPerInch:80];
+        deviceConfiguration.displays = @[displayConfiguration];
+        [displayConfiguration release];
+        
+        virtualMachineConfiguration.graphicsDevices = [virtualMachineConfiguration.graphicsDevices arrayByAddingObject:deviceConfiguration];
+        [deviceConfiguration release];
+    }
+    
+    {
+        VZMacTrackpadConfiguration *macTrackpadConfiguration = [[VZMacTrackpadConfiguration alloc] init];
+        virtualMachineConfiguration.pointingDevices = [virtualMachineConfiguration.pointingDevices arrayByAddingObject:macTrackpadConfiguration];
+        [macTrackpadConfiguration release];
+    }
+    
+    return [virtualMachineConfiguration autorelease];
+}
+
 - (instancetype)initWithNibName:(NSNibName)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
     if (self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil]) {
-        _machineConfiguration = [VZVirtualMachineConfiguration new];
+        _machineConfiguration = [[CreateMachineViewController _makeDefaultVirtualMachineConfiguration] retain];
     }
     
     return self;

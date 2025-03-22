@@ -164,6 +164,7 @@
     EditMachineSidebarItemModel *pointingDevicesItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypePointingDevices];
     EditMachineSidebarItemModel *storagesItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeStorages];
     EditMachineSidebarItemModel *audioItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeAudio];
+    EditMachineSidebarItemModel *usbItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeUSB];
     
     [snapshot appendItemsWithIdentifiers:@[
         bootLoaderItemModel,
@@ -175,7 +176,8 @@
         networksItemModel,
         graphicsItemModel,
         pointingDevicesItemModel,
-        storagesItemModel
+        storagesItemModel,
+        usbItemModel
     ]
                intoSectionWithIdentifier:[NSNull null]];
     
@@ -189,6 +191,7 @@
     [pointingDevicesItemModel release];
     [storagesItemModel release];
     [audioItemModel release];
+    [usbItemModel release];
     
     [self.dataSource applySnapshot:snapshot animatingDifferences:YES];
     [snapshot release];

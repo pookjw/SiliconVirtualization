@@ -14,6 +14,7 @@
 #import "SVPointingDeviceConfiguration.h"
 #import "SVNetworkDeviceConfiguration.h"
 #import "SVAudioDeviceConfiguration.h"
+#import "SVUSBControllerConfiguration.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -32,6 +33,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (retain, nonatomic, nullable) SVPlatformConfiguration *platform;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVPointingDeviceConfiguration *> *pointingDevices;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVStorageDeviceConfiguration *> *storageDevices;
+@property (retain, nonatomic, nullable) NSOrderedSet<SVUSBControllerConfiguration *> *usbControllers;
 
 - (void)insertObject:(SVAudioDeviceConfiguration *)value inAudioDevicesAtIndex:(NSUInteger)idx;
 - (void)removeObjectFromAudioDevicesAtIndex:(NSUInteger)idx;
@@ -98,6 +100,17 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)removeStorageDevicesObject:(SVStorageDeviceConfiguration *)value;
 - (void)addStorageDevices:(NSOrderedSet<SVStorageDeviceConfiguration *> *)values;
 - (void)removeStorageDevices:(NSOrderedSet<SVStorageDeviceConfiguration *> *)values;
+
+- (void)insertObject:(SVUSBControllerConfiguration *)value inUsbControllersAtIndex:(NSUInteger)idx;
+- (void)removeObjectFromUsbControllersAtIndex:(NSUInteger)idx;
+- (void)insertUsbControllers:(NSArray<SVUSBControllerConfiguration *> *)value atIndexes:(NSIndexSet *)indexes;
+- (void)removeUsbControllersAtIndexes:(NSIndexSet *)indexes;
+- (void)replaceObjectInUsbControllersAtIndex:(NSUInteger)idx withObject:(SVUSBControllerConfiguration *)value;
+- (void)replaceUsbControllersAtIndexes:(NSIndexSet *)indexes withUsbControllers:(NSArray<SVUSBControllerConfiguration *> *)values;
+- (void)addUsbControllersObject:(SVUSBControllerConfiguration *)value;
+- (void)removeUsbControllersObject:(SVUSBControllerConfiguration *)value;
+- (void)addUsbControllers:(NSOrderedSet<SVUSBControllerConfiguration *> *)values;
+- (void)removeUsbControllers:(NSOrderedSet<SVUSBControllerConfiguration *> *)values;
 @end
 
 NS_ASSUME_NONNULL_END
