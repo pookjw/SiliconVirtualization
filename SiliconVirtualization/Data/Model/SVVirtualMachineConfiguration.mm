@@ -14,6 +14,7 @@
 
 @dynamic cpuCount;
 @dynamic memorySize;
+@dynamic audioDevices;
 @dynamic bootLoader;
 @dynamic graphicsDevices;
 @dynamic keyboards;

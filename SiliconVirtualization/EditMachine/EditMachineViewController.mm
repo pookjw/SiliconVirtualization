@@ -16,10 +16,11 @@
 #import "EditMachinePlatformViewController.h"
 #import "EditMachinePointingDevicesViewController.h"
 #import "EditMachineNetworksViewController.h"
+#import "EditMachineAudioDevicesViewController.h"
 #import <objc/message.h>
 #import <objc/runtime.h>
 
-@interface EditMachineViewController () <EditMachineSidebarViewControllerDelegate, EditMachineBootLoaderViewControllerDelegate, EditMachineCPUViewControllerDelegate, EditMachineMemoryViewControllerDelegate, EditMachineKeyboardsViewControllerDelegate, EditMachineNetworksViewControllerDelegate, EditMachinePointingDevicesViewControllerDelegate, EditMachineGraphicsViewControllerDelegate, EditMachineStoragesViewControllerDelegate, EditMachinePlatformViewControllerDelegate>
+@interface EditMachineViewController () <EditMachineSidebarViewControllerDelegate, EditMachineBootLoaderViewControllerDelegate, EditMachineCPUViewControllerDelegate, EditMachineMemoryViewControllerDelegate, EditMachineKeyboardsViewControllerDelegate, EditMachineNetworksViewControllerDelegate, EditMachinePointingDevicesViewControllerDelegate, EditMachineGraphicsViewControllerDelegate, EditMachineStoragesViewControllerDelegate, EditMachinePlatformViewControllerDelegate, EditMachineAudioDevicesViewControllerDelegate>
 @property (retain, nonatomic, readonly, getter=_splitViewController) NSSplitViewController *splitViewController;
 
 @property (retain, nonatomic, readonly, getter=_bootLoaderViewController) EditMachineBootLoaderViewController *bootLoaderViewController;
@@ -33,6 +34,9 @@
 
 @property (retain, nonatomic, readonly, getter=_memoryViewController) EditMachineMemoryViewController *memoryViewController;
 @property (retain, nonatomic, readonly, getter=_memorySplitViewItem) NSSplitViewItem *memorySplitViewItem;
+
+@property (retain, nonatomic, readonly, getter=_audioDevicesViewController) EditMachineAudioDevicesViewController *audioDevicesViewController;
+@property (retain, nonatomic, readonly, getter=_audioDevicesSplitViewItem) NSSplitViewItem *audioDevicesSplitViewItem;
 
 @property (retain, nonatomic, readonly, getter=_keyboardsViewController) EditMachineKeyboardsViewController *keyboardsViewController;
 @property (retain, nonatomic, readonly, getter=_keyboardsSplitViewItem) NSSplitViewItem *keyboardsSplitViewItem;
@@ -63,6 +67,8 @@
 @synthesize CPUSplitViewItem = _CPUSplitViewItem;
 @synthesize memoryViewController = _memoryViewController;
 @synthesize memorySplitViewItem = _memorySplitViewItem;
+@synthesize audioDevicesViewController = _audioDevicesViewController;
+@synthesize audioDevicesSplitViewItem = _audioDevicesSplitViewItem;
 @synthesize keyboardsViewController = _keyboardsViewController;
 @synthesize keyboardsSplitViewItem = _keyboardsSplitViewItem;
 @synthesize networksViewController = _networksViewController;
@@ -95,6 +101,8 @@
     [_CPUSplitViewItem release];
     [_memoryViewController release];
     [_memorySplitViewItem release];
+    [_audioDevicesViewController release];
+    [_audioDevicesSplitViewItem release];
     [_keyboardsViewController release];
     [_keyboardsSplitViewItem release];
     [_networksViewController release];
@@ -119,7 +127,7 @@
     [self.view addSubview:splitViewController.view];
     [self addChildViewController:splitViewController];
     
-    EditMachineSidebarItemModel *itemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeNetworks];
+    EditMachineSidebarItemModel *itemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeAudio];
     [self.sidebarViewController setItemModel:itemModel notifyingDelegate:YES];
     [itemModel release];
 }
@@ -230,6 +238,25 @@
     
     _graphicsSplitViewItem = [graphicsSplitViewItem retain];
     return graphicsSplitViewItem;
+}
+
+- (EditMachineAudioDevicesViewController *)_audioDevicesViewController {
+    if (auto audioDevicesViewController = _audioDevicesViewController) return audioDevicesViewController;
+    
+    EditMachineAudioDevicesViewController *audioDevicesViewController = [[EditMachineAudioDevicesViewController alloc] initWithConfiguration:self.configuration];
+    audioDevicesViewController.delegate = self;
+    
+    _audioDevicesViewController = audioDevicesViewController;
+    return audioDevicesViewController;
+}
+
+- (NSSplitViewItem *)_audioDevicesSplitViewItem {
+    if (auto audioDevicesSplitViewItem = _audioDevicesSplitViewItem) return audioDevicesSplitViewItem;
+    
+    NSSplitViewItem *audioDevicesSplitViewItem = [NSSplitViewItem contentListWithViewController:self.audioDevicesViewController];
+    
+    _audioDevicesSplitViewItem = [audioDevicesSplitViewItem retain];
+    return audioDevicesSplitViewItem;
 }
 
 - (EditMachineKeyboardsViewController *)_keyboardsViewController {
@@ -360,6 +387,11 @@
             self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.pointingDevicesSplitViewItem];
             break;
         }
+        case EditMachineSidebarItemModelTypeAudio: {
+            self.audioDevicesViewController.configuration = self.configuration;
+            self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.audioDevicesSplitViewItem];
+            break;
+        }
         case EditMachineSidebarItemModelTypeKeyboards: {
             self.keyboardsViewController.configuration = self.configuration;
             self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.keyboardsSplitViewItem];
@@ -426,6 +458,11 @@
 }
 
 - (void)EditMachineStoragesViewController:(EditMachineStoragesViewController *)EditMachineStoragesViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
+    self.configuration = configuration;
+    [self _notifyDelegate];
+}
+
+- (void)editMachineAudioDevicesViewController:(EditMachineAudioDevicesViewController *)editMachineAudioDevicesViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
     self.configuration = configuration;
     [self _notifyDelegate];
 }

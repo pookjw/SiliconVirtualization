@@ -1,27 +1,27 @@
 //
-//  EditMachineNetworkDevicesTableViewController.m
+//  EditMachineVirtioSoundDeviceStreamsTableViewController.mm
 //  SiliconVirtualization
 //
 //  Created by Jinwoo Kim on 3/22/25.
 //
 
-#import "EditMachineNetworkDevicesTableViewController.h"
-#import "EditMachineNetworkDevicesTableCellView.h"
+#import "EditMachineVirtioSoundDeviceStreamsTableViewController.h"
+#import "EditMachineVirtioSoundDeviceStreamsTableCellView.h"
 
-@interface EditMachineNetworkDevicesTableViewController () <NSTableViewDataSource, NSTableViewDelegate, NSMenuDelegate>
+@interface EditMachineVirtioSoundDeviceStreamsTableViewController () <NSTableViewDataSource, NSTableViewDelegate, NSMenuDelegate>
 @property (class, nonatomic, readonly, getter=_cellItemIdentifier) NSUserInterfaceItemIdentifier cellItemIdentifier;
 @property (retain, nonatomic, readonly, getter=_scrollView) NSScrollView *scrollView;
 @property (retain, nonatomic, readonly, getter=_tableView) NSTableView *tableView;
 @property (retain, nonatomic, readonly, getter=_createButton) NSButton *createButton;
 @end
 
-@implementation EditMachineNetworkDevicesTableViewController
+@implementation EditMachineVirtioSoundDeviceStreamsTableViewController
 @synthesize scrollView = _scrollView;
 @synthesize tableView = _tableView;
 @synthesize createButton = _createButton;
 
 + (NSUserInterfaceItemIdentifier)_cellItemIdentifier {
-    return NSStringFromClass([EditMachineNetworkDevicesTableCellView class]);
+    return NSStringFromClass([EditMachineVirtioSoundDeviceStreamsTableCellView class]);
 }
 
 - (void)dealloc {
@@ -48,14 +48,14 @@
     ]];
 }
 
-- (void)setNetworkDevices:(NSArray<__kindof VZNetworkDeviceConfiguration *> *)networkDevices {
-    [_networkDevices release];
-    _networkDevices = [networkDevices copy];
+- (void)setStreams:(NSArray<__kindof VZVirtioSoundDeviceStreamConfiguration *> *)streams {
+    [_streams release];
+    _streams = [streams copy];
     
-    [self _didChangeNetworkDevices];
+    [self _didChangeStreams];
 }
 
-- (void)_didChangeNetworkDevices {
+- (void)_didChangeStreams {
     NSTableView *tableView = self.tableView;
     NSInteger selectedRow = tableView.selectedRow;
     [tableView reloadData];
@@ -72,7 +72,7 @@
     if (delegate == nil) return;
     
     NSInteger selectedRow = self.tableView.selectedRow;
-    [delegate editMachineNetworkDevicesViewController:self didSelectAtIndex:selectedRow];
+    [delegate editMachineVirtioSoundDeviceStreamsViewController:self didSelectAtIndex:selectedRow];
 }
 
 - (NSScrollView *)_scrollView {
@@ -90,8 +90,8 @@
     
     NSTableView *tableView = [NSTableView new];
     
-    NSNib *cellNib = [[NSNib alloc] initWithNibNamed:NSStringFromClass([EditMachineNetworkDevicesTableCellView class]) bundle:[NSBundle bundleForClass:[EditMachineNetworkDevicesTableCellView class]]];
-    [tableView registerNib:cellNib forIdentifier:EditMachineNetworkDevicesTableViewController.cellItemIdentifier];
+    NSNib *cellNib = [[NSNib alloc] initWithNibNamed:NSStringFromClass([EditMachineVirtioSoundDeviceStreamsTableCellView class]) bundle:[NSBundle bundleForClass:[EditMachineVirtioSoundDeviceStreamsTableCellView class]]];
+    [tableView registerNib:cellNib forIdentifier:EditMachineVirtioSoundDeviceStreamsTableViewController.cellItemIdentifier];
     [cellNib release];
     
     NSTableColumn *tableColumn = [[NSTableColumn alloc] initWithIdentifier:@""];
@@ -127,46 +127,73 @@
 - (void)_didTriggerCreateButton:(NSButton *)sender {
     NSMenu *menu = [NSMenu new];
     
-    NSMenuItem *virtioItem = [NSMenuItem new];
-    virtioItem.title = @"Virtio";
-    virtioItem.target = self;
-    virtioItem.action = @selector(_didTriggerVirtioItem:);
-    [menu addItem:virtioItem];
-    [virtioItem release];
+    NSMenuItem *outputItem = [NSMenuItem new];
+    outputItem.title = @"Output";
+    outputItem.target = self;
+    outputItem.action = @selector(_didTriggerOutputItem:);
+    [menu addItem:outputItem];
+    [outputItem release];
+    
+    NSMenuItem *inputItem = [NSMenuItem new];
+    inputItem.title = @"Input";
+    inputItem.target = self;
+    inputItem.action = @selector(_didTriggerInputItem:);
+    [menu addItem:inputItem];
+    [inputItem release];
     
     [NSMenu popUpContextMenu:menu withEvent:self.view.window.currentEvent forView:sender];
     [menu release];
 }
 
-- (void)_didTriggerVirtioItem:(NSMenuItem *)sender {
-    VZVirtioNetworkDeviceConfiguration *configuration = [[VZVirtioNetworkDeviceConfiguration alloc] init];
+- (void)_didTriggerOutputItem:(NSMenuItem *)sender {
+    VZVirtioSoundDeviceOutputStreamConfiguration *configuration = [[VZVirtioSoundDeviceOutputStreamConfiguration alloc] init];
     
-    NSArray<__kindof VZNetworkDeviceConfiguration *> *networkDevices = self.networkDevices;
-    if (networkDevices == nil) {
-        networkDevices = @[configuration];
+    NSArray<__kindof VZVirtioSoundDeviceStreamConfiguration *> *streams = self.streams;
+    if (streams == nil) {
+        streams = @[configuration];
     } else {
-        networkDevices = [networkDevices arrayByAddingObject:configuration];
+        streams = [streams arrayByAddingObject:configuration];
     }
     [configuration release];
     
-    self.networkDevices = networkDevices;
+    self.streams = streams;
     
     if (auto delegate = self.delegate) {
-        [delegate editMachineNetworkDevicesViewController:self didUpdateNetworkDevices:networkDevices];
+        [delegate editMachineVirtioSoundDeviceStreamsViewController:self didUpdateStreams:streams];
+    }
+}
+
+- (void)_didTriggerInputItem:(NSMenuItem *)sender {
+    VZVirtioSoundDeviceInputStreamConfiguration *configuration = [[VZVirtioSoundDeviceInputStreamConfiguration alloc] init];
+    
+    NSArray<__kindof VZVirtioSoundDeviceStreamConfiguration *> *streams = self.streams;
+    if (streams == nil) {
+        streams = @[configuration];
+    } else {
+        streams = [streams arrayByAddingObject:configuration];
+    }
+    [configuration release];
+    
+    self.streams = streams;
+    
+    if (auto delegate = self.delegate) {
+        [delegate editMachineVirtioSoundDeviceStreamsViewController:self didUpdateStreams:streams];
     }
 }
 
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView {
-    return self.networkDevices.count;
+    return self.streams.count;
 }
 
 - (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
-    EditMachineNetworkDevicesTableCellView *cell = [tableView makeViewWithIdentifier:EditMachineNetworkDevicesTableViewController.cellItemIdentifier owner:nil];
+    EditMachineVirtioSoundDeviceStreamsTableCellView *cell = [tableView makeViewWithIdentifier:EditMachineVirtioSoundDeviceStreamsTableViewController.cellItemIdentifier owner:nil];
     
-    __kindof VZNetworkDeviceConfiguration *configuration = self.networkDevices[row];
+    __kindof VZVirtioSoundDeviceStreamConfiguration *configuration = self.streams[row];
     
-    if ([configuration isKindOfClass:[VZVirtioNetworkDeviceConfiguration class]]) {
-        cell.textField.stringValue = @"Virtio Network Device";
+    if ([configuration isKindOfClass:[VZVirtioSoundDeviceOutputStreamConfiguration class]]) {
+        cell.textField.stringValue = @"Output";
+    } else if ([configuration isKindOfClass:[VZVirtioSoundDeviceInputStreamConfiguration class]]) {
+        cell.textField.stringValue = @"Input";
     } else {
         abort();
     }
@@ -199,16 +226,16 @@
     NSInteger clickedRow = self.tableView.clickedRow;
     assert((clickedRow != NSNotFound) and (clickedRow != -1));
     
-    NSMutableArray<__kindof VZNetworkDeviceConfiguration *> *networkDevices = [self.networkDevices mutableCopy];
-    [networkDevices removeObjectAtIndex:clickedRow];
+    NSMutableArray<__kindof VZVirtioSoundDeviceStreamConfiguration *> *streams = [self.streams mutableCopy];
+    [streams removeObjectAtIndex:clickedRow];
     
-    self.networkDevices = networkDevices;
+    self.streams = streams;
     
     if (auto delegate = self.delegate) {
-        [delegate editMachineNetworkDevicesViewController:self didUpdateNetworkDevices:networkDevices];
+        [delegate editMachineVirtioSoundDeviceStreamsViewController:self didUpdateStreams:streams];
     }
     
-    [networkDevices release];
+    [streams release];
 }
 
 @end

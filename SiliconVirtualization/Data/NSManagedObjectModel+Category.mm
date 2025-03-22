@@ -457,6 +457,84 @@
         [ethernetAddressAttribute release];
     }
     
+    NSEntityDescription *virtioSoundDeviceConfigurationEntity;
+    {
+        virtioSoundDeviceConfigurationEntity = [NSEntityDescription new];
+        virtioSoundDeviceConfigurationEntity.name = @"VirtioSoundDeviceConfiguration";
+        virtioSoundDeviceConfigurationEntity.managedObjectClassName = NSStringFromClass([SVVirtioSoundDeviceConfiguration class]);
+    }
+    
+    NSEntityDescription *audioDeviceConfigurationEntity;
+    {
+        audioDeviceConfigurationEntity = [NSEntityDescription new];
+        audioDeviceConfigurationEntity.name = @"AudioDeviceConfiguration";
+        audioDeviceConfigurationEntity.managedObjectClassName = NSStringFromClass([SVAudioDeviceConfiguration class]);
+        
+        audioDeviceConfigurationEntity.abstract = YES;
+        audioDeviceConfigurationEntity.subentities = @[virtioSoundDeviceConfigurationEntity];
+    }
+    
+    NSEntityDescription *virtioSoundDeviceOutputStreamConfigurationEntity;
+    {
+        virtioSoundDeviceOutputStreamConfigurationEntity = [NSEntityDescription new];
+        virtioSoundDeviceOutputStreamConfigurationEntity.name = @"VirtioSoundDeviceOutputStreamConfiguration";
+        virtioSoundDeviceOutputStreamConfigurationEntity.managedObjectClassName = NSStringFromClass([SVVirtioSoundDeviceOutputStreamConfiguration class]);
+    }
+    
+    NSEntityDescription *virtioSoundDeviceInputStreamConfigurationEntity;
+    {
+        virtioSoundDeviceInputStreamConfigurationEntity = [NSEntityDescription new];
+        virtioSoundDeviceInputStreamConfigurationEntity.name = @"VirtioSoundDeviceInputStreamConfiguration";
+        virtioSoundDeviceInputStreamConfigurationEntity.managedObjectClassName = NSStringFromClass([SVVirtioSoundDeviceInputStreamConfiguration class]);
+    }
+    
+    NSEntityDescription *virtioSoundDeviceStreamConfigurationEntity;
+    {
+        virtioSoundDeviceStreamConfigurationEntity = [NSEntityDescription new];
+        virtioSoundDeviceStreamConfigurationEntity.name = @"VirtioSoundDeviceStreamConfiguration";
+        virtioSoundDeviceStreamConfigurationEntity.managedObjectClassName = NSStringFromClass([SVVirtioSoundDeviceStreamConfiguration class]);
+        
+        virtioSoundDeviceStreamConfigurationEntity.abstract = YES;
+        virtioSoundDeviceStreamConfigurationEntity.subentities = @[
+            virtioSoundDeviceOutputStreamConfigurationEntity,
+            virtioSoundDeviceInputStreamConfigurationEntity
+        ];
+    }
+    
+    NSEntityDescription *hostAudioInputStreamSourceEntity;
+    {
+        hostAudioInputStreamSourceEntity = [NSEntityDescription new];
+        hostAudioInputStreamSourceEntity.name = @"HostAudioInputStreamSource";
+        hostAudioInputStreamSourceEntity.managedObjectClassName = NSStringFromClass([SVHostAudioInputStreamSource class]);
+    }
+    
+    NSEntityDescription *audioInputStreamSourceEntity;
+    {
+        audioInputStreamSourceEntity = [NSEntityDescription new];
+        audioInputStreamSourceEntity.name = @"AudioInputStreamSource";
+        audioInputStreamSourceEntity.managedObjectClassName = NSStringFromClass([SVAudioInputStreamSource class]);
+        
+        audioInputStreamSourceEntity.abstract = YES;
+        audioInputStreamSourceEntity.subentities = @[hostAudioInputStreamSourceEntity];
+    }
+    
+    NSEntityDescription *hostAudioOutputStreamSinkEntity;
+    {
+        hostAudioOutputStreamSinkEntity = [NSEntityDescription new];
+        hostAudioOutputStreamSinkEntity.name = @"HostAudioOutputStreamSink";
+        hostAudioOutputStreamSinkEntity.managedObjectClassName = NSStringFromClass([SVHostAudioOutputStreamSink class]);
+    }
+    
+    NSEntityDescription *audioOutputStreamSinkEntity;
+    {
+        audioOutputStreamSinkEntity = [NSEntityDescription new];
+        audioOutputStreamSinkEntity.name = @"AudioOutputStreamSink";
+        audioOutputStreamSinkEntity.managedObjectClassName = NSStringFromClass([SVAudioOutputStreamSink class]);
+        
+        audioOutputStreamSinkEntity.abstract = YES;
+        audioOutputStreamSinkEntity.subentities = @[hostAudioOutputStreamSinkEntity];
+    }
+    
     //
     
     {
@@ -988,6 +1066,124 @@
         [MACAddress_networkDevice_relationship release];
     }
     
+    {
+        NSRelationshipDescription *virtualMachineConfiguration_audioDevices_relationship = [NSRelationshipDescription new];
+        virtualMachineConfiguration_audioDevices_relationship.name = @"audioDevices";
+        virtualMachineConfiguration_audioDevices_relationship.optional = YES;
+        virtualMachineConfiguration_audioDevices_relationship.minCount = 0;
+        virtualMachineConfiguration_audioDevices_relationship.maxCount = 0;
+        assert(virtualMachineConfiguration_audioDevices_relationship.toMany);
+        virtualMachineConfiguration_audioDevices_relationship.ordered = YES;
+        virtualMachineConfiguration_audioDevices_relationship.destinationEntity = audioDeviceConfigurationEntity;
+        virtualMachineConfiguration_audioDevices_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *audioDeviceConfiguration_machine_relationship = [NSRelationshipDescription new];
+        audioDeviceConfiguration_machine_relationship.name = @"machine";
+        audioDeviceConfiguration_machine_relationship.optional = YES;
+        audioDeviceConfiguration_machine_relationship.minCount = 0;
+        audioDeviceConfiguration_machine_relationship.maxCount = 1;
+        assert(!audioDeviceConfiguration_machine_relationship.toMany);
+        audioDeviceConfiguration_machine_relationship.destinationEntity = virtualMachineConfigurationEntity;
+        audioDeviceConfiguration_machine_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        virtualMachineConfiguration_audioDevices_relationship.inverseRelationship = audioDeviceConfiguration_machine_relationship;
+        audioDeviceConfiguration_machine_relationship.inverseRelationship = virtualMachineConfiguration_audioDevices_relationship;
+        
+        virtualMachineConfigurationEntity.properties = [virtualMachineConfigurationEntity.properties arrayByAddingObject:virtualMachineConfiguration_audioDevices_relationship];
+        audioDeviceConfigurationEntity.properties = [audioDeviceConfigurationEntity.properties arrayByAddingObject:audioDeviceConfiguration_machine_relationship];
+        
+        [virtualMachineConfiguration_audioDevices_relationship release];
+        [audioDeviceConfiguration_machine_relationship release];
+    }
+    
+    {
+        NSRelationshipDescription *virtioSoundDeviceConfiguration_streams_relationship = [NSRelationshipDescription new];
+        virtioSoundDeviceConfiguration_streams_relationship.name = @"streams";
+        virtioSoundDeviceConfiguration_streams_relationship.optional = YES;
+        virtioSoundDeviceConfiguration_streams_relationship.minCount = 0;
+        virtioSoundDeviceConfiguration_streams_relationship.maxCount = 0;
+        assert(virtioSoundDeviceConfiguration_streams_relationship.toMany);
+        virtioSoundDeviceConfiguration_streams_relationship.ordered = YES;
+        virtioSoundDeviceConfiguration_streams_relationship.destinationEntity = virtioSoundDeviceStreamConfigurationEntity;
+        virtioSoundDeviceConfiguration_streams_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *virtioSoundDeviceStreamConfiguration_soundDevice_relationship = [NSRelationshipDescription new];
+        virtioSoundDeviceStreamConfiguration_soundDevice_relationship.name = @"soundDevice";
+        virtioSoundDeviceStreamConfiguration_soundDevice_relationship.optional = YES;
+        virtioSoundDeviceStreamConfiguration_soundDevice_relationship.minCount = 0;
+        virtioSoundDeviceStreamConfiguration_soundDevice_relationship.maxCount = 1;
+        assert(!virtioSoundDeviceStreamConfiguration_soundDevice_relationship.toMany);
+        virtioSoundDeviceStreamConfiguration_soundDevice_relationship.destinationEntity = virtioSoundDeviceConfigurationEntity;
+        virtioSoundDeviceStreamConfiguration_soundDevice_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        virtioSoundDeviceConfiguration_streams_relationship.inverseRelationship = virtioSoundDeviceStreamConfiguration_soundDevice_relationship;
+        virtioSoundDeviceStreamConfiguration_soundDevice_relationship.inverseRelationship = virtioSoundDeviceConfiguration_streams_relationship;
+        
+        virtioSoundDeviceConfigurationEntity.properties = [virtioSoundDeviceConfigurationEntity.properties arrayByAddingObject:virtioSoundDeviceConfiguration_streams_relationship];
+        virtioSoundDeviceStreamConfigurationEntity.properties = [virtioSoundDeviceStreamConfigurationEntity.properties arrayByAddingObject:virtioSoundDeviceStreamConfiguration_soundDevice_relationship];
+        
+        [virtioSoundDeviceConfiguration_streams_relationship release];
+        [virtioSoundDeviceStreamConfiguration_soundDevice_relationship release];
+    }
+    
+    {
+        NSRelationshipDescription *virtioSoundDeviceOutputStreamConfiguration_sink_relationship = [NSRelationshipDescription new];
+        virtioSoundDeviceOutputStreamConfiguration_sink_relationship.name = @"sink";
+        virtioSoundDeviceOutputStreamConfiguration_sink_relationship.optional = YES;
+        virtioSoundDeviceOutputStreamConfiguration_sink_relationship.minCount = 0;
+        virtioSoundDeviceOutputStreamConfiguration_sink_relationship.maxCount = 1;
+        assert(!virtioSoundDeviceOutputStreamConfiguration_sink_relationship.toMany);
+        virtioSoundDeviceOutputStreamConfiguration_sink_relationship.destinationEntity = audioOutputStreamSinkEntity;
+        virtioSoundDeviceOutputStreamConfiguration_sink_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *audioOutputStreamSink_outputStream_relationship = [NSRelationshipDescription new];
+        audioOutputStreamSink_outputStream_relationship.name = @"outputStream";
+        audioOutputStreamSink_outputStream_relationship.optional = YES;
+        audioOutputStreamSink_outputStream_relationship.minCount = 0;
+        audioOutputStreamSink_outputStream_relationship.maxCount = 1;
+        assert(!audioOutputStreamSink_outputStream_relationship.toMany);
+        audioOutputStreamSink_outputStream_relationship.destinationEntity = virtioSoundDeviceOutputStreamConfigurationEntity;
+        audioOutputStreamSink_outputStream_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        virtioSoundDeviceOutputStreamConfiguration_sink_relationship.inverseRelationship = audioOutputStreamSink_outputStream_relationship;
+        audioOutputStreamSink_outputStream_relationship.inverseRelationship = audioOutputStreamSink_outputStream_relationship;
+        
+        virtioSoundDeviceOutputStreamConfigurationEntity.properties = [virtioSoundDeviceOutputStreamConfigurationEntity.properties arrayByAddingObject:virtioSoundDeviceOutputStreamConfiguration_sink_relationship];
+        audioOutputStreamSinkEntity.properties = [audioOutputStreamSinkEntity.properties arrayByAddingObject:audioOutputStreamSink_outputStream_relationship];
+        
+        [virtioSoundDeviceOutputStreamConfiguration_sink_relationship release];
+        [audioOutputStreamSink_outputStream_relationship release];
+    }
+    
+    {
+        NSRelationshipDescription *virtioSoundDeviceInputStreamConfiguration_source_relationship = [NSRelationshipDescription new];
+        virtioSoundDeviceInputStreamConfiguration_source_relationship.name = @"source";
+        virtioSoundDeviceInputStreamConfiguration_source_relationship.optional = YES;
+        virtioSoundDeviceInputStreamConfiguration_source_relationship.minCount = 0;
+        virtioSoundDeviceInputStreamConfiguration_source_relationship.maxCount = 1;
+        assert(!virtioSoundDeviceInputStreamConfiguration_source_relationship.toMany);
+        virtioSoundDeviceInputStreamConfiguration_source_relationship.destinationEntity = audioInputStreamSourceEntity;
+        virtioSoundDeviceInputStreamConfiguration_source_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *audioInputStreamSource_inputStream_relationship = [NSRelationshipDescription new];
+        audioInputStreamSource_inputStream_relationship.name = @"inputStream";
+        audioInputStreamSource_inputStream_relationship.optional = YES;
+        audioInputStreamSource_inputStream_relationship.minCount = 0;
+        audioInputStreamSource_inputStream_relationship.maxCount = 1;
+        assert(!audioInputStreamSource_inputStream_relationship.toMany);
+        audioInputStreamSource_inputStream_relationship.destinationEntity = virtioSoundDeviceInputStreamConfigurationEntity;
+        audioInputStreamSource_inputStream_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        virtioSoundDeviceInputStreamConfiguration_source_relationship.inverseRelationship = audioInputStreamSource_inputStream_relationship;
+        audioInputStreamSource_inputStream_relationship.inverseRelationship = virtioSoundDeviceInputStreamConfiguration_source_relationship;
+        
+        virtioSoundDeviceInputStreamConfigurationEntity.properties = [virtioSoundDeviceInputStreamConfigurationEntity.properties arrayByAddingObject:virtioSoundDeviceInputStreamConfiguration_source_relationship];
+        audioInputStreamSourceEntity.properties = [audioInputStreamSourceEntity.properties arrayByAddingObject:audioInputStreamSource_inputStream_relationship];
+        
+        [virtioSoundDeviceInputStreamConfiguration_source_relationship release];
+        [audioInputStreamSource_inputStream_relationship release];
+    }
+    
     //
     
     managedObjectModel.entities = @[
@@ -1024,7 +1220,16 @@
         networkDeviceConfigurationEntity,
         NATNetworkDeviceAttachmentEntity,
         networkDeviceAttachmentEntity,
-        MACAddressEntity
+        MACAddressEntity,
+        virtioSoundDeviceConfigurationEntity,
+        audioDeviceConfigurationEntity,
+        virtioSoundDeviceOutputStreamConfigurationEntity,
+        virtioSoundDeviceInputStreamConfigurationEntity,
+        virtioSoundDeviceStreamConfigurationEntity,
+        hostAudioInputStreamSourceEntity,
+        audioInputStreamSourceEntity,
+        hostAudioOutputStreamSinkEntity,
+        audioOutputStreamSinkEntity
     ];
     
     [virtualMachineEntity release];
@@ -1061,6 +1266,15 @@
     [NATNetworkDeviceAttachmentEntity release];
     [networkDeviceAttachmentEntity release];
     [MACAddressEntity release];
+    [virtioSoundDeviceConfigurationEntity release];
+    [audioDeviceConfigurationEntity release];
+    [virtioSoundDeviceOutputStreamConfigurationEntity release];
+    [virtioSoundDeviceInputStreamConfigurationEntity release];
+    [virtioSoundDeviceStreamConfigurationEntity release];
+    [hostAudioInputStreamSourceEntity release];
+    [audioInputStreamSourceEntity release];
+    [hostAudioOutputStreamSinkEntity release];
+    [audioOutputStreamSinkEntity release];
     
     return [managedObjectModel autorelease];
 }

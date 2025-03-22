@@ -35,6 +35,7 @@
 
 - (instancetype)initWithConfiguration:(VZVirtualMachineConfiguration *)configuration {
     if (self = [super initWithNibName:nil bundle:nil]) {
+        _configuration = [configuration copy];
         _selectedNetworkDeviceIndex = NSNotFound;
     }
     

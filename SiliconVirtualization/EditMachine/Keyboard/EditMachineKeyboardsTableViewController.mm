@@ -46,8 +46,6 @@
         [createButton.trailingAnchor constraintEqualToAnchor:self.view.layoutMarginsGuide.trailingAnchor],
         [createButton.bottomAnchor constraintEqualToAnchor:self.view.layoutMarginsGuide.bottomAnchor]
     ]];
-    
-    [self _didChangeKeyboards];
 }
 
 - (void)setKeyboards:(NSArray<__kindof VZKeyboardConfiguration *> *)keyboards {

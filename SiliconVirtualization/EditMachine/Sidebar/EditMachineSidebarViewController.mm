@@ -163,12 +163,14 @@
     EditMachineSidebarItemModel *graphicsItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeGraphics];
     EditMachineSidebarItemModel *pointingDevicesItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypePointingDevices];
     EditMachineSidebarItemModel *storagesItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeStorages];
+    EditMachineSidebarItemModel *audioItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeAudio];
     
     [snapshot appendItemsWithIdentifiers:@[
         bootLoaderItemModel,
         platformItemModel,
         CPUItemModel,
         memoryItemModel,
+        audioItemModel,
         keyboardsItemModel,
         networksItemModel,
         graphicsItemModel,
@@ -186,6 +188,7 @@
     [graphicsItemModel release];
     [pointingDevicesItemModel release];
     [storagesItemModel release];
+    [audioItemModel release];
     
     [self.dataSource applySnapshot:snapshot animatingDifferences:YES];
     [snapshot release];

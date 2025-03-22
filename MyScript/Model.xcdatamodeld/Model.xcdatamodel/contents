@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23786.1" systemVersion="24E5238a" minimumToolsVersion="Automatic" sourceLanguage="Objective-C" userDefinedModelVersionIdentifier="">
+    <entity name="AudioDeviceConfiguration" representedClassName="SVAudioDeviceConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class">
+        <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="audioDevices" inverseEntity="VirtualMachineConfiguration"/>
+    </entity>
+    <entity name="AudioInputStreamSource" representedClassName="SVAudioInputStreamSource" isAbstract="YES" syncable="YES" codeGenerationType="class">
+        <relationship name="inputStream" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtioSoundDeviceInputStreamConfiguration" inverseName="source" inverseEntity="VirtioSoundDeviceInputStreamConfiguration"/>
+    </entity>
+    <entity name="AudioOutputStreamSink" representedClassName="SVAudioOutputStreamSink" isAbstract="YES" syncable="YES" codeGenerationType="class">
+        <relationship name="outputStream" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtioSoundDeviceOutputStreamConfiguration" inverseName="sink" inverseEntity="VirtioSoundDeviceOutputStreamConfiguration"/>
+    </entity>
     <entity name="BootLoader" representedClassName="SVBootLoader" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="bootLoader" inverseEntity="VirtualMachineConfiguration"/>
     </entity>
@@ -22,6 +31,8 @@
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="graphicsDevices" inverseEntity="VirtualMachineConfiguration"/>
     </entity>
     <entity name="GraphicsDisplayConfiguration" representedClassName="SVGraphicsDisplayConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class"/>
+    <entity name="HostAudioInputStreamSource" representedClassName="SVHostAudioInputStreamSource" parentEntity="AudioInputStreamSource" syncable="YES" codeGenerationType="class"/>
+    <entity name="HostAudioOutputStreamSink" representedClassName="SVHostAudioOutputStreamSink" parentEntity="AudioOutputStreamSink" syncable="YES" codeGenerationType="class"/>
     <entity name="KeyboardConfiguration" representedClassName="SVKeyboardConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="keyboards" inverseEntity="VirtualMachineConfiguration"/>
     </entity>
@@ -95,6 +106,18 @@
         <relationship name="graphicsDevice" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtioGraphicsDeviceConfiguration" inverseName="scanouts" inverseEntity="VirtioGraphicsDeviceConfiguration"/>
     </entity>
     <entity name="VirtioNetworkDeviceConfiguration" representedClassName="SVVirtioNetworkDeviceConfiguration" parentEntity="NetworkDeviceConfiguration" syncable="YES" codeGenerationType="class"/>
+    <entity name="VirtioSoundDeviceConfiguration" representedClassName="SVVirtioSoundDeviceConfiguration" parentEntity="AudioDeviceConfiguration" syncable="YES" codeGenerationType="class">
+        <relationship name="streams" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="VirtioSoundDeviceStreamConfiguration" inverseName="soundDevice" inverseEntity="VirtioSoundDeviceStreamConfiguration"/>
+    </entity>
+    <entity name="VirtioSoundDeviceInputStreamConfiguration" representedClassName="SVVirtioSoundDeviceInputStreamConfiguration" parentEntity="VirtioSoundDeviceStreamConfiguration" syncable="YES" codeGenerationType="class">
+        <relationship name="source" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="AudioInputStreamSource" inverseName="inputStream" inverseEntity="AudioInputStreamSource"/>
+    </entity>
+    <entity name="VirtioSoundDeviceOutputStreamConfiguration" representedClassName="SVVirtioSoundDeviceOutputStreamConfiguration" parentEntity="VirtioSoundDeviceStreamConfiguration" syncable="YES" codeGenerationType="class">
+        <relationship name="sink" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="AudioOutputStreamSink" inverseName="outputStream" inverseEntity="AudioOutputStreamSink"/>
+    </entity>
+    <entity name="VirtioSoundDeviceStreamConfiguration" representedClassName="SVVirtioSoundDeviceStreamConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class">
+        <relationship name="soundDevice" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtioSoundDeviceConfiguration" inverseName="streams" inverseEntity="VirtioSoundDeviceConfiguration"/>
+    </entity>
     <entity name="VirtualMachine" representedClassName="SVVirtualMachine" syncable="YES" codeGenerationType="class">
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="configuration" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="VirtualMachineConfiguration" inverseName="machine" inverseEntity="VirtualMachineConfiguration"/>
@@ -103,6 +126,7 @@
     <entity name="VirtualMachineConfiguration" representedClassName="SVVirtualMachineConfiguration" syncable="YES" codeGenerationType="class">
         <attribute name="cpuCount" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromData" customClassName="NSNumber"/>
         <attribute name="memorySize" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromData" customClassName="NSNumber"/>
+        <relationship name="audioDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="AudioDeviceConfiguration" inverseName="machine" inverseEntity="AudioDeviceConfiguration"/>
         <relationship name="bootLoader" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="BootLoader" inverseName="machine" inverseEntity="BootLoader"/>
         <relationship name="graphicsDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="GraphicsDeviceConfiguration" inverseName="machine" inverseEntity="GraphicsDeviceConfiguration"/>
         <relationship name="keyboards" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="KeyboardConfiguration" inverseName="machine" inverseEntity="KeyboardConfiguration"/>

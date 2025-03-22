@@ -105,6 +105,10 @@
             textField.stringValue = @"Memory";
             break;
         }
+        case EditMachineSidebarItemModelTypeAudio: {
+            textField.stringValue = @"Audio";
+            break;
+        }
         case EditMachineSidebarItemModelTypeKeyboards: {
             textField.stringValue = @"Keyboards";
             break;
@@ -145,6 +149,10 @@
         }
         case EditMachineSidebarItemModelTypeCPU: {
             imageView.image = [NSImage imageWithSystemSymbolName:selected ? @"cpu.fill" : @"cpu" accessibilityDescription:nil];
+            break;
+        }
+        case EditMachineSidebarItemModelTypeAudio: {
+            imageView.image = [NSImage imageWithSystemSymbolName:@"airpods.pro" accessibilityDescription:nil];
             break;
         }
         case EditMachineSidebarItemModelTypeKeyboards: {

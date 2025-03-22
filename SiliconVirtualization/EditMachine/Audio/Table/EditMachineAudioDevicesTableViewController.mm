@@ -1,27 +1,27 @@
 //
-//  EditMachineNetworkDevicesTableViewController.m
+//  EditMachineAudioDevicesTableViewController.mm
 //  SiliconVirtualization
 //
 //  Created by Jinwoo Kim on 3/22/25.
 //
 
-#import "EditMachineNetworkDevicesTableViewController.h"
-#import "EditMachineNetworkDevicesTableCellView.h"
+#import "EditMachineAudioDevicesTableViewController.h"
+#import "EditMachineAudioDevicesTableCellView.h"
 
-@interface EditMachineNetworkDevicesTableViewController () <NSTableViewDataSource, NSTableViewDelegate, NSMenuDelegate>
+@interface EditMachineAudioDevicesTableViewController () <NSTableViewDataSource, NSTableViewDelegate, NSMenuDelegate>
 @property (class, nonatomic, readonly, getter=_cellItemIdentifier) NSUserInterfaceItemIdentifier cellItemIdentifier;
 @property (retain, nonatomic, readonly, getter=_scrollView) NSScrollView *scrollView;
 @property (retain, nonatomic, readonly, getter=_tableView) NSTableView *tableView;
 @property (retain, nonatomic, readonly, getter=_createButton) NSButton *createButton;
 @end
 
-@implementation EditMachineNetworkDevicesTableViewController
+@implementation EditMachineAudioDevicesTableViewController
 @synthesize scrollView = _scrollView;
 @synthesize tableView = _tableView;
 @synthesize createButton = _createButton;
 
 + (NSUserInterfaceItemIdentifier)_cellItemIdentifier {
-    return NSStringFromClass([EditMachineNetworkDevicesTableCellView class]);
+    return NSStringFromClass([EditMachineAudioDevicesTableCellView class]);
 }
 
 - (void)dealloc {
@@ -48,14 +48,14 @@
     ]];
 }
 
-- (void)setNetworkDevices:(NSArray<__kindof VZNetworkDeviceConfiguration *> *)networkDevices {
-    [_networkDevices release];
-    _networkDevices = [networkDevices copy];
+- (void)setAudioDevices:(NSArray<__kindof VZAudioDeviceConfiguration *> *)audioDevices {
+    [_audioDevices release];
+    _audioDevices = [audioDevices copy];
     
-    [self _didChangeNetworkDevices];
+    [self _didChangeAudioDevices];
 }
 
-- (void)_didChangeNetworkDevices {
+- (void)_didChangeAudioDevices {
     NSTableView *tableView = self.tableView;
     NSInteger selectedRow = tableView.selectedRow;
     [tableView reloadData];
@@ -72,7 +72,7 @@
     if (delegate == nil) return;
     
     NSInteger selectedRow = self.tableView.selectedRow;
-    [delegate editMachineNetworkDevicesViewController:self didSelectAtIndex:selectedRow];
+    [delegate editMachineAudioDevicesTableViewController:self didSelectAtIndex:selectedRow];
 }
 
 - (NSScrollView *)_scrollView {
@@ -90,8 +90,8 @@
     
     NSTableView *tableView = [NSTableView new];
     
-    NSNib *cellNib = [[NSNib alloc] initWithNibNamed:NSStringFromClass([EditMachineNetworkDevicesTableCellView class]) bundle:[NSBundle bundleForClass:[EditMachineNetworkDevicesTableCellView class]]];
-    [tableView registerNib:cellNib forIdentifier:EditMachineNetworkDevicesTableViewController.cellItemIdentifier];
+    NSNib *cellNib = [[NSNib alloc] initWithNibNamed:NSStringFromClass([EditMachineAudioDevicesTableCellView class]) bundle:[NSBundle bundleForClass:[EditMachineAudioDevicesTableCellView class]]];
+    [tableView registerNib:cellNib forIdentifier:EditMachineAudioDevicesTableViewController.cellItemIdentifier];
     [cellNib release];
     
     NSTableColumn *tableColumn = [[NSTableColumn alloc] initWithIdentifier:@""];
@@ -139,34 +139,34 @@
 }
 
 - (void)_didTriggerVirtioItem:(NSMenuItem *)sender {
-    VZVirtioNetworkDeviceConfiguration *configuration = [[VZVirtioNetworkDeviceConfiguration alloc] init];
+    VZVirtioSoundDeviceConfiguration *configuration = [[VZVirtioSoundDeviceConfiguration alloc] init];
     
-    NSArray<__kindof VZNetworkDeviceConfiguration *> *networkDevices = self.networkDevices;
-    if (networkDevices == nil) {
-        networkDevices = @[configuration];
+    NSArray<__kindof VZAudioDeviceConfiguration *> *audioDevices = self.audioDevices;
+    if (audioDevices == nil) {
+        audioDevices = @[configuration];
     } else {
-        networkDevices = [networkDevices arrayByAddingObject:configuration];
+        audioDevices = [audioDevices arrayByAddingObject:configuration];
     }
     [configuration release];
     
-    self.networkDevices = networkDevices;
+    self.audioDevices = audioDevices;
     
     if (auto delegate = self.delegate) {
-        [delegate editMachineNetworkDevicesViewController:self didUpdateNetworkDevices:networkDevices];
+        [delegate editMachineAudioDevicesTableViewController:self didUpdateAudioDevices:audioDevices];
     }
 }
 
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView {
-    return self.networkDevices.count;
+    return self.audioDevices.count;
 }
 
 - (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
-    EditMachineNetworkDevicesTableCellView *cell = [tableView makeViewWithIdentifier:EditMachineNetworkDevicesTableViewController.cellItemIdentifier owner:nil];
+    EditMachineAudioDevicesTableCellView *cell = [tableView makeViewWithIdentifier:EditMachineAudioDevicesTableViewController.cellItemIdentifier owner:nil];
     
-    __kindof VZNetworkDeviceConfiguration *configuration = self.networkDevices[row];
+    __kindof VZAudioDeviceConfiguration *configuration = self.audioDevices[row];
     
-    if ([configuration isKindOfClass:[VZVirtioNetworkDeviceConfiguration class]]) {
-        cell.textField.stringValue = @"Virtio Network Device";
+    if ([configuration isKindOfClass:[VZVirtioSoundDeviceConfiguration class]]) {
+        cell.textField.stringValue = @"Virtio Sound Device";
     } else {
         abort();
     }
@@ -199,16 +199,16 @@
     NSInteger clickedRow = self.tableView.clickedRow;
     assert((clickedRow != NSNotFound) and (clickedRow != -1));
     
-    NSMutableArray<__kindof VZNetworkDeviceConfiguration *> *networkDevices = [self.networkDevices mutableCopy];
-    [networkDevices removeObjectAtIndex:clickedRow];
+    NSMutableArray<__kindof VZAudioDeviceConfiguration *> *audioDevices = [self.audioDevices mutableCopy];
+    [audioDevices removeObjectAtIndex:clickedRow];
     
-    self.networkDevices = networkDevices;
+    self.audioDevices = audioDevices;
     
     if (auto delegate = self.delegate) {
-        [delegate editMachineNetworkDevicesViewController:self didUpdateNetworkDevices:networkDevices];
+        [delegate editMachineAudioDevicesTableViewController:self didUpdateAudioDevices:audioDevices];
     }
     
-    [networkDevices release];
+    [audioDevices release];
 }
 
 @end

@@ -46,8 +46,6 @@
         [createButton.trailingAnchor constraintEqualToAnchor:self.view.layoutMarginsGuide.trailingAnchor],
         [createButton.bottomAnchor constraintEqualToAnchor:self.view.layoutMarginsGuide.bottomAnchor]
     ]];
-    
-    [self _didChangePointingDevices];
 }
 
 - (void)setPointingDevices:(NSArray<__kindof VZPointingDeviceConfiguration *> *)pointingDevices {

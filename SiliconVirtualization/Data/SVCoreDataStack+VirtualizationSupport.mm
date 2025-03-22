@@ -21,6 +21,7 @@
     virtualMachineConfigurationObject.memorySize = @(virtualMachineConfiguration.memorySize);
     
     virtualMachineConfigurationObject.keyboards = [self _isolated_makeManagedObjectsFromKeyboards:virtualMachineConfiguration.keyboards];
+    virtualMachineConfigurationObject.audioDevices = [self _isolated_makeManagedObjectsFromAudioDevices:virtualMachineConfiguration.audioDevices];
     virtualMachineConfigurationObject.networkDevices = [self _isolated_makeManagedObjectsFromNetworkDevices:virtualMachineConfiguration.networkDevices];
     virtualMachineConfigurationObject.pointingDevices = [self _isolated_makeManagedObjectsFromPointingDevices:virtualMachineConfiguration.pointingDevices];
     virtualMachineConfigurationObject.graphicsDevices = [self _isolated_makeManagedObjectsFromGraphicsDevices:virtualMachineConfiguration.graphicsDevices];
@@ -141,6 +142,75 @@
     
     virtualMachineConfiguration.platform = platformConfiguration;
     [platformConfiguration release];
+    
+    //
+    
+    NSMutableArray<__kindof VZAudioDeviceConfiguration *> *audioDevices = [[NSMutableArray alloc] initWithCapacity:virtualMachineConfigurationObject.audioDevices.count];
+    
+    for (__kindof SVAudioDeviceConfiguration *audioDeviceObject in virtualMachineConfigurationObject.audioDevices) {
+        if ([audioDeviceObject isKindOfClass:[SVVirtioSoundDeviceConfiguration class]]) {
+            auto virtioSoundDeviceConfigurationObject = static_cast<SVVirtioSoundDeviceConfiguration *>(audioDeviceObject);
+            
+            VZVirtioSoundDeviceConfiguration *virtioSoundDeviceConfiguration = [[VZVirtioSoundDeviceConfiguration alloc] init];
+            
+            NSMutableArray<__kindof VZVirtioSoundDeviceStreamConfiguration *> *streams = [[NSMutableArray alloc] initWithCapacity:virtioSoundDeviceConfigurationObject.streams.count];
+            
+            for (__kindof SVVirtioSoundDeviceStreamConfiguration *streamObject in virtioSoundDeviceConfigurationObject.streams) {
+                if ([streamObject isKindOfClass:[SVVirtioSoundDeviceOutputStreamConfiguration class]]) {
+                    auto virtioSoundDeviceOutputStreamConfigurationObject = static_cast<SVVirtioSoundDeviceOutputStreamConfiguration *>(streamObject);
+                    
+                    VZVirtioSoundDeviceOutputStreamConfiguration *virtioSoundDeviceOutputStreamConfiguration = [[VZVirtioSoundDeviceOutputStreamConfiguration alloc] init];
+                    
+                    __kindof SVAudioOutputStreamSink * _Nullable sinkObject = virtioSoundDeviceOutputStreamConfigurationObject.sink;
+                    __kindof VZAudioOutputStreamSink * _Nullable sink;
+                    if (sinkObject == nil) {
+                        sink = nil;
+                    } else if ([sinkObject isKindOfClass:[SVHostAudioOutputStreamSink class]]) {
+                        sink = [[VZHostAudioOutputStreamSink alloc] init];
+                    } else {
+                        abort();
+                    }
+                    virtioSoundDeviceOutputStreamConfiguration.sink = sink;
+                    [sink release];
+                    
+                    [streams addObject:virtioSoundDeviceOutputStreamConfiguration];
+                    [virtioSoundDeviceOutputStreamConfiguration release];
+                } else if ([streamObject isKindOfClass:[SVVirtioSoundDeviceInputStreamConfiguration class]]) {
+                    auto virtioSoundDeviceInputStreamConfigurationObject = static_cast<SVVirtioSoundDeviceInputStreamConfiguration *>(streamObject);
+                    
+                    VZVirtioSoundDeviceInputStreamConfiguration *virtioSoundDeviceInputStreamConfiguration = [[VZVirtioSoundDeviceInputStreamConfiguration alloc] init];
+                    
+                    __kindof SVAudioInputStreamSource * _Nullable sourceObject = virtioSoundDeviceInputStreamConfigurationObject.source;
+                    __kindof VZAudioInputStreamSource * _Nullable source;
+                    if (sourceObject == nil) {
+                        source = nil;
+                    } else if ([sourceObject isKindOfClass:[SVHostAudioInputStreamSource class]]) {
+                        source = [[VZHostAudioInputStreamSource alloc] init];
+                    } else {
+                        abort();
+                    }
+                    
+                    virtioSoundDeviceInputStreamConfiguration.source = source;
+                    [source release];
+                    
+                    [streams addObject:virtioSoundDeviceInputStreamConfiguration];
+                    [virtioSoundDeviceInputStreamConfiguration release];
+                } else {
+                    abort();
+                }
+            }
+            
+            virtioSoundDeviceConfiguration.streams = streams;
+            [streams release];
+            [audioDevices addObject:virtioSoundDeviceConfiguration];
+            [virtioSoundDeviceConfiguration release];
+        } else {
+            abort();
+        }
+    }
+    
+    virtualMachineConfiguration.audioDevices = audioDevices;
+    [audioDevices release];
     
     //
     
@@ -346,6 +416,7 @@
     [virtualMachineConfiguration removeStorageDevicesAtIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, virtualMachineConfiguration.storageDevices.count)]];
     
     virtualMachineConfiguration.keyboards = [self _isolated_makeManagedObjectsFromKeyboards:machineConfiguration.keyboards];
+    virtualMachineConfiguration.audioDevices = [self _isolated_makeManagedObjectsFromAudioDevices:machineConfiguration.audioDevices];
     virtualMachineConfiguration.networkDevices = [self _isolated_makeManagedObjectsFromNetworkDevices:machineConfiguration.networkDevices];
     virtualMachineConfiguration.pointingDevices = [self _isolated_makeManagedObjectsFromPointingDevices:machineConfiguration.pointingDevices];
     virtualMachineConfiguration.graphicsDevices = [self _isolated_makeManagedObjectsFromGraphicsDevices:machineConfiguration.graphicsDevices];
@@ -443,6 +514,75 @@
     }
     
     return [keyboardObjects autorelease];
+}
+
+- (NSOrderedSet<__kindof SVAudioDeviceConfiguration *> *)_isolated_makeManagedObjectsFromAudioDevices:(NSArray<__kindof VZAudioDeviceConfiguration *> *)audioDevices {
+    NSManagedObjectContext *managedObjectContext = self.backgroundContext;
+    NSMutableOrderedSet<__kindof SVAudioDeviceConfiguration *> *audioDeviceObjects = [[NSMutableOrderedSet alloc] initWithCapacity:audioDevices.count];
+    
+    for (__kindof VZAudioDeviceConfiguration *audioDevice in audioDevices) {
+        if ([audioDevice isKindOfClass:[VZVirtioSoundDeviceConfiguration class]]) {
+            auto virtioSoundDeviceConfiguration = static_cast<VZVirtioSoundDeviceConfiguration *>(audioDevice);
+            
+            SVVirtioSoundDeviceConfiguration *virtioSoundDeviceConfigurationObject = [[SVVirtioSoundDeviceConfiguration alloc] initWithContext:managedObjectContext];
+            
+            NSMutableOrderedSet<__kindof SVVirtioSoundDeviceStreamConfiguration *> *streamsObject = [[NSMutableOrderedSet alloc] initWithCapacity:virtioSoundDeviceConfiguration.streams.count];
+            
+            for (__kindof VZVirtioSoundDeviceStreamConfiguration *stream in virtioSoundDeviceConfiguration.streams) {
+                if ([stream isKindOfClass:[VZVirtioSoundDeviceOutputStreamConfiguration class]]) {
+                    auto virtioSoundDeviceOutputStreamConfiguration = static_cast<VZVirtioSoundDeviceOutputStreamConfiguration *>(stream);
+                    
+                    SVVirtioSoundDeviceOutputStreamConfiguration *virtioSoundDeviceOutputStreamConfigurationObject = [[SVVirtioSoundDeviceOutputStreamConfiguration alloc] initWithContext:managedObjectContext];
+                    
+                    __kindof VZAudioOutputStreamSink * _Nullable sink = virtioSoundDeviceOutputStreamConfiguration.sink;
+                    __kindof SVAudioOutputStreamSink * _Nullable sinkObject;
+                    if (sink == nil) {
+                        sinkObject = nil;
+                    } else if ([sink isKindOfClass:[VZHostAudioOutputStreamSink class]]) {
+                        sinkObject = [[SVHostAudioOutputStreamSink alloc] initWithContext:managedObjectContext];
+                    } else {
+                        abort();
+                    }
+                    virtioSoundDeviceOutputStreamConfigurationObject.sink = sinkObject;
+                    [sinkObject release];
+                    
+                    [streamsObject addObject:virtioSoundDeviceOutputStreamConfigurationObject];
+                    [virtioSoundDeviceOutputStreamConfigurationObject release];
+                } else if ([stream isKindOfClass:[VZVirtioSoundDeviceInputStreamConfiguration class]]) {
+                    auto virtioSoundDeviceInputStreamConfiguration = static_cast<VZVirtioSoundDeviceInputStreamConfiguration *>(stream);
+                    
+                    SVVirtioSoundDeviceInputStreamConfiguration *virtioSoundDeviceInputStreamConfigurationObject = [[SVVirtioSoundDeviceInputStreamConfiguration alloc] initWithContext:managedObjectContext];
+                    
+                    __kindof VZAudioInputStreamSource * _Nullable source = virtioSoundDeviceInputStreamConfiguration.source;
+                    __kindof SVAudioInputStreamSource * _Nullable sourceObject;
+                    if (source == nil) {
+                        sourceObject = nil;
+                    } else if ([source isKindOfClass:[VZHostAudioInputStreamSource class]]) {
+                        sourceObject = [[SVHostAudioInputStreamSource alloc] initWithContext:managedObjectContext];
+                    } else {
+                        abort();
+                    }
+                    
+                    virtioSoundDeviceInputStreamConfigurationObject.source = sourceObject;
+                    [sourceObject release];
+                    
+                    [streamsObject addObject:virtioSoundDeviceInputStreamConfigurationObject];
+                    [virtioSoundDeviceInputStreamConfigurationObject release];
+                } else {
+                    abort();
+                }
+            }
+            
+            virtioSoundDeviceConfigurationObject.streams = streamsObject;
+            [streamsObject release];
+            [audioDeviceObjects addObject:virtioSoundDeviceConfigurationObject];
+            [virtioSoundDeviceConfigurationObject release];
+        } else {
+            abort();
+        }
+    }
+    
+    return [audioDeviceObjects autorelease];
 }
 
 - (NSOrderedSet<__kindof SVNetworkDeviceConfiguration *> *)_isolated_makeManagedObjectsFromNetworkDevices:(NSArray<__kindof VZNetworkDeviceConfiguration *> *)networkDevices {

@@ -13,6 +13,7 @@
 #import "SVKeyboardConfiguration.h"
 #import "SVPointingDeviceConfiguration.h"
 #import "SVNetworkDeviceConfiguration.h"
+#import "SVAudioDeviceConfiguration.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -22,6 +23,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (NSFetchRequest<SVVirtualMachineConfiguration *> *)fetchRequest;
 @property (retain, nonatomic, nullable) NSNumber *cpuCount;
 @property (retain, nonatomic, nullable) NSNumber *memorySize;
+@property (retain, nonatomic, nullable) NSOrderedSet<SVAudioDeviceConfiguration *> *audioDevices;
 @property (retain, nonatomic, nullable) SVBootLoader *bootLoader;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVGraphicsDeviceConfiguration *> *graphicsDevices;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVKeyboardConfiguration *> *keyboards;
@@ -30,6 +32,17 @@ NS_ASSUME_NONNULL_BEGIN
 @property (retain, nonatomic, nullable) SVPlatformConfiguration *platform;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVPointingDeviceConfiguration *> *pointingDevices;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVStorageDeviceConfiguration *> *storageDevices;
+
+- (void)insertObject:(SVAudioDeviceConfiguration *)value inAudioDevicesAtIndex:(NSUInteger)idx;
+- (void)removeObjectFromAudioDevicesAtIndex:(NSUInteger)idx;
+- (void)insertAudioDevices:(NSArray<SVAudioDeviceConfiguration *> *)value atIndexes:(NSIndexSet *)indexes;
+- (void)removeAudioDevicesAtIndexes:(NSIndexSet *)indexes;
+- (void)replaceObjectInAudioDevicesAtIndex:(NSUInteger)idx withObject:(SVAudioDeviceConfiguration *)value;
+- (void)replaceAudioDevicesAtIndexes:(NSIndexSet *)indexes withAudioDevices:(NSArray<SVAudioDeviceConfiguration *> *)values;
+- (void)addAudioDevicesObject:(SVAudioDeviceConfiguration *)value;
+- (void)removeAudioDevicesObject:(SVAudioDeviceConfiguration *)value;
+- (void)addAudioDevices:(NSOrderedSet<SVAudioDeviceConfiguration *> *)values;
+- (void)removeAudioDevices:(NSOrderedSet<SVAudioDeviceConfiguration *> *)values;
 
 - (void)insertObject:(SVGraphicsDeviceConfiguration *)value inGraphicsDevicesAtIndex:(NSUInteger)idx;
 - (void)removeObjectFromGraphicsDevicesAtIndex:(NSUInteger)idx;
