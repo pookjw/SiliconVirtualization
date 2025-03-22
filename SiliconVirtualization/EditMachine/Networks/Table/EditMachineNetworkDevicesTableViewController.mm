@@ -1,27 +1,27 @@
 //
-//  EditMachinePointingDevicesTableViewController.mm
+//  EditMachineNetworkDevicesTableViewController.m
 //  SiliconVirtualization
 //
-//  Created by Jinwoo Kim on 3/20/25.
+//  Created by Jinwoo Kim on 3/22/25.
 //
 
-#import "EditMachinePointingDevicesTableViewController.h"
-#import "EditMachinePointingDevicesTableCellView.h"
+#import "EditMachineNetworkDevicesTableViewController.h"
+#import "EditMachineNetworkDevicesTableCellView.h"
 
-@interface EditMachinePointingDevicesTableViewController () <NSTableViewDataSource, NSTableViewDelegate, NSMenuDelegate>
+@interface EditMachineNetworkDevicesTableViewController () <NSTableViewDataSource, NSTableViewDelegate, NSMenuDelegate>
 @property (class, nonatomic, readonly, getter=_cellItemIdentifier) NSUserInterfaceItemIdentifier cellItemIdentifier;
 @property (retain, nonatomic, readonly, getter=_scrollView) NSScrollView *scrollView;
 @property (retain, nonatomic, readonly, getter=_tableView) NSTableView *tableView;
 @property (retain, nonatomic, readonly, getter=_createButton) NSButton *createButton;
 @end
 
-@implementation EditMachinePointingDevicesTableViewController
+@implementation EditMachineNetworkDevicesTableViewController
 @synthesize scrollView = _scrollView;
 @synthesize tableView = _tableView;
 @synthesize createButton = _createButton;
 
 + (NSUserInterfaceItemIdentifier)_cellItemIdentifier {
-    return NSStringFromClass([EditMachinePointingDevicesTableCellView class]);
+    return NSStringFromClass([EditMachineNetworkDevicesTableCellView class]);
 }
 
 - (void)dealloc {
@@ -47,17 +47,17 @@
         [createButton.bottomAnchor constraintEqualToAnchor:self.view.layoutMarginsGuide.bottomAnchor]
     ]];
     
-    [self _didChangePointingDevices];
+    [self _didChangeNetworkDevices];
 }
 
-- (void)setPointingDevices:(NSArray<__kindof VZPointingDeviceConfiguration *> *)pointingDevices {
-    [_pointingDevices release];
-    _pointingDevices = [pointingDevices copy];
+- (void)setNetworkDevices:(NSArray<__kindof VZNetworkDeviceConfiguration *> *)networkDevices {
+    [_networkDevices release];
+    _networkDevices = [networkDevices copy];
     
-    [self _didChangePointingDevices];
+    [self _didChangeNetworkDevices];
 }
 
-- (void)_didChangePointingDevices {
+- (void)_didChangeNetworkDevices {
     NSTableView *tableView = self.tableView;
     NSInteger selectedRow = tableView.selectedRow;
     [tableView reloadData];
@@ -67,6 +67,14 @@
     }
     
     [self _tableViewSelectionDidChange];
+}
+
+- (void)_tableViewSelectionDidChange {
+    auto delegate = self.delegate;
+    if (delegate == nil) return;
+    
+    NSInteger selectedRow = self.tableView.selectedRow;
+    [delegate editMachineNetworkDevicesViewController:self didSelectAtIndex:selectedRow];
 }
 
 - (NSScrollView *)_scrollView {
@@ -84,8 +92,8 @@
     
     NSTableView *tableView = [NSTableView new];
     
-    NSNib *cellNib = [[NSNib alloc] initWithNibNamed:NSStringFromClass([EditMachinePointingDevicesTableCellView class]) bundle:[NSBundle bundleForClass:[EditMachinePointingDevicesTableCellView class]]];
-    [tableView registerNib:cellNib forIdentifier:EditMachinePointingDevicesTableViewController.cellItemIdentifier];
+    NSNib *cellNib = [[NSNib alloc] initWithNibNamed:NSStringFromClass([EditMachineNetworkDevicesTableCellView class]) bundle:[NSBundle bundleForClass:[EditMachineNetworkDevicesTableCellView class]]];
+    [tableView registerNib:cellNib forIdentifier:EditMachineNetworkDevicesTableViewController.cellItemIdentifier];
     [cellNib release];
     
     NSTableColumn *tableColumn = [[NSTableColumn alloc] initWithIdentifier:@""];
@@ -119,75 +127,34 @@
 }
 
 - (void)_didTriggerCreateButton:(NSButton *)sender {
-    NSMenu *menu = [NSMenu new];
+    VZVirtioNetworkDeviceConfiguration *configuration = [[VZVirtioNetworkDeviceConfiguration alloc] init];
     
-    NSMenuItem *USBItem = [NSMenuItem new];
-    USBItem.title = @"USB Screen Coordinate Pointing Device";
-    USBItem.target = self;
-    USBItem.action = @selector(_didTriggerUSBItem:);
-    [menu addItem:USBItem];
-    [USBItem release];
-    
-    NSMenuItem *macItem = [NSMenuItem new];
-    macItem.title = @"Mac Trackpad";
-    macItem.target = self;
-    macItem.action = @selector(_didTriggerMacItem:);
-    [menu addItem:macItem];
-    [macItem release];
-    
-    [NSMenu popUpContextMenu:menu withEvent:self.view.window.currentEvent forView:sender];
-    [menu release];
-}
-
-- (void)_didTriggerUSBItem:(NSMenuItem *)sender {
-    VZUSBScreenCoordinatePointingDeviceConfiguration *configuration = [[VZUSBScreenCoordinatePointingDeviceConfiguration alloc] init];
-    
-    NSArray<__kindof VZPointingDeviceConfiguration *> *pointingDevices = self.pointingDevices;
-    if (pointingDevices == nil) {
-        pointingDevices = @[configuration];
+    NSArray<__kindof VZNetworkDeviceConfiguration *> *networkDevices = self.networkDevices;
+    if (networkDevices == nil) {
+        networkDevices = @[configuration];
     } else {
-        pointingDevices = [pointingDevices arrayByAddingObject:configuration];
+        networkDevices = [networkDevices arrayByAddingObject:configuration];
     }
     [configuration release];
     
-    self.pointingDevices = pointingDevices;
+    self.networkDevices = networkDevices;
     
     if (auto delegate = self.delegate) {
-        [delegate editMachinePointingDevicesTableViewController:self didUpdatePointingDevices:pointingDevices];
-    }
-}
-
-- (void)_didTriggerMacItem:(NSMenuItem *)sender {
-    VZMacTrackpadConfiguration *configuration = [[VZMacTrackpadConfiguration alloc] init];
-    
-    NSArray<__kindof VZPointingDeviceConfiguration *> *pointingDevices = self.pointingDevices;
-    if (pointingDevices == nil) {
-        pointingDevices = @[configuration];
-    } else {
-        pointingDevices = [pointingDevices arrayByAddingObject:configuration];
-    }
-    [configuration release];
-    
-    self.pointingDevices = pointingDevices;
-    
-    if (auto delegate = self.delegate) {
-        [delegate editMachinePointingDevicesTableViewController:self didUpdatePointingDevices:pointingDevices];
+        [delegate editMachineNetworkDevicesViewController:self didUpdateNetworkDevices:networkDevices];
     }
 }
 
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView {
-    return self.pointingDevices.count;
+    return self.networkDevices.count;
 }
 
 - (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
-    EditMachinePointingDevicesTableCellView *cell = [tableView makeViewWithIdentifier:EditMachinePointingDevicesTableViewController.cellItemIdentifier owner:nil];
+    EditMachineNetworkDevicesTableCellView *cell = [tableView makeViewWithIdentifier:EditMachineNetworkDevicesTableViewController.cellItemIdentifier owner:nil];
     
-    __kindof VZPointingDeviceConfiguration *configuration = self.pointingDevices[row];
+    __kindof VZNetworkDeviceConfiguration *configuration = self.networkDevices[row];
     
-    if ([configuration isKindOfClass:[VZUSBScreenCoordinatePointingDeviceConfiguration class]]) {
-        cell.textField.stringValue = @"USB Screen Coordinate Pointing Device";
-    } else if ([configuration isKindOfClass:[VZMacTrackpadConfiguration class]]) {
-        cell.textField.stringValue = @"Mac Trackpad";
+    if ([configuration isKindOfClass:[VZVirtioNetworkDeviceConfiguration class]]) {
+        cell.textField.stringValue = @"Virtio Network Device";
     } else {
         abort();
     }
@@ -199,14 +166,6 @@
     if ([notification.object isEqual:self.tableView]) {
         [self _tableViewSelectionDidChange];
     }
-}
-
-- (void)_tableViewSelectionDidChange {
-    auto delegate = self.delegate;
-    if (delegate == nil) return;
-    
-    NSInteger selectedRow = self.tableView.selectedRow;
-    [delegate editMachinePointingDevicesTableViewController:self didSelectAtIndex:selectedRow];
 }
 
 - (void)menuWillOpen:(NSMenu *)menu {
@@ -228,16 +187,16 @@
     NSInteger clickedRow = self.tableView.clickedRow;
     assert((clickedRow != NSNotFound) and (clickedRow != -1));
     
-    NSMutableArray<__kindof VZPointingDeviceConfiguration *> *pointingDevices = [self.pointingDevices mutableCopy];
-    [pointingDevices removeObjectAtIndex:clickedRow];
+    NSMutableArray<__kindof VZNetworkDeviceConfiguration *> *networkDevices = [self.networkDevices mutableCopy];
+    [networkDevices removeObjectAtIndex:clickedRow];
     
-    self.pointingDevices = pointingDevices;
+    self.networkDevices = networkDevices;
     
     if (auto delegate = self.delegate) {
-        [delegate editMachinePointingDevicesTableViewController:self didUpdatePointingDevices:pointingDevices];
+        [delegate editMachineNetworkDevicesViewController:self didUpdateNetworkDevices:networkDevices];
     }
     
-    [pointingDevices release];
+    [networkDevices release];
 }
 
 @end

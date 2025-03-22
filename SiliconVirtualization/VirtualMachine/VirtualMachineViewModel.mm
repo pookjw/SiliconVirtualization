@@ -31,7 +31,7 @@
         [NSNotificationCenter.defaultCenter addObserver:self
                                                selector:@selector(_didSaveObjectIDs:)
                                                    name:NSManagedObjectContextDidSaveObjectIDsNotification
-                                                 object:stack];
+                                                 object:context];
     }
     
     return self;

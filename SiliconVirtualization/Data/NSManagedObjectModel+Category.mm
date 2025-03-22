@@ -960,14 +960,14 @@
     }
     
     {
-        NSRelationshipDescription *networkDeviceConfiguration_macAdress_relationship = [NSRelationshipDescription new];
-        networkDeviceConfiguration_macAdress_relationship.name = @"macAdress";
-        networkDeviceConfiguration_macAdress_relationship.optional = YES;
-        networkDeviceConfiguration_macAdress_relationship.minCount = 0;
-        networkDeviceConfiguration_macAdress_relationship.maxCount = 1;
-        assert(!networkDeviceConfiguration_macAdress_relationship.toMany);
-        networkDeviceConfiguration_macAdress_relationship.destinationEntity = MACAddressEntity;
-        networkDeviceConfiguration_macAdress_relationship.deleteRule = NSCascadeDeleteRule;
+        NSRelationshipDescription *networkDeviceConfiguration_macAddress_relationship = [NSRelationshipDescription new];
+        networkDeviceConfiguration_macAddress_relationship.name = @"macAddress";
+        networkDeviceConfiguration_macAddress_relationship.optional = YES;
+        networkDeviceConfiguration_macAddress_relationship.minCount = 0;
+        networkDeviceConfiguration_macAddress_relationship.maxCount = 1;
+        assert(!networkDeviceConfiguration_macAddress_relationship.toMany);
+        networkDeviceConfiguration_macAddress_relationship.destinationEntity = MACAddressEntity;
+        networkDeviceConfiguration_macAddress_relationship.deleteRule = NSCascadeDeleteRule;
         
         NSRelationshipDescription *MACAddress_networkDevice_relationship = [NSRelationshipDescription new];
         MACAddress_networkDevice_relationship.name = @"networkDevice";
@@ -978,13 +978,13 @@
         MACAddress_networkDevice_relationship.destinationEntity = networkDeviceConfigurationEntity;
         MACAddress_networkDevice_relationship.deleteRule = NSNullifyDeleteRule;
         
-        networkDeviceConfiguration_macAdress_relationship.inverseRelationship = MACAddress_networkDevice_relationship;
-        MACAddress_networkDevice_relationship.inverseRelationship = networkDeviceConfiguration_macAdress_relationship;
+        networkDeviceConfiguration_macAddress_relationship.inverseRelationship = MACAddress_networkDevice_relationship;
+        MACAddress_networkDevice_relationship.inverseRelationship = networkDeviceConfiguration_macAddress_relationship;
         
-        networkDeviceConfigurationEntity.properties = [networkDeviceConfigurationEntity.properties arrayByAddingObject:networkDeviceConfiguration_macAdress_relationship];
+        networkDeviceConfigurationEntity.properties = [networkDeviceConfigurationEntity.properties arrayByAddingObject:networkDeviceConfiguration_macAddress_relationship];
         MACAddressEntity.properties = [MACAddressEntity.properties arrayByAddingObject:MACAddress_networkDevice_relationship];
         
-        [networkDeviceConfiguration_macAdress_relationship release];
+        [networkDeviceConfiguration_macAddress_relationship release];
         [MACAddress_networkDevice_relationship release];
     }
     

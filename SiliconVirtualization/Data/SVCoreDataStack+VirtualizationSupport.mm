@@ -206,13 +206,20 @@
             }
             
             __kindof SVNetworkDeviceAttachment *attachmentObject = virtioNetworkDeviceConfigurationObject.attachment;
-            if ([attachmentObject isKindOfClass:[SVNATNetworkDeviceAttachment class]]) {
-                VZNATNetworkDeviceAttachment *attachment = [[VZNATNetworkDeviceAttachment alloc] init];
-                networkDevice.attachment = attachment;
-                [attachment release];
+            __kindof VZNATNetworkDeviceAttachment * _Nullable attachment;
+            if (attachmentObject == nil) {
+                attachment = nil;
+            } else if ([attachmentObject isKindOfClass:[SVNATNetworkDeviceAttachment class]]) {
+                attachment = [[VZNATNetworkDeviceAttachment alloc] init];
             } else {
                 abort();
             }
+            
+            networkDevice.attachment = attachment;
+            [attachment release];
+            
+            [networkDevices addObject:networkDevice];
+            [networkDevice release];
         } else {
             abort();
         }
@@ -449,19 +456,25 @@
             SVVirtioNetworkDeviceConfiguration *networkDeviceObject = [[SVVirtioNetworkDeviceConfiguration alloc] initWithContext:managedObjectContext];
             
             __kindof VZNetworkDeviceAttachment *attachment = virtioNetworkDeviceConfiguration.attachment;
-            if ([attachment isKindOfClass:[VZNATNetworkDeviceAttachment class]]) {
-                SVNATNetworkDeviceAttachment *attachmentObject = [[SVNATNetworkDeviceAttachment alloc] initWithContext:managedObjectContext];
-                networkDeviceObject.attachment = attachmentObject;
-                [attachmentObject release];
+            __kindof SVNetworkDeviceAttachment * _Nullable attachmentObject;
+            if (attachment == nil) {
+                attachmentObject = nil;
+            } else if ([attachment isKindOfClass:[VZNATNetworkDeviceAttachment class]]) {
+                attachmentObject = [[SVNATNetworkDeviceAttachment alloc] initWithContext:managedObjectContext];
             } else {
                 abort();
             }
+            networkDeviceObject.attachment = attachmentObject;
+            [attachmentObject release];
             
             SVMACAddress *MACAddressObject = [[SVMACAddress alloc] initWithContext:managedObjectContext];
             ether_addr_t ethernetAddress = virtioNetworkDeviceConfiguration.MACAddress.ethernetAddress;
             MACAddressObject.ethernetAddress = [NSData dataWithBytes:&ethernetAddress length:sizeof(ether_addr_t)];
             networkDeviceObject.macAddress = MACAddressObject;
             [MACAddressObject release];
+            
+            [networkDeviceObjects addObject:networkDeviceObject];
+            [networkDeviceObject release];
         } else {
             abort();
         }
