@@ -12,6 +12,7 @@
 #include <unistd.h>
 #import <objc/runtime.h>
 #import "EditMachineStoragesCellView.h"
+#import "DiskBlockDeviceStorageDeviceAttachmentConfigurationView.h"
 
 @interface EditMachineStoragesViewController () <NSTableViewDataSource, NSTableViewDelegate>
 @property (class, nonatomic, readonly, getter=_imageCreationProgressKey) void *imageCreationProgressKey;
@@ -236,7 +237,55 @@
 }
 
 - (void)_didTriggerNVMExpressItem:(NSMenuItem *)sender {
-    abort();
+    NSAlert *alert = [NSAlert new];
+    
+    alert.messageText = @"NVME";
+    
+    DiskBlockDeviceStorageDeviceAttachmentConfigurationView *accessoryView = [DiskBlockDeviceStorageDeviceAttachmentConfigurationView new];
+    NSSize fittingSize = accessoryView.fittingSize;
+    accessoryView.frame = NSMakeRect(0., 0., fittingSize.width, fittingSize.height);
+    alert.accessoryView = accessoryView;
+    
+    [alert addButtonWithTitle:@"OK"];
+    [alert addButtonWithTitle:@"Cancel"];
+    
+    [alert beginSheetModalForWindow:self.view.window completionHandler:^(NSModalResponse returnCode) {
+        if (returnCode == NSAlertFirstButtonReturn) {
+            NSFileHandle *fileHandle = [[NSFileHandle alloc] initWithFileDescriptor:accessoryView.fileDescriptor closeOnDealloc:NO];
+            
+            NSError * _Nullable error = nil;
+            VZDiskBlockDeviceStorageDeviceAttachment *attachment = [[VZDiskBlockDeviceStorageDeviceAttachment alloc] initWithFileHandle:fileHandle readOnly:accessoryView.readOnly synchronizationMode:accessoryView.synchronizationMode error:&error];
+            [fileHandle release];
+            
+            if (error != nil) {
+                NSLog(@"%@", error);
+                [attachment release];
+                return;
+            }
+            
+            //
+            
+            VZVirtualMachineConfiguration *configuration = [self.configuration copy];
+            
+            VZNVMExpressControllerDeviceConfiguration *deviceConfiguration = [[VZNVMExpressControllerDeviceConfiguration alloc] initWithAttachment:attachment];
+            [attachment release];
+            
+            configuration.storageDevices = [configuration.storageDevices arrayByAddingObject:deviceConfiguration];
+            [deviceConfiguration release];
+            
+            self.configuration = configuration;
+            
+            if (auto delegate = self.delegate) {
+                [delegate EditMachineStoragesViewController:self didUpdateConfiguration:configuration];
+            }
+            
+            [configuration release];
+        }
+    }];
+    
+    [accessoryView release];
+    
+    [alert release];
 }
 
 - (void)_addStorageURLIntoConfiguration:(NSURL *)URL {
@@ -328,6 +377,9 @@
     if ([attachment isKindOfClass:[VZDiskImageStorageDeviceAttachment class]]) {
         auto casted = static_cast<VZDiskImageStorageDeviceAttachment *>(attachment);
         view.textField.stringValue = casted.URL.path;
+    } else if ([attachment isKindOfClass:[VZDiskBlockDeviceStorageDeviceAttachment class]]) {
+        auto casted = static_cast<VZDiskBlockDeviceStorageDeviceAttachment *>(attachment);
+        view.textField.stringValue = @(casted.fileHandle.fileDescriptor).stringValue;
     } else {
         abort();
     }

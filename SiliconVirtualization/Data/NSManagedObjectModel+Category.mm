@@ -221,6 +221,13 @@
         USBMassStorageDeviceConfigurationEntity.managedObjectClassName = NSStringFromClass([SVUSBMassStorageDeviceConfiguration class]);
     }
     
+    NSEntityDescription *NVMExpressControllerDeviceConfigurationEntity;
+    {
+        NVMExpressControllerDeviceConfigurationEntity = [NSEntityDescription new];
+        NVMExpressControllerDeviceConfigurationEntity.name = @"NVMExpressControllerDeviceConfiguration";
+        NVMExpressControllerDeviceConfigurationEntity.managedObjectClassName = NSStringFromClass([SVNVMExpressControllerDeviceConfiguration class]);
+    }
+    
     NSEntityDescription *storageDeviceConfigurationEntity;
     {
         storageDeviceConfigurationEntity = [NSEntityDescription new];
@@ -229,7 +236,8 @@
         storageDeviceConfigurationEntity.abstract = YES;
         storageDeviceConfigurationEntity.subentities = @[
             virtioBlockDeviceConfigurationEntity,
-            USBMassStorageDeviceConfigurationEntity
+            USBMassStorageDeviceConfigurationEntity,
+            NVMExpressControllerDeviceConfigurationEntity
         ];
     }
     
@@ -1323,6 +1331,7 @@
         graphicsDisplayConfigurationEntity,
         virtioBlockDeviceConfigurationEntity,
         USBMassStorageDeviceConfigurationEntity,
+        NVMExpressControllerDeviceConfigurationEntity,
         storageDeviceConfigurationEntity,
         diskImageStorageDeviceAttachmentEntity,
         diskBlockDeviceStorageDeviceAttachmentEntity,
@@ -1372,6 +1381,7 @@
     [graphicsDisplayConfigurationEntity release];
     [virtioBlockDeviceConfigurationEntity release];
     [USBMassStorageDeviceConfigurationEntity release];
+    [NVMExpressControllerDeviceConfigurationEntity release];
     [storageDeviceConfigurationEntity release];
     [diskImageStorageDeviceAttachmentEntity release];
     [diskBlockDeviceStorageDeviceAttachmentEntity release];

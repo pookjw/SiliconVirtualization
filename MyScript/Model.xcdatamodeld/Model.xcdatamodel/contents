@@ -86,6 +86,7 @@
         <relationship name="macAddress" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="MACAddress" inverseName="networkDevice" inverseEntity="MACAddress"/>
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="networkDevices" inverseEntity="VirtualMachineConfiguration"/>
     </entity>
+    <entity name="NVMExpressControllerDeviceConfiguration" representedClassName="SVNVMExpressControllerDeviceConfiguration" parentEntity="StorageDeviceConfiguration" syncable="YES" codeGenerationType="class"/>
     <entity name="PlatformConfiguration" representedClassName="SVPlatformConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="platform" inverseEntity="VirtualMachineConfiguration"/>
     </entity>

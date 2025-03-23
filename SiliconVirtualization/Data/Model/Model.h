@@ -52,3 +52,4 @@
 #import "SVXHCIControllerConfiguration.h"
 #import "SVUSBMassStorageDeviceConfiguration.h"
 #import "SVDiskBlockDeviceStorageDeviceAttachment.h"
+#import "SVNVMExpressControllerDeviceConfiguration.h"
