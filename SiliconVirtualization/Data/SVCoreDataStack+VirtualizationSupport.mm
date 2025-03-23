@@ -1057,7 +1057,7 @@
         NSOpenPanel *openPanel = [NSOpenPanel new];
         
         openPanel.canChooseFiles = YES;
-        openPanel.canChooseDirectories = NO;
+        openPanel.canChooseDirectories = YES;
         openPanel.directoryURL = URL;
         
         [openPanel runModal];
