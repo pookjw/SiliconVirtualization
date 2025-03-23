@@ -226,10 +226,20 @@
             
             id<HelperXPCInterface> remoteObjectProxy = self.helperConnection.remoteObjectProxy;
             [remoteObjectProxy openFromURL:URL completionHandler:^(NSFileHandle * _Nonnull fileHandle) {
-                NSLog(@"%d", fileHandle.fileDescriptor);
                 [FileHandlesManager.sharedInstance withLock:^(NSMutableSet<NSFileHandle *> * _Nonnull handles) {
                     [handles addObject:fileHandle];
                 }];
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    NSAlert *alert = [NSAlert new];
+                    alert.messageText = @"File Descriptor";
+                    alert.informativeText = @(fileHandle.fileDescriptor).stringValue;
+                    
+                    [alert beginSheetModalForWindow:self.view.window completionHandler:^(NSModalResponse returnCode) {
+                        
+                    }];
+                    [alert release];
+                });
             }];
         }
     }];
