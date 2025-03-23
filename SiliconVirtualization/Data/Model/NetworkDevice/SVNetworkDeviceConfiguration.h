@@ -15,9 +15,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface SVNetworkDeviceConfiguration : NSManagedObject
 + (NSFetchRequest<SVNetworkDeviceConfiguration *> *)fetchRequest;
-@property (nullable, nonatomic, retain) SVNetworkDeviceAttachment *attachment;
-@property (nullable, nonatomic, retain) SVMACAddress *macAddress;
-@property (nullable, nonatomic, retain) SVVirtualMachineConfiguration *machine;
+@property (retain, nonatomic, nullable) SVNetworkDeviceAttachment *attachment;
+@property (retain, nonatomic, nullable) SVMACAddress *macAddress;
+@property (retain, nonatomic, nullable) SVVirtualMachineConfiguration *machine;
 @end
 
 NS_ASSUME_NONNULL_END

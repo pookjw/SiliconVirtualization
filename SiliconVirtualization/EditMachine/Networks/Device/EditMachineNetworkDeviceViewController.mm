@@ -27,6 +27,7 @@
 @synthesize attachmentPopUpButton = _attachmentPopUpButton;
 
 - (void)dealloc {
+    [_networkDevice release];
     [_gridView release];
     [_MACAddressLabel release];
     [_MACAddressTextField release];

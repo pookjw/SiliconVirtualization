@@ -606,6 +606,101 @@
         USBControllerConfigurationEntity.subentities = @[XHCIControllerConfigurationEntity];
     }
     
+    NSEntityDescription *virtioFileSystemDeviceConfigurationEntity;
+    {
+        virtioFileSystemDeviceConfigurationEntity = [NSEntityDescription new];
+        virtioFileSystemDeviceConfigurationEntity.name = @"VirtioFileSystemDeviceConfiguration";
+        virtioFileSystemDeviceConfigurationEntity.managedObjectClassName = NSStringFromClass([SVVirtioFileSystemDeviceConfiguration class]);
+        
+        NSAttributeDescription *tagAttribute = [NSAttributeDescription new];
+        tagAttribute.name = @"tag";
+        tagAttribute.optional = YES;
+        tagAttribute.attributeType = NSStringAttributeType;
+        
+        virtioFileSystemDeviceConfigurationEntity.properties = @[
+            tagAttribute
+        ];
+        
+        [tagAttribute release];
+    }
+    
+    NSEntityDescription *directorySharingDeviceConfigurationEntity;
+    {
+        directorySharingDeviceConfigurationEntity = [NSEntityDescription new];
+        directorySharingDeviceConfigurationEntity.name = @"DirectorySharingDeviceConfiguration";
+        directorySharingDeviceConfigurationEntity.managedObjectClassName = NSStringFromClass([SVDirectorySharingDeviceConfiguration class]);
+        
+        directorySharingDeviceConfigurationEntity.abstract = YES;
+        directorySharingDeviceConfigurationEntity.subentities = @[
+            virtioFileSystemDeviceConfigurationEntity
+        ];
+    }
+    
+    NSEntityDescription *singleDirectoryShareEntity;
+    {
+        singleDirectoryShareEntity = [NSEntityDescription new];
+        singleDirectoryShareEntity.name = @"SingleDirectoryShare";
+        singleDirectoryShareEntity.managedObjectClassName = NSStringFromClass([SVSingleDirectoryShare class]);
+    }
+    
+    NSEntityDescription *multipleDirectoryShareEntity;
+    {
+        multipleDirectoryShareEntity = [NSEntityDescription new];
+        multipleDirectoryShareEntity.name = @"MultipleDirectoryShare";
+        multipleDirectoryShareEntity.managedObjectClassName = NSStringFromClass([SVMultipleDirectoryShare class]);
+        
+        NSAttributeDescription *directoryNamesAttribute = [NSAttributeDescription new];
+        directoryNamesAttribute.name = @"directoryNames";
+        directoryNamesAttribute.optional = YES;
+        directoryNamesAttribute.attributeType = NSTransformableAttributeType;
+        directoryNamesAttribute.valueTransformerName = NSSecureUnarchiveFromDataTransformerName;
+        directoryNamesAttribute.attributeValueClassName = NSStringFromClass([NSArray class]);
+        
+        multipleDirectoryShareEntity.properties = @[
+            directoryNamesAttribute
+        ];
+        
+        [directoryNamesAttribute release];
+    }
+    
+    NSEntityDescription *directoryShareEntity;
+    {
+        directoryShareEntity = [NSEntityDescription new];
+        directoryShareEntity.name = @"DirectoryShare";
+        directoryShareEntity.managedObjectClassName = NSStringFromClass([SVDirectoryShare class]);
+        
+        directoryShareEntity.abstract = YES;
+        directoryShareEntity.subentities = @[
+            singleDirectoryShareEntity,
+            multipleDirectoryShareEntity
+        ];
+    }
+    
+    NSEntityDescription *sharedDirectoryEntity;
+    {
+        sharedDirectoryEntity = [NSEntityDescription new];
+        sharedDirectoryEntity.name = @"SharedDirectory";
+        sharedDirectoryEntity.managedObjectClassName = NSStringFromClass([SVSharedDirectory class]);
+        
+        NSAttributeDescription *bookmarkDataAttribute = [NSAttributeDescription new];
+        bookmarkDataAttribute.name = @"bookmarkData";
+        bookmarkDataAttribute.optional = YES;
+        bookmarkDataAttribute.attributeType = NSBinaryDataAttributeType;
+        
+        NSAttributeDescription *readOnlyAttribute = [NSAttributeDescription new];
+        readOnlyAttribute.name = @"readOnly";
+        readOnlyAttribute.optional = YES;
+        readOnlyAttribute.attributeType = NSBooleanAttributeType;
+        
+        sharedDirectoryEntity.properties = @[
+            bookmarkDataAttribute,
+            readOnlyAttribute
+        ];
+        
+        [bookmarkDataAttribute release];
+        [readOnlyAttribute release];
+    }
+    
     //
     
     {
@@ -1312,6 +1407,125 @@
         USBMassStorageDeviceConfigurationEntity.properties = [USBMassStorageDeviceConfigurationEntity.properties arrayByAddingObject:USBMassStorageDeviceConfiguration_usbController_relationship];
         
         [USBControllerConfiguration_usbMassStorageDevices_relationship release];
+        [USBMassStorageDeviceConfiguration_usbController_relationship release];
+    }
+    
+    {
+        NSRelationshipDescription *virtualMachineConfiguration_directorySharingDevices_relation = [NSRelationshipDescription new];
+        virtualMachineConfiguration_directorySharingDevices_relation.name = @"directorySharingDevices";
+        virtualMachineConfiguration_directorySharingDevices_relation.optional = YES;
+        virtualMachineConfiguration_directorySharingDevices_relation.minCount = 0;
+        virtualMachineConfiguration_directorySharingDevices_relation.maxCount = 0;
+        assert(virtualMachineConfiguration_directorySharingDevices_relation.toMany);
+        virtualMachineConfiguration_directorySharingDevices_relation.ordered = YES;
+        virtualMachineConfiguration_directorySharingDevices_relation.destinationEntity = directorySharingDeviceConfigurationEntity;
+        virtualMachineConfiguration_directorySharingDevices_relation.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *directorySharingDeviceConfiguration_machine_relationship = [NSRelationshipDescription new];
+        directorySharingDeviceConfiguration_machine_relationship.name = @"machine";
+        directorySharingDeviceConfiguration_machine_relationship.optional = YES;
+        directorySharingDeviceConfiguration_machine_relationship.minCount = 0;
+        directorySharingDeviceConfiguration_machine_relationship.maxCount = 1;
+        assert(!directorySharingDeviceConfiguration_machine_relationship.toMany);
+        directorySharingDeviceConfiguration_machine_relationship.destinationEntity = virtualMachineConfigurationEntity;
+        directorySharingDeviceConfiguration_machine_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        virtualMachineConfiguration_directorySharingDevices_relation.inverseRelationship = directorySharingDeviceConfiguration_machine_relationship;
+        directorySharingDeviceConfiguration_machine_relationship.inverseRelationship = virtualMachineConfiguration_directorySharingDevices_relation;
+        
+        virtualMachineConfigurationEntity.properties = [virtualMachineConfigurationEntity.properties arrayByAddingObject:virtualMachineConfiguration_directorySharingDevices_relation];
+        directorySharingDeviceConfigurationEntity.properties = [directorySharingDeviceConfigurationEntity.properties arrayByAddingObject:directorySharingDeviceConfiguration_machine_relationship];
+        
+        [virtualMachineConfiguration_directorySharingDevices_relation release];
+        [directorySharingDeviceConfiguration_machine_relationship release];
+    }
+    
+    {
+        NSRelationshipDescription *virtioFileSystemDeviceConfiguration_share_relationship = [NSRelationshipDescription new];
+        virtioFileSystemDeviceConfiguration_share_relationship.name = @"share";
+        virtioFileSystemDeviceConfiguration_share_relationship.optional = YES;
+        virtioFileSystemDeviceConfiguration_share_relationship.minCount = 0;
+        virtioFileSystemDeviceConfiguration_share_relationship.maxCount = 1;
+        assert(!virtioFileSystemDeviceConfiguration_share_relationship.toMany);
+        virtioFileSystemDeviceConfiguration_share_relationship.destinationEntity = directoryShareEntity;
+        virtioFileSystemDeviceConfiguration_share_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *directoryShare_fileSystemDevice_relationship = [NSRelationshipDescription new];
+        directoryShare_fileSystemDevice_relationship.name = @"fileSystemDevice";
+        directoryShare_fileSystemDevice_relationship.optional = YES;
+        directoryShare_fileSystemDevice_relationship.minCount = 0;
+        directoryShare_fileSystemDevice_relationship.maxCount = 1;
+        assert(!directoryShare_fileSystemDevice_relationship.toMany);
+        directoryShare_fileSystemDevice_relationship.destinationEntity = virtioFileSystemDeviceConfigurationEntity;
+        directoryShare_fileSystemDevice_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        virtioFileSystemDeviceConfiguration_share_relationship.inverseRelationship = directoryShare_fileSystemDevice_relationship;
+        directoryShare_fileSystemDevice_relationship.inverseRelationship = virtioFileSystemDeviceConfiguration_share_relationship;
+        
+        virtioFileSystemDeviceConfigurationEntity.properties = [virtioFileSystemDeviceConfigurationEntity.properties arrayByAddingObject:virtioFileSystemDeviceConfiguration_share_relationship];
+        directoryShareEntity.properties = [directoryShareEntity.properties arrayByAddingObject:directoryShare_fileSystemDevice_relationship];
+        
+        [virtioFileSystemDeviceConfiguration_share_relationship release];
+        [directoryShare_fileSystemDevice_relationship release];
+    }
+    
+    {
+        NSRelationshipDescription *singleDirectoryShare_directory_relationship = [NSRelationshipDescription new];
+        singleDirectoryShare_directory_relationship.name = @"directory";
+        singleDirectoryShare_directory_relationship.optional = YES;
+        singleDirectoryShare_directory_relationship.minCount = 0;
+        singleDirectoryShare_directory_relationship.maxCount = 1;
+        assert(!singleDirectoryShare_directory_relationship.toMany);
+        singleDirectoryShare_directory_relationship.destinationEntity = sharedDirectoryEntity;
+        singleDirectoryShare_directory_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *sharedDirectory_singleDirectoryShare_relationship = [NSRelationshipDescription new];
+        sharedDirectory_singleDirectoryShare_relationship.name = @"singleDirectoryShare";
+        sharedDirectory_singleDirectoryShare_relationship.optional = YES;
+        sharedDirectory_singleDirectoryShare_relationship.minCount = 0;
+        sharedDirectory_singleDirectoryShare_relationship.maxCount = 1;
+        assert(!sharedDirectory_singleDirectoryShare_relationship.toMany);
+        sharedDirectory_singleDirectoryShare_relationship.destinationEntity = singleDirectoryShareEntity;
+        sharedDirectory_singleDirectoryShare_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        singleDirectoryShare_directory_relationship.inverseRelationship = sharedDirectory_singleDirectoryShare_relationship;
+        sharedDirectory_singleDirectoryShare_relationship.inverseRelationship = singleDirectoryShare_directory_relationship;
+        
+        singleDirectoryShareEntity.properties = [singleDirectoryShareEntity.properties arrayByAddingObject:singleDirectoryShare_directory_relationship];
+        sharedDirectoryEntity.properties = [sharedDirectoryEntity.properties arrayByAddingObject:sharedDirectory_singleDirectoryShare_relationship];
+        
+        [singleDirectoryShare_directory_relationship release];
+        [sharedDirectory_singleDirectoryShare_relationship release];
+    }
+    
+    {
+        NSRelationshipDescription *multipleDirectoryShare_directories_relationship = [NSRelationshipDescription new];
+        multipleDirectoryShare_directories_relationship.name = @"directories";
+        multipleDirectoryShare_directories_relationship.optional = YES;
+        multipleDirectoryShare_directories_relationship.minCount = 0;
+        multipleDirectoryShare_directories_relationship.maxCount = 0;
+        assert(multipleDirectoryShare_directories_relationship.toMany);
+        multipleDirectoryShare_directories_relationship.ordered = YES;
+        multipleDirectoryShare_directories_relationship.destinationEntity = sharedDirectoryEntity;
+        multipleDirectoryShare_directories_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *sharedDirectory_multipleDirectoryShare_relationship = [NSRelationshipDescription new];
+        sharedDirectory_multipleDirectoryShare_relationship.name = @"multipleDirectoryShare";
+        sharedDirectory_multipleDirectoryShare_relationship.optional = YES;
+        sharedDirectory_multipleDirectoryShare_relationship.minCount = 0;
+        sharedDirectory_multipleDirectoryShare_relationship.maxCount = 1;
+        assert(!sharedDirectory_multipleDirectoryShare_relationship.toMany);
+        sharedDirectory_multipleDirectoryShare_relationship.destinationEntity = multipleDirectoryShareEntity;
+        sharedDirectory_multipleDirectoryShare_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        multipleDirectoryShare_directories_relationship.inverseRelationship = sharedDirectory_multipleDirectoryShare_relationship;
+        sharedDirectory_multipleDirectoryShare_relationship.inverseRelationship = multipleDirectoryShare_directories_relationship;
+        
+        multipleDirectoryShareEntity.properties = [multipleDirectoryShareEntity.properties arrayByAddingObject:multipleDirectoryShare_directories_relationship];
+        sharedDirectoryEntity.properties = [sharedDirectoryEntity.properties arrayByAddingObject:sharedDirectory_multipleDirectoryShare_relationship];
+        
+        [multipleDirectoryShare_directories_relationship release];
+        [sharedDirectory_multipleDirectoryShare_relationship release];
     }
     
     //
@@ -1364,8 +1578,24 @@
         hostAudioOutputStreamSinkEntity,
         audioOutputStreamSinkEntity,
         XHCIControllerConfigurationEntity,
-        USBControllerConfigurationEntity
+        USBControllerConfigurationEntity,
+        virtioFileSystemDeviceConfigurationEntity,
+        directorySharingDeviceConfigurationEntity,
+        singleDirectoryShareEntity,
+        multipleDirectoryShareEntity,
+        directoryShareEntity,
+        sharedDirectoryEntity
     ];
+    
+    for (NSEntityDescription *entity in managedObjectModel.entities) {
+        assert(entity.name != nil);
+        assert(entity.name.length > 0);
+        
+        for (NSPropertyDescription *property in entity.properties) {
+            assert(property.name != nil);
+            assert(property.name.length > 0);
+        }
+    }
     
     [virtualMachineEntity release];
     [macOSVirtualMachineStartOptionsEntity release];
@@ -1415,6 +1645,12 @@
     [audioOutputStreamSinkEntity release];
     [XHCIControllerConfigurationEntity release];
     [USBControllerConfigurationEntity release];
+    [virtioFileSystemDeviceConfigurationEntity release];
+    [directorySharingDeviceConfigurationEntity release];
+    [singleDirectoryShareEntity release];
+    [multipleDirectoryShareEntity release];
+    [directoryShareEntity release];
+    [sharedDirectoryEntity release];
     
     return [managedObjectModel autorelease];
 }

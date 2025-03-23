@@ -62,6 +62,7 @@
 }
 
 - (void)dealloc {
+    [_configuration release];
     [_splitViewController release];
     [_audioDevicesTableViewController release];
     [_audioDevicesTableSplitViewItem release];
@@ -314,6 +315,8 @@
     if (auto delegate = self.delegate) {
         [delegate editMachineAudioDevicesViewController:self didUpdateConfiguration:configuration];
     }
+    
+    [configuration release];
 }
 
 - (void)editMachineVirtioSoundDeviceOutputStreamViewController:(EditMachineVirtioSoundDeviceOutputStreamViewController *)editMachineVirtioSoundDeviceOutputStreamViewController didUpdateConfiguration:(VZVirtioSoundDeviceOutputStreamConfiguration *)configuration {

@@ -404,7 +404,7 @@
     NSTextField *macOS_auxiliaryStorageLabel = [NSTextField wrappingLabelWithString:@"Auxiliary Storage"];
     macOS_auxiliaryStorageLabel.selectable = NO;
     
-    return [macOS_auxiliaryStorageLabel retain];
+    _macOS_auxiliaryStorageLabel = [macOS_auxiliaryStorageLabel retain];
     return macOS_auxiliaryStorageLabel;
 }
 
@@ -610,7 +610,7 @@
         
         auto platformVersionNumber = static_cast<NSNumber *>(dic[@"PlatformVersion"]);
         
-        if (platformVersionNumber) {
+        if (platformVersionNumber != nil) {
             self.macOS_hardwareModelPlatformVersionLabel.stringValue = platformVersionNumber.stringValue;
         } else {
             self.macOS_hardwareModelPlatformVersionLabel.stringValue = @"(null)";

@@ -15,6 +15,7 @@
 #import "SVNetworkDeviceConfiguration.h"
 #import "SVAudioDeviceConfiguration.h"
 #import "SVUSBControllerConfiguration.h"
+#import "SVDirectorySharingDeviceConfiguration.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -26,6 +27,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (retain, nonatomic, nullable) NSNumber *memorySize;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVAudioDeviceConfiguration *> *audioDevices;
 @property (retain, nonatomic, nullable) SVBootLoader *bootLoader;
+@property (retain, nonatomic, nullable) NSOrderedSet<SVDirectorySharingDeviceConfiguration *> *directorySharingDevices;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVGraphicsDeviceConfiguration *> *graphicsDevices;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVKeyboardConfiguration *> *keyboards;
 @property (retain, nonatomic, nullable) SVVirtualMachine *machine;
@@ -45,6 +47,17 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)removeAudioDevicesObject:(SVAudioDeviceConfiguration *)value;
 - (void)addAudioDevices:(NSOrderedSet<SVAudioDeviceConfiguration *> *)values;
 - (void)removeAudioDevices:(NSOrderedSet<SVAudioDeviceConfiguration *> *)values;
+
+- (void)insertObject:(SVDirectorySharingDeviceConfiguration *)value inDirectorySharingDevicesAtIndex:(NSUInteger)idx;
+- (void)removeObjectFromDirectorySharingDevicesAtIndex:(NSUInteger)idx;
+- (void)insertDirectorySharingDevices:(NSArray<SVDirectorySharingDeviceConfiguration *> *)value atIndexes:(NSIndexSet *)indexes;
+- (void)removeDirectorySharingDevicesAtIndexes:(NSIndexSet *)indexes;
+- (void)replaceObjectInDirectorySharingDevicesAtIndex:(NSUInteger)idx withObject:(SVDirectorySharingDeviceConfiguration *)value;
+- (void)replaceDirectorySharingDevicesAtIndexes:(NSIndexSet *)indexes withDirectorySharingDevices:(NSArray<SVDirectorySharingDeviceConfiguration *> *)values;
+- (void)addDirectorySharingDevicesObject:(SVDirectorySharingDeviceConfiguration *)value;
+- (void)removeDirectorySharingDevicesObject:(SVDirectorySharingDeviceConfiguration *)value;
+- (void)addDirectorySharingDevices:(NSOrderedSet<SVDirectorySharingDeviceConfiguration *> *)values;
+- (void)removeDirectorySharingDevices:(NSOrderedSet<SVDirectorySharingDeviceConfiguration *> *)values;
 
 - (void)insertObject:(SVGraphicsDeviceConfiguration *)value inGraphicsDevicesAtIndex:(NSUInteger)idx;
 - (void)removeObjectFromGraphicsDevicesAtIndex:(NSUInteger)idx;

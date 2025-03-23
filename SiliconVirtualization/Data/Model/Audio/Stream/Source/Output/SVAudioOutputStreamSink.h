@@ -12,7 +12,7 @@ NS_ASSUME_NONNULL_BEGIN
 @class SVVirtioSoundDeviceOutputStreamConfiguration;
 
 @interface SVAudioOutputStreamSink : NSManagedObject
-@property (nullable, nonatomic, retain) SVVirtioSoundDeviceOutputStreamConfiguration *outputStream;
+@property (retain, nonatomic, nullable) SVVirtioSoundDeviceOutputStreamConfiguration *outputStream;
 + (NSFetchRequest<SVAudioOutputStreamSink *> *)fetchRequest;
 @end
 

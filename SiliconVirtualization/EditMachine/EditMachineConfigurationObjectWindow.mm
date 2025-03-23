@@ -64,6 +64,7 @@
 - (void)dealloc {
     [_machineConfigurationObject release];
     [_saveToolbarItem release];
+    [_editMachineViewController release];
     [super dealloc];
 }
 

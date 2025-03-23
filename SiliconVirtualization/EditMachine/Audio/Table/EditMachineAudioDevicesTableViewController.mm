@@ -25,6 +25,7 @@
 }
 
 - (void)dealloc {
+    [_audioDevices release];
     [_scrollView release];
     [_tableView release];
     [_createButton release];

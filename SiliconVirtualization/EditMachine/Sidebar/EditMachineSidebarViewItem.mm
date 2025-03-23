@@ -133,6 +133,10 @@
             textField.stringValue = @"USB";
             break;
         }
+        case EditMachineSidebarItemModelTypeDirectorySharing: {
+            textField.stringValue = @"Directory Sharing";
+            break;
+        }
         default:
             abort();
     }
@@ -185,6 +189,10 @@
         }
         case EditMachineSidebarItemModelTypeUSB: {
             imageView.image = [NSImage imageWithSystemSymbolName:@"cable.connector" accessibilityDescription:nil];
+            break;
+        }
+        case EditMachineSidebarItemModelTypeDirectorySharing: {
+            imageView.image = [NSImage imageWithSystemSymbolName:selected ? @"folder.fill" : @"folder" accessibilityDescription:nil];
             break;
         }
         default:

@@ -12,6 +12,7 @@ int main(int argc, const char * argv[]) {
     @autoreleasepool {
         Helper *helper = [Helper new];
         [helper run];
+        [helper release];
     }
     return 0;
 }

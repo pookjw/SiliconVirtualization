@@ -18,10 +18,11 @@
 #import "EditMachineNetworksViewController.h"
 #import "EditMachineAudioDevicesViewController.h"
 #import "EditMachineUSBViewController.h"
+#import "EditMachineDirectorySharingViewController.h"
 #import <objc/message.h>
 #import <objc/runtime.h>
 
-@interface EditMachineViewController () <EditMachineSidebarViewControllerDelegate, EditMachineBootLoaderViewControllerDelegate, EditMachineCPUViewControllerDelegate, EditMachineMemoryViewControllerDelegate, EditMachineKeyboardsViewControllerDelegate, EditMachineNetworksViewControllerDelegate, EditMachinePointingDevicesViewControllerDelegate, EditMachineGraphicsViewControllerDelegate, EditMachineStoragesViewControllerDelegate, EditMachinePlatformViewControllerDelegate, EditMachineAudioDevicesViewControllerDelegate, EditMachineUSBViewControllerDelegate>
+@interface EditMachineViewController () <EditMachineSidebarViewControllerDelegate, EditMachineBootLoaderViewControllerDelegate, EditMachineCPUViewControllerDelegate, EditMachineMemoryViewControllerDelegate, EditMachineKeyboardsViewControllerDelegate, EditMachineNetworksViewControllerDelegate, EditMachinePointingDevicesViewControllerDelegate, EditMachineGraphicsViewControllerDelegate, EditMachineStoragesViewControllerDelegate, EditMachinePlatformViewControllerDelegate, EditMachineAudioDevicesViewControllerDelegate, EditMachineUSBViewControllerDelegate, EditMachineDirectorySharingViewControllerDelegate>
 @property (retain, nonatomic, readonly, getter=_splitViewController) NSSplitViewController *splitViewController;
 
 @property (retain, nonatomic, readonly, getter=_bootLoaderViewController) EditMachineBootLoaderViewController *bootLoaderViewController;
@@ -59,6 +60,9 @@
 
 @property (retain, nonatomic, readonly, getter=_usbViewController) EditMachineUSBViewController *usbViewController;
 @property (retain, nonatomic, readonly, getter=_usbSplitViewItem) NSSplitViewItem *usbSplitViewItem;
+
+@property (retain, nonatomic, readonly, getter=_directorySharingViewController) EditMachineDirectorySharingViewController *directorySharingViewController;
+@property (retain, nonatomic, readonly, getter=_directorySharingSplitViewItem) NSSplitViewItem *directorySharingSplitViewItem;
 @end
 
 @implementation EditMachineViewController
@@ -87,6 +91,8 @@
 @synthesize platformSplitViewItem = _platformSplitViewItem;
 @synthesize usbViewController = _usbViewController;
 @synthesize usbSplitViewItem = _usbSplitViewItem;
+@synthesize directorySharingViewController = _directorySharingViewController;
+@synthesize directorySharingSplitViewItem = _directorySharingSplitViewItem;
 
 - (instancetype)initWithConfiguration:(VZVirtualMachineConfiguration *)configuration {
     if (self = [super init]) {
@@ -121,6 +127,10 @@
     [_storagesSplitViewItem release];
     [_platformViewController release];
     [_platformSplitViewItem release];
+    [_usbViewController release];
+    [_usbSplitViewItem release];
+    [_directorySharingViewController release];
+    [_directorySharingSplitViewItem release];
     [super dealloc];
 }
 
@@ -133,7 +143,7 @@
     [self.view addSubview:splitViewController.view];
     [self addChildViewController:splitViewController];
     
-    EditMachineSidebarItemModel *itemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeUSB];
+    EditMachineSidebarItemModel *itemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeDirectorySharing];
     [self.sidebarViewController setItemModel:itemModel notifyingDelegate:YES];
     [itemModel release];
 }
@@ -379,6 +389,25 @@
     return usbSplitViewItem;
 }
 
+- (EditMachineDirectorySharingViewController *)_directorySharingViewController {
+    if (auto directorySharingViewController = _directorySharingViewController) return directorySharingViewController;
+    
+    EditMachineDirectorySharingViewController *directorySharingViewController = [[EditMachineDirectorySharingViewController alloc] initWithConfiguration:self.configuration];
+    directorySharingViewController.delegate = self;
+    
+    _directorySharingViewController = directorySharingViewController;
+    return directorySharingViewController;
+}
+
+- (NSSplitViewItem *)_directorySharingSplitViewItem {
+    if (auto directorySharingSplitViewItem = _directorySharingSplitViewItem) return directorySharingSplitViewItem;
+    
+    NSSplitViewItem *directorySharingSplitViewItem = [NSSplitViewItem contentListWithViewController:self.directorySharingViewController];
+    
+    _directorySharingSplitViewItem = [directorySharingSplitViewItem retain];
+    return directorySharingSplitViewItem;
+}
+
 - (void)_notifyDelegate {
     if (auto delegate = self.delegate) {
         [delegate editMachineViewController:self didUpdateConfiguration:self.configuration];
@@ -442,6 +471,11 @@
             self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.usbSplitViewItem];
             break;
         }
+        case EditMachineSidebarItemModelTypeDirectorySharing: {
+            self.directorySharingViewController.configuration = self.configuration;
+            self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.directorySharingSplitViewItem];
+            break;
+        }
         default:
             abort();
     }
@@ -498,6 +532,11 @@
 }
 
 - (void)editMachineUSBViewController:(EditMachineUSBViewController *)editMachineUSBViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
+    self.configuration = configuration;
+    [self _notifyDelegate];
+}
+
+- (void)editMachineDirectorySharingViewController:(EditMachineDirectorySharingViewController *)editMachineDirectorySharingViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
     self.configuration = configuration;
     [self _notifyDelegate];
 }

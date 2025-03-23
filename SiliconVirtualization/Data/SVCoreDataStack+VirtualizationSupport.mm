@@ -6,6 +6,7 @@
 //
 
 #import "SVCoreDataStack+VirtualizationSupport.h"
+#include <ranges>
 
 @implementation SVCoreDataStack (VirtualizationSupport)
 
@@ -22,6 +23,7 @@
     
     virtualMachineConfigurationObject.keyboards = [self _isolated_makeManagedObjectsFromKeyboards:virtualMachineConfiguration.keyboards];
     virtualMachineConfigurationObject.audioDevices = [self _isolated_makeManagedObjectsFromAudioDevices:virtualMachineConfiguration.audioDevices];
+    virtualMachineConfigurationObject.directorySharingDevices = [self _isolated_makeManagedObjectsFromDirectorySharingDevices:virtualMachineConfiguration.directorySharingDevices];
     virtualMachineConfigurationObject.networkDevices = [self _isolated_makeManagedObjectsFromNetworkDevices:virtualMachineConfiguration.networkDevices];
     virtualMachineConfigurationObject.pointingDevices = [self _isolated_makeManagedObjectsFromPointingDevices:virtualMachineConfiguration.pointingDevices];
     virtualMachineConfigurationObject.graphicsDevices = [self _isolated_makeManagedObjectsFromGraphicsDevices:virtualMachineConfiguration.graphicsDevices];
@@ -215,6 +217,107 @@
     
     //
     
+    NSMutableArray<__kindof VZDirectorySharingDeviceConfiguration *> *directorySharingDevices = [[NSMutableArray alloc] initWithCapacity:virtualMachineConfigurationObject.directorySharingDevices.count];
+    
+    for (__kindof SVDirectorySharingDeviceConfiguration *directorySharingDeviceObject in virtualMachineConfigurationObject.directorySharingDevices) {
+        if ([directorySharingDeviceObject isKindOfClass:[SVVirtioFileSystemDeviceConfiguration class]]) {
+            auto virtioFileSystemDeviceConfigurationObject = static_cast<SVVirtioFileSystemDeviceConfiguration *>(directorySharingDeviceObject);
+            
+            __kindof SVDirectoryShare * _Nullable shareObject = virtioFileSystemDeviceConfigurationObject.share;
+            __kindof VZDirectoryShare * _Nullable share;
+            if (shareObject == nil) {
+                share = nil;
+            } else if ([shareObject isKindOfClass:[SVMultipleDirectoryShare class]]) {
+                auto multipleDirectoryShareObject = static_cast<SVMultipleDirectoryShare *>(shareObject);
+                
+                NSArray<NSString *> *directoryNames = multipleDirectoryShareObject.directoryNames;
+                NSOrderedSet<SVSharedDirectory *> *directoryObjects = multipleDirectoryShareObject.directories;
+                assert(directoryNames.count == directoryObjects.count);
+                NSMutableDictionary<NSString *, VZSharedDirectory *> *directories = [[NSMutableDictionary alloc] initWithCapacity:directoryNames.count];
+                
+                for (NSInteger index : std::views::iota(0, static_cast<NSInteger>(directoryNames.count))) {
+                    NSString *name = directoryNames[index];
+                    
+                    SVSharedDirectory *directoryObject = directoryObjects[index];
+                    assert(directoryObject != nil);
+                    
+                    NSError * _Nullable error = nil;
+                    
+                    NSData *bookmarkData = directoryObject.bookmarkData;
+                    BOOL stale;
+                    NSURL *URL = [[NSURL alloc] initByResolvingBookmarkData:bookmarkData
+                                                                    options:NSURLBookmarkResolutionWithoutMounting | NSURLBookmarkResolutionWithSecurityScope
+                                                              relativeToURL:nil
+                                                        bookmarkDataIsStale:&stale
+                                                                      error:&error];
+                    assert(error == nil);
+                    
+                    if (stale) {
+                        URL = [self _refreshStaleURL:URL];
+                    }
+                    
+                    assert([URL startAccessingSecurityScopedResource]);
+                    
+                    VZSharedDirectory *directory = [[VZSharedDirectory alloc] initWithURL:URL readOnly:directoryObject.readOnly];
+                    [URL release];
+                    
+                    directories[name] = directory;
+                    [directory release];
+                }
+                
+                VZMultipleDirectoryShare *multipleDirectoryShare = [[VZMultipleDirectoryShare alloc] initWithDirectories:directories];
+                [directories release];
+                
+                share = multipleDirectoryShare;
+            } else if ([shareObject isKindOfClass:[SVSingleDirectoryShare class]]) {
+                auto singleDirectoryShareObject = static_cast<SVSingleDirectoryShare *>(shareObject);
+                
+                SVSharedDirectory *directoryObject = singleDirectoryShareObject.directory;
+                assert(directoryObject != nil);
+                
+                NSError * _Nullable error = nil;
+                
+                NSData *bookmarkData = directoryObject.bookmarkData;
+                BOOL stale;
+                NSURL *URL = [[NSURL alloc] initByResolvingBookmarkData:bookmarkData
+                                                                options:NSURLBookmarkResolutionWithoutMounting | NSURLBookmarkResolutionWithSecurityScope
+                                                          relativeToURL:nil
+                                                    bookmarkDataIsStale:&stale
+                                                                  error:&error];
+                assert(error == nil);
+                
+                if (stale) {
+                    URL = [self _refreshStaleURL:URL];
+                }
+                
+                assert([URL startAccessingSecurityScopedResource]);
+                
+                VZSharedDirectory *directory = [[VZSharedDirectory alloc] initWithURL:URL readOnly:directoryObject.readOnly];
+                [URL release];
+                VZSingleDirectoryShare *singleDirectoryShare = [[VZSingleDirectoryShare alloc] initWithDirectory:directory];
+                [directory release];
+                
+                share = singleDirectoryShare;
+            } else {
+                abort();
+            }
+            
+            VZVirtioFileSystemDeviceConfiguration *virtioFileSystemDeviceConfiguration = [[VZVirtioFileSystemDeviceConfiguration alloc] initWithTag:virtioFileSystemDeviceConfigurationObject.tag];
+            virtioFileSystemDeviceConfiguration.share = share;
+            [share release];
+            
+            [directorySharingDevices addObject:virtioFileSystemDeviceConfiguration];
+            [virtioFileSystemDeviceConfiguration release];
+        } else {
+            abort();
+        }
+    }
+    
+    virtualMachineConfiguration.directorySharingDevices = directorySharingDevices;
+    [directorySharingDevices release];
+    
+    //
+    
     NSMutableArray<__kindof VZPointingDeviceConfiguration *> *pointingDevices = [[NSMutableArray alloc] initWithCapacity:virtualMachineConfigurationObject.pointingDevices.count];
     
     for (__kindof SVPointingDeviceConfiguration *pointingDeviceConfiguration in virtualMachineConfigurationObject.pointingDevices) {
@@ -332,6 +435,7 @@
             for (SVVirtioGraphicsScanoutConfiguration *scanoutObject in scanoutObjects) {
                 VZVirtioGraphicsScanoutConfiguration *scanout = [[VZVirtioGraphicsScanoutConfiguration alloc] initWithWidthInPixels:scanoutObject.widthInPixels heightInPixels:scanoutObject.heightInPixels];
                 [scanouts addObject:scanout];
+                [scanout release];
             }
             
             virtioGraphicsDeviceConfiguration.scanouts = scanouts;
@@ -477,6 +581,7 @@
     
     virtualMachineConfiguration.keyboards = [self _isolated_makeManagedObjectsFromKeyboards:machineConfiguration.keyboards];
     virtualMachineConfiguration.audioDevices = [self _isolated_makeManagedObjectsFromAudioDevices:machineConfiguration.audioDevices];
+    virtualMachineConfiguration.directorySharingDevices = [self _isolated_makeManagedObjectsFromDirectorySharingDevices:machineConfiguration.directorySharingDevices];
     virtualMachineConfiguration.networkDevices = [self _isolated_makeManagedObjectsFromNetworkDevices:machineConfiguration.networkDevices];
     virtualMachineConfiguration.pointingDevices = [self _isolated_makeManagedObjectsFromPointingDevices:machineConfiguration.pointingDevices];
     virtualMachineConfiguration.graphicsDevices = [self _isolated_makeManagedObjectsFromGraphicsDevices:machineConfiguration.graphicsDevices];
@@ -644,6 +749,92 @@
     }
     
     return [audioDeviceObjects autorelease];
+}
+
+- (NSOrderedSet<__kindof SVDirectorySharingDeviceConfiguration *> *)_isolated_makeManagedObjectsFromDirectorySharingDevices:(NSArray<__kindof VZDirectorySharingDeviceConfiguration *> *)directorySharingDevices {
+    NSManagedObjectContext *managedObjectContext = self.backgroundContext;
+    NSMutableOrderedSet<__kindof SVDirectorySharingDeviceConfiguration *> *directorySharingDeviceObjects = [[NSMutableOrderedSet alloc] initWithCapacity:directorySharingDevices.count];
+    
+    for (__kindof VZDirectorySharingDeviceConfiguration *directorySharingDevice in directorySharingDevices) {
+        if ([directorySharingDevice isKindOfClass:[VZVirtioFileSystemDeviceConfiguration class]]) {
+            auto virtioFileSystemDeviceConfiguration = static_cast<VZVirtioFileSystemDeviceConfiguration *>(directorySharingDevice);
+            
+            SVVirtioFileSystemDeviceConfiguration *virtioFileSystemDeviceConfigurationObject = [[SVVirtioFileSystemDeviceConfiguration alloc] initWithContext:managedObjectContext];
+            
+            __kindof VZDirectoryShare * _Nullable share = virtioFileSystemDeviceConfiguration.share;
+            __kindof SVDirectoryShare * _Nullable shareObject;
+            if (share == nil) {
+                shareObject = nil;
+            } else if ([share isKindOfClass:[VZMultipleDirectoryShare class]]) {
+                auto multipleDirectoryShare = static_cast<VZMultipleDirectoryShare *>(share);
+                
+                SVMultipleDirectoryShare *multipleDirectoryShareObject = [[SVMultipleDirectoryShare alloc] initWithContext:managedObjectContext];
+                
+                NSMutableArray<NSString *> *directoryNames = [[NSMutableArray alloc] initWithCapacity:multipleDirectoryShare.directories.count];
+                NSMutableOrderedSet<SVSharedDirectory *> *directoryObjects = [[NSMutableOrderedSet alloc] initWithCapacity:multipleDirectoryShare.directories.count];
+                
+                [multipleDirectoryShare.directories enumerateKeysAndObjectsUsingBlock:^(NSString * _Nonnull name, VZSharedDirectory * _Nonnull sharedDirectory, BOOL * _Nonnull stop) {
+                    SVSharedDirectory *directoryObject = [[SVSharedDirectory alloc] initWithContext:managedObjectContext];
+                    
+                    NSURL *URL = sharedDirectory.URL;
+                    assert([URL startAccessingSecurityScopedResource]);
+                    NSError * _Nullable error = nil;
+                    directoryObject.bookmarkData = [URL bookmarkDataWithOptions:NSURLBookmarkCreationWithSecurityScope includingResourceValuesForKeys:nil relativeToURL:nil error:&error];
+                    assert(error == nil);
+                    [URL stopAccessingSecurityScopedResource];
+                    
+                    directoryObject.readOnly = sharedDirectory.readOnly;
+                    
+                    [directoryNames addObject:name];
+                    [directoryObjects addObject:directoryObject];
+                    
+                    [directoryObject release];
+                }];
+                
+                assert(directoryNames.count == directoryObjects.count);
+                
+                multipleDirectoryShareObject.directoryNames = directoryNames;
+                [directoryNames release];
+                multipleDirectoryShareObject.directories = directoryObjects;
+                [directoryObjects release];
+                
+                shareObject = multipleDirectoryShareObject;
+            } else if ([share isKindOfClass:[VZSingleDirectoryShare class]]) {
+                auto singleDirectoryShare = static_cast<VZSingleDirectoryShare *>(share);
+                SVSingleDirectoryShare *singleDirectoryShareObject = [[SVSingleDirectoryShare alloc] initWithContext:managedObjectContext];
+                
+                SVSharedDirectory *directoryObject = [[SVSharedDirectory alloc] initWithContext:managedObjectContext];
+                
+                NSURL *URL = singleDirectoryShare.directory.URL;
+                assert([URL startAccessingSecurityScopedResource]);
+                NSError * _Nullable error = nil;
+                directoryObject.bookmarkData = [URL bookmarkDataWithOptions:NSURLBookmarkCreationWithSecurityScope includingResourceValuesForKeys:nil relativeToURL:nil error:&error];
+                assert(error == nil);
+                [URL stopAccessingSecurityScopedResource];
+                
+                directoryObject.readOnly = singleDirectoryShare.directory.readOnly;
+                
+                singleDirectoryShareObject.directory = directoryObject;
+                [directoryObject release];
+                
+                shareObject = singleDirectoryShareObject;
+            } else {
+                abort();
+            }
+            
+            virtioFileSystemDeviceConfigurationObject.share = shareObject;
+            [shareObject release];
+            
+            virtioFileSystemDeviceConfigurationObject.tag = virtioFileSystemDeviceConfiguration.tag;
+            
+            [directorySharingDeviceObjects addObject:virtioFileSystemDeviceConfigurationObject];
+            [virtioFileSystemDeviceConfigurationObject release];
+        } else {
+            abort();
+        }
+    }
+    
+    return [directorySharingDeviceObjects autorelease];
 }
 
 - (NSOrderedSet<__kindof SVNetworkDeviceConfiguration *> *)_isolated_makeManagedObjectsFromNetworkDevices:(NSArray<__kindof VZNetworkDeviceConfiguration *> *)networkDevices {

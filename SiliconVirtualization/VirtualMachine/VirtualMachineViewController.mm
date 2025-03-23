@@ -95,7 +95,6 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
                 
                 if (VZVirtualMachine *oldVirtualMachine = virtualMachineView.virtualMachine) {
                     [oldVirtualMachine removeObserver:self forKeyPath:@"state"];
-                    [oldVirtualMachine release];
                 }
                 
                 virtualMachineView.virtualMachine = newVirtualMachine;

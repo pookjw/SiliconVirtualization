@@ -15,6 +15,7 @@
 @dynamic cpuCount;
 @dynamic memorySize;
 @dynamic audioDevices;
+@dynamic directorySharingDevices;
 @dynamic bootLoader;
 @dynamic graphicsDevices;
 @dynamic keyboards;
@@ -23,6 +24,7 @@
 @dynamic platform;
 @dynamic pointingDevices;
 @dynamic storageDevices;
+@dynamic usbControllers;
 
 + (NSFetchRequest<SVVirtualMachineConfiguration *> *)fetchRequest {
     return [NSFetchRequest fetchRequestWithEntityName:@"VirtualMachineConfiguration"];

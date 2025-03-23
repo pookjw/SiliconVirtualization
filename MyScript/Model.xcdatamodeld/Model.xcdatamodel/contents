@@ -12,6 +12,12 @@
     <entity name="BootLoader" representedClassName="SVBootLoader" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="bootLoader" inverseEntity="VirtualMachineConfiguration"/>
     </entity>
+    <entity name="DirectoryShare" representedClassName="SVDirectoryShare" syncable="YES" codeGenerationType="class">
+        <relationship name="fileSystemDevice" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtioFileSystemDeviceConfiguration" inverseName="share" inverseEntity="VirtioFileSystemDeviceConfiguration"/>
+    </entity>
+    <entity name="DirectorySharingDeviceConfiguration" representedClassName="SVDirectorySharingDeviceConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class">
+        <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="directorySharingDevices" inverseEntity="VirtualMachineConfiguration"/>
+    </entity>
     <entity name="DiskBlockDeviceStorageDeviceAttachment" representedClassName="SVDiskBlockDeviceStorageDeviceAttachment" parentEntity="StorageDeviceAttachment" syncable="YES" codeGenerationType="class">
         <attribute name="fileDescriptor" optional="YES" attributeType="Integer 32" valueTransformerName="FileHandleTransformer" defaultValueString="0" usesScalarValueType="YES" customClassName="NSFileHandle"/>
         <attribute name="readOnly" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
@@ -77,6 +83,10 @@
         <relationship name="machineIdentifier" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="MacMachineIdentifier" inverseName="platform" inverseEntity="MacMachineIdentifier"/>
     </entity>
     <entity name="MacTrackpadConfiguration" representedClassName="SVMacTrackpadConfiguration" parentEntity="PointingDeviceConfiguration" syncable="YES" codeGenerationType="class"/>
+    <entity name="MultipleDirectoryShare" representedClassName="SVMultipleDirectoryShare" parentEntity="DirectoryShare" syncable="YES" codeGenerationType="class">
+        <attribute name="directoryNames" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromData" customClassName="NSArray"/>
+        <relationship name="directories" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="SharedDirectory" inverseName="multipleDirectoryShare" inverseEntity="SharedDirectory"/>
+    </entity>
     <entity name="NATNetworkDeviceAttachment" representedClassName="SVNATNetworkDeviceAttachment" parentEntity="NetworkDeviceAttachment" syncable="YES" codeGenerationType="class"/>
     <entity name="NetworkDeviceAttachment" representedClassName="SVNetworkDeviceAttachment" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <relationship name="networkDevice" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="NetworkDeviceConfiguration" inverseName="attachment" inverseEntity="NetworkDeviceConfiguration"/>
@@ -92,6 +102,15 @@
     </entity>
     <entity name="PointingDeviceConfiguration" representedClassName="SVPointingDeviceConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="pointingDevices" inverseEntity="VirtualMachineConfiguration"/>
+    </entity>
+    <entity name="SharedDirectory" representedClassName="SVSharedDirectory" syncable="YES" codeGenerationType="class">
+        <attribute name="bookmarkData" optional="YES" attributeType="Binary"/>
+        <attribute name="readOnly" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <relationship name="multipleDirectoryShare" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MultipleDirectoryShare" inverseName="directories" inverseEntity="MultipleDirectoryShare"/>
+        <relationship name="singleDirectoryShare" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SingleDirectoryShare" inverseName="directory" inverseEntity="SingleDirectoryShare"/>
+    </entity>
+    <entity name="SingleDirectoryShare" representedClassName="SVSingleDirectoryShare" parentEntity="DirectoryShare" syncable="YES" codeGenerationType="class">
+        <relationship name="directory" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="SharedDirectory" inverseName="singleDirectoryShare" inverseEntity="SharedDirectory"/>
     </entity>
     <entity name="StorageDeviceAttachment" representedClassName="SVStorageDeviceAttachment" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <relationship name="storageDevice" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="StorageDeviceConfiguration" inverseName="attachment" inverseEntity="StorageDeviceConfiguration"/>
@@ -110,6 +129,10 @@
     </entity>
     <entity name="USBScreenCoordinatePointingDeviceConfiguration" representedClassName="SVUSBScreenCoordinatePointingDeviceConfiguration" parentEntity="PointingDeviceConfiguration" syncable="YES" codeGenerationType="class"/>
     <entity name="VirtioBlockDeviceConfiguration" representedClassName="SVVirtioBlockDeviceConfiguration" parentEntity="StorageDeviceConfiguration" syncable="YES" codeGenerationType="class"/>
+    <entity name="VirtioFileSystemDeviceConfiguration" representedClassName="SVVirtioFileSystemDeviceConfiguration" parentEntity="DirectorySharingDeviceConfiguration" syncable="YES" codeGenerationType="class">
+        <attribute name="tag" optional="YES" attributeType="String"/>
+        <relationship name="share" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="DirectoryShare" inverseName="fileSystemDevice" inverseEntity="DirectoryShare"/>
+    </entity>
     <entity name="VirtioGraphicsDeviceConfiguration" representedClassName="SVVirtioGraphicsDeviceConfiguration" parentEntity="GraphicsDeviceConfiguration" syncable="YES" codeGenerationType="class">
         <relationship name="scanouts" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="VirtioGraphicsScanoutConfiguration" inverseName="graphicsDevice" inverseEntity="VirtioGraphicsScanoutConfiguration"/>
     </entity>
@@ -141,6 +164,7 @@
         <attribute name="memorySize" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromData" customClassName="NSNumber"/>
         <relationship name="audioDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="AudioDeviceConfiguration" inverseName="machine" inverseEntity="AudioDeviceConfiguration"/>
         <relationship name="bootLoader" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="BootLoader" inverseName="machine" inverseEntity="BootLoader"/>
+        <relationship name="directorySharingDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="DirectorySharingDeviceConfiguration" inverseName="machine" inverseEntity="DirectorySharingDeviceConfiguration"/>
         <relationship name="graphicsDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="GraphicsDeviceConfiguration" inverseName="machine" inverseEntity="GraphicsDeviceConfiguration"/>
         <relationship name="keyboards" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="KeyboardConfiguration" inverseName="machine" inverseEntity="KeyboardConfiguration"/>
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachine" inverseName="configuration" inverseEntity="VirtualMachine"/>
