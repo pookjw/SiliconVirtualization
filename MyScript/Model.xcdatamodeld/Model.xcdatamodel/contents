@@ -13,7 +13,7 @@
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="bootLoader" inverseEntity="VirtualMachineConfiguration"/>
     </entity>
     <entity name="DiskBlockDeviceStorageDeviceAttachment" representedClassName="SVDiskBlockDeviceStorageDeviceAttachment" parentEntity="StorageDeviceAttachment" syncable="YES" codeGenerationType="class">
-        <attribute name="fileHandle" optional="YES" transient="YES" attributeType="Transformable" valueTransformerName="FileHandleTransformer" customClassName="NSFileHandle"/>
+        <attribute name="fileDescriptor" optional="YES" attributeType="Integer 32" valueTransformerName="FileHandleTransformer" defaultValueString="0" usesScalarValueType="YES" customClassName="NSFileHandle"/>
         <attribute name="readOnly" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="synchronizationMode" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
     </entity>

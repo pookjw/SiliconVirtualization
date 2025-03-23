@@ -10,7 +10,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface SVDiskBlockDeviceStorageDeviceAttachment : SVStorageDeviceAttachment
-@property (retain, nonatomic, nullable) NSFileHandle *fileHandle;
+@property (nonatomic) int32_t fileDescriptor;
 @property (nonatomic) BOOL readOnly;
 @property (nonatomic) int64_t synchronizationMode;
 + (NSFetchRequest<SVDiskBlockDeviceStorageDeviceAttachment *> *)fetchRequest;

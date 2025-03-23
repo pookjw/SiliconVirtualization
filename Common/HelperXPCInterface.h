@@ -11,7 +11,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @protocol HelperXPCInterface <NSObject>
 - (void)pingWithCompletionHandler:(void (^)(NSString *string))completionHandler;
-- (void)openFromURL:(NSURL *)URL completionHandler:(void (^)(int fileDescriptor))completionHandler;
+- (void)openFromURL:(NSURL *)URL completionHandler:(void (^)(NSFileHandle *fileHandle))completionHandler;
 - (void)closeWithFileDescriptor:(int)fileDescriptor completionHandler:(void (^)(int result))completionHandler;
 @end
 

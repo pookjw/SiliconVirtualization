@@ -6,7 +6,7 @@
 //
 
 #import "HelperExportedObject.h"
-#include <fcntl.h>
+#import "FileHandlesManager.h"
 
 @implementation HelperExportedObject
 
@@ -14,16 +14,20 @@
     completionHandler(@"pong");
 }
 
-- (void)openFromURL:(NSURL *)URL completionHandler:(void (^)(int))completionHandler {
-    NSString *absoluteString = URL.path;
-    const char *cString = [absoluteString cStringUsingEncoding:NSUTF8StringEncoding];
-    int fd = open(cString, O_RDWR);
-    completionHandler(fd);
+- (void)openFromURL:(NSURL *)URL completionHandler:(void (^)(NSFileHandle * _Nonnull))completionHandler {
+    NSError * _Nullable error = nil;
+    NSFileHandle *fileHandle = [NSFileHandle fileHandleForUpdatingURL:URL error:&error];
+    assert(error == nil);
+    
+    [FileHandlesManager.sharedInstance withLock:^(NSMutableSet<NSFileHandle *> * _Nonnull handles) {
+        [handles addObject:fileHandle];
+    }];
+    
+    completionHandler(fileHandle);
 }
 
 - (void)closeWithFileDescriptor:(int)fileDescriptor completionHandler:(void (^)(int result))completionHandler {
-    int result = close(fileDescriptor);
-    completionHandler(result);
+    abort();
 }
 
 @end

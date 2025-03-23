@@ -412,29 +412,28 @@
             
             NSMutableArray<VZUSBMassStorageDeviceConfiguration *> *usbDevices = [NSMutableArray new];
             
-            for (SVUSBMassStorageDeviceConfiguration *USBMassStorageDeviceConfigurationObject in XHCIControllerConfigurationObject.usbMassStorageDevices) {
-                __kindof SVStorageDeviceAttachment *attachmentObject = USBMassStorageDeviceConfigurationObject.attachment;
-                assert([attachmentObject isKindOfClass:[SVDiskBlockDeviceStorageDeviceAttachment class]]);
-                auto diskBlockDeviceStorageDeviceAttachmentObject = static_cast<SVDiskBlockDeviceStorageDeviceAttachment *>(attachmentObject);
-                
-                if (NSFileHandle *fileHandle = diskBlockDeviceStorageDeviceAttachmentObject.fileHandle) {
-                    NSError * _Nullable error = nil;
-                    
-                    VZDiskBlockDeviceStorageDeviceAttachment *attachment = [[VZDiskBlockDeviceStorageDeviceAttachment alloc] initWithFileHandle:fileHandle
-                                                                                                                                       readOnly:diskBlockDeviceStorageDeviceAttachmentObject.readOnly
-                                                                                                                            synchronizationMode:static_cast<VZDiskSynchronizationMode>(diskBlockDeviceStorageDeviceAttachmentObject.synchronizationMode)
-                                                                                                                                          error:&error];
-                    assert(error == nil);
-                    
-                    VZUSBMassStorageDeviceConfiguration *USBMassStorageDeviceConfiguration = [[VZUSBMassStorageDeviceConfiguration alloc] initWithAttachment:attachment];
-                    [attachment release];
-                    
-                    [usbDevices addObject:USBMassStorageDeviceConfiguration];
-                    [USBMassStorageDeviceConfiguration release];
-                } else {
-                    NSLog(@"Missing File Handle!");
-                }
-            }
+//            for (SVUSBMassStorageDeviceConfiguration *USBMassStorageDeviceConfigurationObject in XHCIControllerConfigurationObject.usbMassStorageDevices) {
+//                __kindof SVStorageDeviceAttachment *attachmentObject = USBMassStorageDeviceConfigurationObject.attachment;
+//                assert([attachmentObject isKindOfClass:[SVDiskBlockDeviceStorageDeviceAttachment class]]);
+//                auto diskBlockDeviceStorageDeviceAttachmentObject = static_cast<SVDiskBlockDeviceStorageDeviceAttachment *>(attachmentObject);
+//                
+//                NSFileHandle *fileHandle = [[NSFileHandle alloc] initWithFileDescriptor:diskBlockDeviceStorageDeviceAttachmentObject.fileDescriptor closeOnDealloc:NO];
+//                
+//                NSError * _Nullable error = nil;
+//                
+//                VZDiskBlockDeviceStorageDeviceAttachment *attachment = [[VZDiskBlockDeviceStorageDeviceAttachment alloc] initWithFileHandle:fileHandle
+//                                                                                                                                   readOnly:diskBlockDeviceStorageDeviceAttachmentObject.readOnly
+//                                                                                                                        synchronizationMode:static_cast<VZDiskSynchronizationMode>(diskBlockDeviceStorageDeviceAttachmentObject.synchronizationMode)
+//                                                                                                                                      error:&error];
+//                assert(error == nil);
+//                [fileHandle release];
+//                
+//                VZUSBMassStorageDeviceConfiguration *USBMassStorageDeviceConfiguration = [[VZUSBMassStorageDeviceConfiguration alloc] initWithAttachment:attachment];
+//                [attachment release];
+//                
+//                [usbDevices addObject:USBMassStorageDeviceConfiguration];
+//                [USBMassStorageDeviceConfiguration release];
+//            }
             
             XHCIControllerConfiguration.usbDevices = usbDevices;
             [usbDevices release];
@@ -811,7 +810,7 @@
                     
                     auto diskBlockDeviceStorageDeviceAttachment = static_cast<VZDiskBlockDeviceStorageDeviceAttachment *>(attachment);
                     SVDiskBlockDeviceStorageDeviceAttachment *diskBlockDeviceStorageDeviceAttachmentObject = [[SVDiskBlockDeviceStorageDeviceAttachment alloc] initWithContext:managedObjectContext];
-                    diskBlockDeviceStorageDeviceAttachmentObject.fileHandle = diskBlockDeviceStorageDeviceAttachment.fileHandle;
+                    diskBlockDeviceStorageDeviceAttachmentObject.fileDescriptor = diskBlockDeviceStorageDeviceAttachment.fileHandle.fileDescriptor;
                     diskBlockDeviceStorageDeviceAttachmentObject.readOnly = diskBlockDeviceStorageDeviceAttachment.readOnly;
                     diskBlockDeviceStorageDeviceAttachmentObject.synchronizationMode = diskBlockDeviceStorageDeviceAttachment.synchronizationMode;
                     

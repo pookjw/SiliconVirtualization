@@ -73,6 +73,20 @@
 			);
 			target = 4F52C3302D85E53200FE2881 /* SiliconVirtualization */;
 		};
+		4F4F5F3C2D8FE490005B1606 /* Exceptions for "Common" folder in "SiliconVirtualization" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				FileHandlesManager.mm,
+			);
+			target = 4F52C3302D85E53200FE2881 /* SiliconVirtualization */;
+		};
+		4F4F5F3E2D8FE7A0005B1606 /* Exceptions for "Common" folder in "SiliconVirtualizationHelper" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				FileHandlesManager.mm,
+			);
+			target = 4F4F5CC32D8EF7C5005B1606 /* SiliconVirtualizationHelper */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
@@ -93,6 +107,10 @@
 		};
 		4F4F5E732D8EFBF5005B1606 /* Common */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				4F4F5F3C2D8FE490005B1606 /* Exceptions for "Common" folder in "SiliconVirtualization" target */,
+				4F4F5F3E2D8FE7A0005B1606 /* Exceptions for "Common" folder in "SiliconVirtualizationHelper" target */,
+			);
 			path = Common;
 			sourceTree = "<group>";
 		};

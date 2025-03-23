@@ -7,7 +7,6 @@
 
 #import "NSManagedObjectModel+Category.h"
 #import "Model.h"
-#import "FileHandleTransformer.h"
 
 @implementation NSManagedObjectModel (Category)
 
@@ -279,12 +278,10 @@
         diskBlockDeviceStorageDeviceAttachmentEntity.name = @"DiskBlockDeviceStorageDeviceAttachment";
         diskBlockDeviceStorageDeviceAttachmentEntity.managedObjectClassName = NSStringFromClass([SVDiskBlockDeviceStorageDeviceAttachment class]);
         
-        NSAttributeDescription *fileHandleAttribute = [NSAttributeDescription new];
-        fileHandleAttribute.name = @"fileHandle";
-        fileHandleAttribute.optional = YES;
-        fileHandleAttribute.attributeType = NSTransformableAttributeType;
-        fileHandleAttribute.valueTransformerName = FileHandleTransformer.transformerName;
-        fileHandleAttribute.attributeValueClassName = NSStringFromClass([NSFileHandle class]);
+        NSAttributeDescription *fileDescriptorAttribute = [NSAttributeDescription new];
+        fileDescriptorAttribute.name = @"fileDescriptor";
+        fileDescriptorAttribute.optional = YES;
+        fileDescriptorAttribute.attributeType = NSInteger32AttributeType;
         
         NSAttributeDescription *readOnlyAttribute = [NSAttributeDescription new];
         readOnlyAttribute.name = @"readOnly";
@@ -297,12 +294,12 @@
         synchronizationModeAttribute.attributeType = NSInteger64AttributeType;
         
         diskBlockDeviceStorageDeviceAttachmentEntity.properties = @[
-            fileHandleAttribute,
+            fileDescriptorAttribute,
             readOnlyAttribute,
             synchronizationModeAttribute
         ];
         
-        [fileHandleAttribute release];
+        [fileDescriptorAttribute release];
         [readOnlyAttribute release];
         [synchronizationModeAttribute release];
     }
@@ -1262,7 +1259,7 @@
         virtualMachineConfiguration_usbControllers_relationship.deleteRule = NSCascadeDeleteRule;
         
         NSRelationshipDescription *USBControllerConfiguration_machine_relationship = [NSRelationshipDescription new];
-        USBControllerConfiguration_machine_relationship.name = @"";
+        USBControllerConfiguration_machine_relationship.name = @"machine";
         USBControllerConfiguration_machine_relationship.optional = YES;
         USBControllerConfiguration_machine_relationship.minCount = 0;
         USBControllerConfiguration_machine_relationship.maxCount = 1;

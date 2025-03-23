@@ -10,6 +10,8 @@
 #import "HelperXPCInterface.h"
 #import <objc/runtime.h>
 #import <objc/message.h>
+#import <Virtualization/Virtualization.h>
+#import "FileHandlesManager.h"
 
 @interface XPCViewController ()
 @property (retain, nonatomic, readonly, getter=_helperService) SMAppService *helperService;
@@ -210,7 +212,7 @@
     alert.messageText = @"URL";
     
     NSTextField *textField = [NSTextField new];
-    textField.stringValue = @"/dev/disk";
+    textField.stringValue = @"/dev/rdisk";
     [textField sizeToFit];
     textField.frame = NSMakeRect(0., 0., 200., textField.fittingSize.height);
     alert.accessoryView = textField;
@@ -223,8 +225,11 @@
             NSURL *URL = [NSURL fileURLWithPath:textField.stringValue];
             
             id<HelperXPCInterface> remoteObjectProxy = self.helperConnection.remoteObjectProxy;
-            [remoteObjectProxy openFromURL:URL completionHandler:^(int fileDescriptor) {
-                NSLog(@"%d", fileDescriptor);
+            [remoteObjectProxy openFromURL:URL completionHandler:^(NSFileHandle * _Nonnull fileHandle) {
+                NSLog(@"%d", fileHandle.fileDescriptor);
+                [FileHandlesManager.sharedInstance withLock:^(NSMutableSet<NSFileHandle *> * _Nonnull handles) {
+                    [handles addObject:fileHandle];
+                }];
             }];
         }
     }];

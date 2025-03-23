@@ -8,7 +8,7 @@
 #import "SVDiskBlockDeviceStorageDeviceAttachment.h"
 
 @implementation SVDiskBlockDeviceStorageDeviceAttachment
-@dynamic fileHandle;
+@dynamic fileDescriptor;
 @dynamic readOnly;
 @dynamic synchronizationMode;
 
