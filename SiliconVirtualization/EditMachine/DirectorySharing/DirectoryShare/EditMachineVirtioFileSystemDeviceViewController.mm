@@ -30,6 +30,7 @@
 @synthesize directoriesView = _directoriesView;
 
 - (void)dealloc {
+    [_configuration release];
     [_stackView release];
     [_gridView release];
     [_directoryShareLabel release];
