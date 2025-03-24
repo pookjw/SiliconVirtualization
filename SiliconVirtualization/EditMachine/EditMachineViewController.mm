@@ -19,6 +19,7 @@
 #import "EditMachineAudioDevicesViewController.h"
 #import "EditMachineUSBViewController.h"
 #import "EditMachineDirectorySharingViewController.h"
+#import "EditMachineBatterySourceDevicesViewController.h"
 #import <objc/message.h>
 #import <objc/runtime.h>
 
