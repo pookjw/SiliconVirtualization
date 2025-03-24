@@ -87,6 +87,16 @@
 //            assert(error == nil);
 //        }
         
+//        {
+//            id config = [objc_lookUpClass("_VZMacBatteryPowerSourceDeviceConfiguration") new];
+//            
+//            id source = [objc_lookUpClass("_VZMacHostBatterySource") new];
+//            reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(config, sel_registerName("setSource:"), source);
+//            [source release];
+//            reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(configuration, sel_registerName("_setPowerSourceDevices:"), @[config]);
+//            [config release];
+//        }
+        
         BOOL startUpFromMacOSRecovery;
         __kindof SVVirtualMachineStartOptions *startOptions = virtualMachineObject.startOptions;
         if (startOptions == nil) {

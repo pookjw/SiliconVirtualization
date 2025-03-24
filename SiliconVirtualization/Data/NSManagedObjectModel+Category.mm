@@ -701,6 +701,51 @@
         [readOnlyAttribute release];
     }
     
+    NSEntityDescription *macHostBatterySourceEntity;
+    {
+        macHostBatterySourceEntity = [NSEntityDescription new];
+        macHostBatterySourceEntity.name = @"MacHostBatterySource";
+        macHostBatterySourceEntity.managedObjectClassName = NSStringFromClass([SVMacHostBatterySource class]);
+    }
+    
+    NSEntityDescription *macSyntheticBatterySourceEntity;
+    {
+        macSyntheticBatterySourceEntity = [NSEntityDescription new];
+        macSyntheticBatterySourceEntity.name = @"MacSyntheticBatterySource";
+        macSyntheticBatterySourceEntity.managedObjectClassName = NSStringFromClass([SVMacSyntheticBatterySource class]);
+        
+        NSAttributeDescription *chargeAttribute = [NSAttributeDescription new];
+        chargeAttribute.name = @"charge";
+        chargeAttribute.optional = YES;
+        chargeAttribute.attributeType = NSDoubleAttributeType;
+        
+        NSAttributeDescription *connectivityAttribute = [NSAttributeDescription new];
+        connectivityAttribute.name = @"connectivity";
+        connectivityAttribute.optional = YES;
+        connectivityAttribute.attributeType = NSInteger64AttributeType;
+        
+        macSyntheticBatterySourceEntity.properties = @[
+            chargeAttribute,
+            connectivityAttribute
+        ];
+        
+        [chargeAttribute release];
+        [connectivityAttribute release];
+    }
+    
+    NSEntityDescription *macBatterySourceEntity;
+    {
+        macBatterySourceEntity = [NSEntityDescription new];
+        macBatterySourceEntity.name = @"MacBatterySource";
+        macBatterySourceEntity.managedObjectClassName = NSStringFromClass([SVMacBatterySource class]);
+        
+        macBatterySourceEntity.abstract = YES;
+        macBatterySourceEntity.subentities = @[
+            macHostBatterySourceEntity,
+            macSyntheticBatterySourceEntity
+        ];
+    }
+    
     //
     
     {
@@ -1528,6 +1573,36 @@
         [sharedDirectory_multipleDirectoryShare_relationship release];
     }
     
+    {
+        NSRelationshipDescription *virtualMachineConfiguration_powerSourceDevices_relationship = [NSRelationshipDescription new];
+        virtualMachineConfiguration_powerSourceDevices_relationship.name = @"powerSourceDevices";
+        virtualMachineConfiguration_powerSourceDevices_relationship.optional = YES;
+        virtualMachineConfiguration_powerSourceDevices_relationship.minCount = 0;
+        virtualMachineConfiguration_powerSourceDevices_relationship.maxCount = 0;
+        assert(virtualMachineConfiguration_powerSourceDevices_relationship.toMany);
+        virtualMachineConfiguration_powerSourceDevices_relationship.ordered = YES;
+        virtualMachineConfiguration_powerSourceDevices_relationship.destinationEntity = macBatterySourceEntity;
+        virtualMachineConfiguration_powerSourceDevices_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *macBatterySource_machine_relationship = [NSRelationshipDescription new];
+        macBatterySource_machine_relationship.name = @"machine";
+        macBatterySource_machine_relationship.optional = YES;
+        macBatterySource_machine_relationship.minCount = 0;
+        macBatterySource_machine_relationship.maxCount = 1;
+        assert(!macBatterySource_machine_relationship.toMany);
+        macBatterySource_machine_relationship.destinationEntity = virtualMachineConfigurationEntity;
+        macBatterySource_machine_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        virtualMachineConfiguration_powerSourceDevices_relationship.inverseRelationship = macBatterySource_machine_relationship;
+        macBatterySource_machine_relationship.inverseRelationship = virtualMachineConfiguration_powerSourceDevices_relationship;
+        
+        virtualMachineConfigurationEntity.properties = [virtualMachineConfigurationEntity.properties arrayByAddingObject:virtualMachineConfiguration_powerSourceDevices_relationship];
+        macBatterySourceEntity.properties = [macBatterySourceEntity.properties arrayByAddingObject:macBatterySource_machine_relationship];
+        
+        [virtualMachineConfiguration_powerSourceDevices_relationship release];
+        [macBatterySource_machine_relationship release];
+    }
+    
     //
     
     managedObjectModel.entities = @[
@@ -1584,7 +1659,10 @@
         singleDirectoryShareEntity,
         multipleDirectoryShareEntity,
         directoryShareEntity,
-        sharedDirectoryEntity
+        sharedDirectoryEntity,
+        macHostBatterySourceEntity,
+        macSyntheticBatterySourceEntity,
+        macBatterySourceEntity
     ];
     
     for (NSEntityDescription *entity in managedObjectModel.entities) {
@@ -1651,6 +1729,9 @@
     [multipleDirectoryShareEntity release];
     [directoryShareEntity release];
     [sharedDirectoryEntity release];
+    [macHostBatterySourceEntity release];
+    [macSyntheticBatterySourceEntity release];
+    [macBatterySourceEntity release];
     
     return [managedObjectModel autorelease];
 }

@@ -59,3 +59,6 @@
 #import "SVMultipleDirectoryShare.h"
 #import "SVSingleDirectoryShare.h"
 #import "SVSharedDirectory.h"
+#import "SVMacBatterySource.h"
+#import "SVMacHostBatterySource.h"
+#import "SVMacSyntheticBatterySource.h"

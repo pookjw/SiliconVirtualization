@@ -7,6 +7,8 @@
 
 #import "SVCoreDataStack+VirtualizationSupport.h"
 #include <ranges>
+#import <objc/message.h>
+#import <objc/runtime.h>
 
 @implementation SVCoreDataStack (VirtualizationSupport)
 
@@ -27,6 +29,10 @@
     virtualMachineConfigurationObject.networkDevices = [self _isolated_makeManagedObjectsFromNetworkDevices:virtualMachineConfiguration.networkDevices];
     virtualMachineConfigurationObject.pointingDevices = [self _isolated_makeManagedObjectsFromPointingDevices:virtualMachineConfiguration.pointingDevices];
     virtualMachineConfigurationObject.graphicsDevices = [self _isolated_makeManagedObjectsFromGraphicsDevices:virtualMachineConfiguration.graphicsDevices];
+    
+    NSArray *powerSourceDevices = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(virtualMachineConfiguration, sel_registerName("powerSourceDevices"));
+    virtualMachineConfigurationObject.powerSourceDevices = [self _isolated_makeManagedObjectsFromPowerSourceDevices:powerSourceDevices];
+    
     virtualMachineConfigurationObject.storageDevices = [self _isolated_makeManagedObjectsFromStorageDevices:virtualMachineConfiguration.storageDevices];
     virtualMachineConfigurationObject.usbControllers = [self _isolated_makeManagedObjectsFromUSBControllers:virtualMachineConfiguration.usbControllers];
     
@@ -453,6 +459,30 @@
     
     //
     
+    NSMutableArray *powerSourceDevices = [[NSMutableArray alloc] initWithCapacity:virtualMachineConfigurationObject.powerSourceDevices.count];
+    
+    for (__kindof SVMacBatterySource *powerSourceDeviceObject in virtualMachineConfigurationObject.powerSourceDevices) {
+        if ([powerSourceDeviceObject isKindOfClass:[SVMacHostBatterySource class]]) {
+            id macHostBatterySource = [objc_lookUpClass("VZMacHostBatterySource") new];
+            [powerSourceDevices addObject:macHostBatterySource];
+            [macHostBatterySource release];
+        } else if ([powerSourceDeviceObject isKindOfClass:[SVMacSyntheticBatterySource class]]) {
+            auto macSyntheticBatterySourceObject = static_cast<SVMacSyntheticBatterySource *>(powerSourceDeviceObject);
+            
+            id macSyntheticBatterySource = [objc_lookUpClass("VZMacSyntheticBatterySource") new];
+            reinterpret_cast<void (*)(id, SEL, NSInteger)>(objc_msgSend)(macSyntheticBatterySource, sel_registerName("setConnectivity:"), macSyntheticBatterySourceObject.connectivity);
+            reinterpret_cast<void (*)(id, SEL, double)>(objc_msgSend)(macSyntheticBatterySource, sel_registerName("setCharge:"), macSyntheticBatterySourceObject.charge);
+            
+            [pointingDevices addObject:macSyntheticBatterySource];
+            [macSyntheticBatterySource release];
+        }
+    }
+    
+    reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(virtualMachineConfiguration, sel_registerName("_setPowerSourceDevices:"), powerSourceDevices);
+    [powerSourceDevices release];
+    
+    //
+    
     NSMutableArray<__kindof VZStorageDeviceConfiguration *> *storageDevices = [[NSMutableArray alloc] initWithCapacity:virtualMachineConfigurationObject.storageDevices.count];
     
     for (__kindof SVStorageDeviceConfiguration *storageDeviceConfigurationObject in virtualMachineConfigurationObject.storageDevices) {
@@ -585,6 +615,10 @@
     virtualMachineConfiguration.networkDevices = [self _isolated_makeManagedObjectsFromNetworkDevices:machineConfiguration.networkDevices];
     virtualMachineConfiguration.pointingDevices = [self _isolated_makeManagedObjectsFromPointingDevices:machineConfiguration.pointingDevices];
     virtualMachineConfiguration.graphicsDevices = [self _isolated_makeManagedObjectsFromGraphicsDevices:machineConfiguration.graphicsDevices];
+    
+    NSArray *powerSourceDevices = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(machineConfiguration, sel_registerName("powerSourceDevices"));
+    virtualMachineConfiguration.powerSourceDevices = [self _isolated_makeManagedObjectsFromPowerSourceDevices:powerSourceDevices];
+    
     virtualMachineConfiguration.storageDevices = [self _isolated_makeManagedObjectsFromStorageDevices:machineConfiguration.storageDevices];
     virtualMachineConfiguration.usbControllers = [self _isolated_makeManagedObjectsFromUSBControllers:machineConfiguration.usbControllers];
 }
@@ -944,6 +978,34 @@
     return [graphicsDeviceObjects autorelease];
 }
 
+- (NSOrderedSet<__kindof SVMacBatterySource *> *)_isolated_makeManagedObjectsFromPowerSourceDevices:(NSArray *)powerSourceDevices {
+    NSManagedObjectContext *managedObjectContext = self.backgroundContext;
+    NSMutableOrderedSet<__kindof SVMacBatterySource *> *powerSourceDevicesObjects = [[NSMutableOrderedSet alloc] initWithCapacity:powerSourceDevices.count];
+    
+    for (id powerSourceDevice in powerSourceDevices) {
+        if ([powerSourceDevice isKindOfClass:objc_lookUpClass("_VZMacHostBatterySource")]) {
+            SVMacHostBatterySource *object = [[SVMacHostBatterySource alloc] initWithContext:managedObjectContext];
+            [powerSourceDevicesObjects addObject:object];
+            [object release];
+        } else if ([powerSourceDevice isKindOfClass:objc_lookUpClass("_VZMacSyntheticBatterySource")]) {
+            SVMacSyntheticBatterySource *object = [[SVMacSyntheticBatterySource alloc] initWithContext:managedObjectContext];
+            
+            double charge = reinterpret_cast<double (*)(id, SEL)>(objc_msgSend)(powerSourceDevice, sel_registerName("charge"));
+            object.charge = charge;
+            
+            NSInteger connectivity = reinterpret_cast<NSInteger (*)(id, SEL)>(objc_msgSend)(powerSourceDevice, sel_registerName("connectivity"));
+            object.connectivity = connectivity;
+            
+            [powerSourceDevicesObjects addObject:object];
+            [object release];
+        } else {
+            abort();
+        }
+    }
+    
+    return [powerSourceDevicesObjects autorelease];
+}
+
 - (NSOrderedSet<__kindof SVStorageDeviceConfiguration *> *)_isolated_makeManagedObjectsFromStorageDevices:(NSArray<VZStorageDeviceConfiguration *> *)storageDevices {
     NSManagedObjectContext *managedObjectContext = self.backgroundContext;
     NSMutableOrderedSet<__kindof SVStorageDeviceConfiguration *> *storageDeviceObjects = [[NSMutableOrderedSet alloc] initWithCapacity:storageDevices.count];
@@ -999,8 +1061,6 @@
     
     return [storageDeviceObjects autorelease];
 }
-
-
 
 - (NSOrderedSet<__kindof SVUSBControllerConfiguration *> *)_isolated_makeManagedObjectsFromUSBControllers:(NSArray<__kindof VZUSBControllerConfiguration *> *)USBControllers {
     NSManagedObjectContext *managedObjectContext = self.backgroundContext;
