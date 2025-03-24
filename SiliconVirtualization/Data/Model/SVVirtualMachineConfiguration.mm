@@ -23,6 +23,7 @@
 @dynamic machine;
 @dynamic platform;
 @dynamic pointingDevices;
+@dynamic powerSourceDevices;
 @dynamic storageDevices;
 @dynamic usbControllers;
 

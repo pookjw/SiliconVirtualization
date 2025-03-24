@@ -8,7 +8,7 @@
 #import "SVMacBatterySource.h"
 
 @implementation SVMacBatterySource
-@dynamic machine;
+@dynamic batteryPowerSourceDevice;
 
 + (NSFetchRequest<SVMacBatterySource *> *)fetchRequest {
     return [NSFetchRequest fetchRequestWithEntityName:@"MacBatterySource"];

@@ -746,6 +746,33 @@
         ];
     }
     
+    NSEntityDescription *macBatteryPowerSourceDeviceConfigurationEntity;
+    {
+        macBatteryPowerSourceDeviceConfigurationEntity = [NSEntityDescription new];
+        macBatteryPowerSourceDeviceConfigurationEntity.name = @"MacBatteryPowerSourceDeviceConfiguration";
+        macBatteryPowerSourceDeviceConfigurationEntity.managedObjectClassName = NSStringFromClass([SVMacBatteryPowerSourceDeviceConfiguration class]);
+    }
+    
+    NSEntityDescription *macWallPowerSourceDeviceConfigurationEntity;
+    {
+        macWallPowerSourceDeviceConfigurationEntity = [NSEntityDescription new];
+        macWallPowerSourceDeviceConfigurationEntity.name = @"MacWallPowerSourceDeviceConfiguration";
+        macWallPowerSourceDeviceConfigurationEntity.managedObjectClassName = NSStringFromClass([SVMacWallPowerSourceDeviceConfiguration class]);
+    }
+    
+    NSEntityDescription *powerSourceDeviceConfigurationEntity;
+    {
+        powerSourceDeviceConfigurationEntity = [NSEntityDescription new];
+        powerSourceDeviceConfigurationEntity.name = @"PowerSourceDeviceConfiguration";
+        powerSourceDeviceConfigurationEntity.managedObjectClassName = NSStringFromClass([SVPowerSourceDeviceConfiguration class]);
+        
+        powerSourceDeviceConfigurationEntity.abstract = YES;
+        powerSourceDeviceConfigurationEntity.subentities = @[
+            macBatteryPowerSourceDeviceConfigurationEntity,
+            macWallPowerSourceDeviceConfigurationEntity
+        ];
+    }
+    
     //
     
     {
@@ -1581,26 +1608,54 @@
         virtualMachineConfiguration_powerSourceDevices_relationship.maxCount = 0;
         assert(virtualMachineConfiguration_powerSourceDevices_relationship.toMany);
         virtualMachineConfiguration_powerSourceDevices_relationship.ordered = YES;
-        virtualMachineConfiguration_powerSourceDevices_relationship.destinationEntity = macBatterySourceEntity;
+        virtualMachineConfiguration_powerSourceDevices_relationship.destinationEntity = powerSourceDeviceConfigurationEntity;
         virtualMachineConfiguration_powerSourceDevices_relationship.deleteRule = NSCascadeDeleteRule;
         
-        NSRelationshipDescription *macBatterySource_machine_relationship = [NSRelationshipDescription new];
-        macBatterySource_machine_relationship.name = @"machine";
-        macBatterySource_machine_relationship.optional = YES;
-        macBatterySource_machine_relationship.minCount = 0;
-        macBatterySource_machine_relationship.maxCount = 1;
-        assert(!macBatterySource_machine_relationship.toMany);
-        macBatterySource_machine_relationship.destinationEntity = virtualMachineConfigurationEntity;
-        macBatterySource_machine_relationship.deleteRule = NSNullifyDeleteRule;
+        NSRelationshipDescription *powerSourceDeviceConfigurationEntity_machine_relationship = [NSRelationshipDescription new];
+        powerSourceDeviceConfigurationEntity_machine_relationship.name = @"machine";
+        powerSourceDeviceConfigurationEntity_machine_relationship.minCount = 0;
+        powerSourceDeviceConfigurationEntity_machine_relationship.maxCount = 1;
+        assert(!powerSourceDeviceConfigurationEntity_machine_relationship.toMany);
+        powerSourceDeviceConfigurationEntity_machine_relationship.destinationEntity = virtualMachineConfigurationEntity;
+        powerSourceDeviceConfigurationEntity_machine_relationship.deleteRule = NSNullifyDeleteRule;
         
-        virtualMachineConfiguration_powerSourceDevices_relationship.inverseRelationship = macBatterySource_machine_relationship;
-        macBatterySource_machine_relationship.inverseRelationship = virtualMachineConfiguration_powerSourceDevices_relationship;
+        virtualMachineConfiguration_powerSourceDevices_relationship.inverseRelationship = powerSourceDeviceConfigurationEntity_machine_relationship;
+        powerSourceDeviceConfigurationEntity_machine_relationship.inverseRelationship = virtualMachineConfiguration_powerSourceDevices_relationship;
         
         virtualMachineConfigurationEntity.properties = [virtualMachineConfigurationEntity.properties arrayByAddingObject:virtualMachineConfiguration_powerSourceDevices_relationship];
-        macBatterySourceEntity.properties = [macBatterySourceEntity.properties arrayByAddingObject:macBatterySource_machine_relationship];
+        powerSourceDeviceConfigurationEntity.properties = [powerSourceDeviceConfigurationEntity.properties arrayByAddingObject:powerSourceDeviceConfigurationEntity_machine_relationship];
         
         [virtualMachineConfiguration_powerSourceDevices_relationship release];
-        [macBatterySource_machine_relationship release];
+        [powerSourceDeviceConfigurationEntity_machine_relationship release];
+    }
+    
+    {
+        NSRelationshipDescription *macBatteryPowerSourceDeviceConfiguration_source_relationship = [NSRelationshipDescription new];
+        macBatteryPowerSourceDeviceConfiguration_source_relationship.name = @"source";
+        macBatteryPowerSourceDeviceConfiguration_source_relationship.optional = YES;
+        macBatteryPowerSourceDeviceConfiguration_source_relationship.minCount = 0;
+        macBatteryPowerSourceDeviceConfiguration_source_relationship.maxCount = 1;
+        assert(!macBatteryPowerSourceDeviceConfiguration_source_relationship.toMany);
+        macBatteryPowerSourceDeviceConfiguration_source_relationship.destinationEntity = macBatterySourceEntity;
+        macBatteryPowerSourceDeviceConfiguration_source_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *macBatterySource_batteryPowerSourceDevice_relationship = [NSRelationshipDescription new];
+        macBatterySource_batteryPowerSourceDevice_relationship.name = @"batteryPowerSourceDevice";
+        macBatterySource_batteryPowerSourceDevice_relationship.optional = YES;
+        macBatterySource_batteryPowerSourceDevice_relationship.minCount = 0;
+        macBatterySource_batteryPowerSourceDevice_relationship.maxCount = 1;
+        assert(!macBatterySource_batteryPowerSourceDevice_relationship.toMany);
+        macBatterySource_batteryPowerSourceDevice_relationship.destinationEntity = macBatteryPowerSourceDeviceConfigurationEntity;
+        macBatterySource_batteryPowerSourceDevice_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        macBatteryPowerSourceDeviceConfiguration_source_relationship.inverseRelationship = macBatterySource_batteryPowerSourceDevice_relationship;
+        macBatterySource_batteryPowerSourceDevice_relationship.inverseRelationship = macBatteryPowerSourceDeviceConfiguration_source_relationship;
+        
+        macBatteryPowerSourceDeviceConfigurationEntity.properties = [macBatteryPowerSourceDeviceConfigurationEntity.properties arrayByAddingObject:macBatteryPowerSourceDeviceConfiguration_source_relationship];
+        macBatterySourceEntity.properties = [macBatterySourceEntity.properties arrayByAddingObject:macBatterySource_batteryPowerSourceDevice_relationship];
+        
+        [macBatteryPowerSourceDeviceConfiguration_source_relationship release];
+        [macBatterySource_batteryPowerSourceDevice_relationship release];
     }
     
     //
@@ -1662,7 +1717,10 @@
         sharedDirectoryEntity,
         macHostBatterySourceEntity,
         macSyntheticBatterySourceEntity,
-        macBatterySourceEntity
+        macBatterySourceEntity,
+        macBatteryPowerSourceDeviceConfigurationEntity,
+        macWallPowerSourceDeviceConfigurationEntity,
+        powerSourceDeviceConfigurationEntity
     ];
     
     for (NSEntityDescription *entity in managedObjectModel.entities) {
@@ -1732,6 +1790,9 @@
     [macHostBatterySourceEntity release];
     [macSyntheticBatterySourceEntity release];
     [macBatterySourceEntity release];
+    [macBatteryPowerSourceDeviceConfigurationEntity release];
+    [macWallPowerSourceDeviceConfigurationEntity release];
+    [powerSourceDeviceConfigurationEntity release];
     
     return [managedObjectModel autorelease];
 }

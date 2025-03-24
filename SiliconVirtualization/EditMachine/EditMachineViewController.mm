@@ -19,11 +19,11 @@
 #import "EditMachineAudioDevicesViewController.h"
 #import "EditMachineUSBViewController.h"
 #import "EditMachineDirectorySharingViewController.h"
-#import "EditMachineBatterySourceDevicesViewController.h"
+#import "EditMachinePowerSourceDevicesViewController.h"
 #import <objc/message.h>
 #import <objc/runtime.h>
 
-@interface EditMachineViewController () <EditMachineSidebarViewControllerDelegate, EditMachineBootLoaderViewControllerDelegate, EditMachineCPUViewControllerDelegate, EditMachineMemoryViewControllerDelegate, EditMachineKeyboardsViewControllerDelegate, EditMachineNetworksViewControllerDelegate, EditMachinePointingDevicesViewControllerDelegate, EditMachineGraphicsViewControllerDelegate, EditMachineStoragesViewControllerDelegate, EditMachinePlatformViewControllerDelegate, EditMachineAudioDevicesViewControllerDelegate, EditMachineUSBViewControllerDelegate, EditMachineDirectorySharingViewControllerDelegate>
+@interface EditMachineViewController () <EditMachineSidebarViewControllerDelegate, EditMachineBootLoaderViewControllerDelegate, EditMachineCPUViewControllerDelegate, EditMachineMemoryViewControllerDelegate, EditMachineKeyboardsViewControllerDelegate, EditMachineNetworksViewControllerDelegate, EditMachinePointingDevicesViewControllerDelegate, EditMachineGraphicsViewControllerDelegate, EditMachineStoragesViewControllerDelegate, EditMachinePlatformViewControllerDelegate, EditMachineAudioDevicesViewControllerDelegate, EditMachineUSBViewControllerDelegate, EditMachineDirectorySharingViewControllerDelegate, EditMachinePowerSourceDevicesViewControllerDelegate>
 @property (retain, nonatomic, readonly, getter=_splitViewController) NSSplitViewController *splitViewController;
 
 @property (retain, nonatomic, readonly, getter=_bootLoaderViewController) EditMachineBootLoaderViewController *bootLoaderViewController;
@@ -62,6 +62,9 @@
 @property (retain, nonatomic, readonly, getter=_usbViewController) EditMachineUSBViewController *usbViewController;
 @property (retain, nonatomic, readonly, getter=_usbSplitViewItem) NSSplitViewItem *usbSplitViewItem;
 
+@property (retain, nonatomic, readonly, getter=_powerSourceDevicesViewController) EditMachinePowerSourceDevicesViewController *powerSourceDevicesViewController;
+@property (retain, nonatomic, readonly, getter=_powerSourceDevicesSplitViewItem) NSSplitViewItem *powerSourceDevicesSplitViewItem;
+
 @property (retain, nonatomic, readonly, getter=_directorySharingViewController) EditMachineDirectorySharingViewController *directorySharingViewController;
 @property (retain, nonatomic, readonly, getter=_directorySharingSplitViewItem) NSSplitViewItem *directorySharingSplitViewItem;
 @end
@@ -92,6 +95,8 @@
 @synthesize platformSplitViewItem = _platformSplitViewItem;
 @synthesize usbViewController = _usbViewController;
 @synthesize usbSplitViewItem = _usbSplitViewItem;
+@synthesize powerSourceDevicesViewController = _powerSourceDevicesViewController;
+@synthesize powerSourceDevicesSplitViewItem = _powerSourceDevicesSplitViewItem;
 @synthesize directorySharingViewController = _directorySharingViewController;
 @synthesize directorySharingSplitViewItem = _directorySharingSplitViewItem;
 
@@ -130,6 +135,8 @@
     [_platformSplitViewItem release];
     [_usbViewController release];
     [_usbSplitViewItem release];
+    [_powerSourceDevicesViewController release];
+    [_powerSourceDevicesSplitViewItem release];
     [_directorySharingViewController release];
     [_directorySharingSplitViewItem release];
     [super dealloc];
@@ -333,6 +340,25 @@
     return pointingDevicesSplitViewItem;
 }
 
+- (EditMachinePowerSourceDevicesViewController *)_powerSourceDevicesViewController {
+    if (auto powerSourceDevicesViewController = _powerSourceDevicesViewController) return powerSourceDevicesViewController;
+    
+    EditMachinePowerSourceDevicesViewController *powerSourceDevicesViewController = [[EditMachinePowerSourceDevicesViewController alloc] initWithConfiguration:self.configuration];
+    powerSourceDevicesViewController.delegate = self;
+    
+    _powerSourceDevicesViewController = powerSourceDevicesViewController;
+    return powerSourceDevicesViewController;
+}
+
+- (NSSplitViewItem *)_powerSourceDevicesSplitViewItem {
+    if (auto powerSourceDevicesSplitViewItem = _powerSourceDevicesSplitViewItem) return powerSourceDevicesSplitViewItem;
+    
+    NSSplitViewItem *powerSourceDevicesSplitViewItem = [NSSplitViewItem contentListWithViewController:self.powerSourceDevicesViewController];
+    
+    _powerSourceDevicesSplitViewItem = [powerSourceDevicesSplitViewItem retain];
+    return powerSourceDevicesSplitViewItem;
+}
+
 - (EditMachineStoragesViewController *)_storagesViewController {
     if (auto storagesViewController = _storagesViewController) return storagesViewController;
     
@@ -442,6 +468,11 @@
             self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.pointingDevicesSplitViewItem];
             break;
         }
+        case EditMachineSidebarItemModelTypePowerSourceDevices: {
+            self.powerSourceDevicesViewController.configuration = self.configuration;
+            self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.powerSourceDevicesSplitViewItem];
+            break;
+        }
         case EditMachineSidebarItemModelTypeAudio: {
             self.audioDevicesViewController.configuration = self.configuration;
             self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.audioDevicesSplitViewItem];
@@ -538,6 +569,11 @@
 }
 
 - (void)editMachineDirectorySharingViewController:(EditMachineDirectorySharingViewController *)editMachineDirectorySharingViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
+    self.configuration = configuration;
+    [self _notifyDelegate];
+}
+
+- (void)editMachinePowerSourceDevicesViewController:(EditMachinePowerSourceDevicesViewController *)editMachinePowerSourceDevicesViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
     self.configuration = configuration;
     [self _notifyDelegate];
 }

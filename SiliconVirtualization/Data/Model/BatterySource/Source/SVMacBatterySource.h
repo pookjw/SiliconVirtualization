@@ -9,11 +9,11 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class SVVirtualMachineConfiguration;
+@class SVMacBatteryPowerSourceDeviceConfiguration;
 
 @interface SVMacBatterySource : NSManagedObject
 + (NSFetchRequest<SVMacBatterySource *> *)fetchRequest;
-@property (retain, nonatomic, nullable) SVVirtualMachineConfiguration *machine;
+@property (nullable, nonatomic, retain) SVMacBatteryPowerSourceDeviceConfiguration *batteryPowerSourceDevice;
 @end
 
 NS_ASSUME_NONNULL_END

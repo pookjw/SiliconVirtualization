@@ -55,8 +55,11 @@
         <attribute name="bookmarkData" optional="YES" attributeType="Binary"/>
         <relationship name="platform" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MacPlatformConfiguration" inverseName="auxiliaryStorage" inverseEntity="MacPlatformConfiguration"/>
     </entity>
+    <entity name="MacBatteryPowerSourceDeviceConfiguration" representedClassName="SVMacBatteryPowerSourceDeviceConfiguration" parentEntity="PowerSourceDeviceConfiguration" syncable="YES" codeGenerationType="class">
+        <relationship name="source" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="MacBatterySource" inverseName="batteryPowerSourceDevice" inverseEntity="MacBatterySource"/>
+    </entity>
     <entity name="MacBatterySource" representedClassName="SVMacBatterySource" isAbstract="YES" syncable="YES" codeGenerationType="class">
-        <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="powerSourceDevices" inverseEntity="VirtualMachineConfiguration"/>
+        <relationship name="batteryPowerSourceDevice" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MacBatteryPowerSourceDeviceConfiguration" inverseName="source" inverseEntity="MacBatteryPowerSourceDeviceConfiguration"/>
     </entity>
     <entity name="MacGraphicsDeviceConfiguration" representedClassName="SVMacGraphicsDeviceConfiguration" parentEntity="GraphicsDeviceConfiguration" syncable="YES" codeGenerationType="class">
         <relationship name="displays" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="MacGraphicsDisplayConfiguration" inverseName="graphicsDevice" inverseEntity="MacGraphicsDisplayConfiguration"/>
@@ -91,6 +94,7 @@
         <attribute name="connectivity" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
     </entity>
     <entity name="MacTrackpadConfiguration" representedClassName="SVMacTrackpadConfiguration" parentEntity="PointingDeviceConfiguration" syncable="YES" codeGenerationType="class"/>
+    <entity name="MacWallPowerSourceDeviceConfiguration" representedClassName="SVMacWallPowerSourceDeviceConfiguration" parentEntity="PowerSourceDeviceConfiguration" syncable="YES" codeGenerationType="class"/>
     <entity name="MultipleDirectoryShare" representedClassName="SVMultipleDirectoryShare" parentEntity="DirectoryShare" syncable="YES" codeGenerationType="class">
         <attribute name="directoryNames" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromData" customClassName="NSArray"/>
         <relationship name="directories" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="SharedDirectory" inverseName="multipleDirectoryShare" inverseEntity="SharedDirectory"/>
@@ -110,6 +114,9 @@
     </entity>
     <entity name="PointingDeviceConfiguration" representedClassName="SVPointingDeviceConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="pointingDevices" inverseEntity="VirtualMachineConfiguration"/>
+    </entity>
+    <entity name="PowerSourceDeviceConfiguration" representedClassName="SVPowerSourceDeviceConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class">
+        <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration"/>
     </entity>
     <entity name="SharedDirectory" representedClassName="SVSharedDirectory" syncable="YES" codeGenerationType="class">
         <attribute name="bookmarkData" optional="YES" attributeType="Binary"/>
@@ -179,7 +186,7 @@
         <relationship name="networkDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="NetworkDeviceConfiguration" inverseName="machine" inverseEntity="NetworkDeviceConfiguration"/>
         <relationship name="platform" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="PlatformConfiguration" inverseName="machine" inverseEntity="PlatformConfiguration"/>
         <relationship name="pointingDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="PointingDeviceConfiguration" inverseName="machine" inverseEntity="PointingDeviceConfiguration"/>
-        <relationship name="powerSourceDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="MacBatterySource" inverseName="machine" inverseEntity="MacBatterySource"/>
+        <relationship name="powerSourceDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="PowerSourceDeviceConfiguration"/>
         <relationship name="storageDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="StorageDeviceConfiguration" inverseName="machine" inverseEntity="StorageDeviceConfiguration"/>
         <relationship name="usbControllers" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="USBControllerConfiguration" inverseName="machine" inverseEntity="USBControllerConfiguration"/>
     </entity>

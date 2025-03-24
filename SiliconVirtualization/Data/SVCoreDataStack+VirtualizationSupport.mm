@@ -461,20 +461,36 @@
     
     NSMutableArray *powerSourceDevices = [[NSMutableArray alloc] initWithCapacity:virtualMachineConfigurationObject.powerSourceDevices.count];
     
-    for (__kindof SVMacBatterySource *powerSourceDeviceObject in virtualMachineConfigurationObject.powerSourceDevices) {
-        if ([powerSourceDeviceObject isKindOfClass:[SVMacHostBatterySource class]]) {
-            id macHostBatterySource = [objc_lookUpClass("VZMacHostBatterySource") new];
-            [powerSourceDevices addObject:macHostBatterySource];
-            [macHostBatterySource release];
-        } else if ([powerSourceDeviceObject isKindOfClass:[SVMacSyntheticBatterySource class]]) {
-            auto macSyntheticBatterySourceObject = static_cast<SVMacSyntheticBatterySource *>(powerSourceDeviceObject);
+    for (__kindof SVPowerSourceDeviceConfiguration *powerSourceDeviceObject in virtualMachineConfigurationObject.powerSourceDevices) {
+        if ([powerSourceDeviceObject isKindOfClass:[SVMacBatteryPowerSourceDeviceConfiguration class]]) {
+            auto casted = static_cast<SVMacBatteryPowerSourceDeviceConfiguration *>(powerSourceDeviceObject);
+            id macBatteryPowerSourceDeviceConfiguration = [objc_lookUpClass("_VZMacBatteryPowerSourceDeviceConfiguration") new];
             
-            id macSyntheticBatterySource = [objc_lookUpClass("VZMacSyntheticBatterySource") new];
-            reinterpret_cast<void (*)(id, SEL, NSInteger)>(objc_msgSend)(macSyntheticBatterySource, sel_registerName("setConnectivity:"), macSyntheticBatterySourceObject.connectivity);
-            reinterpret_cast<void (*)(id, SEL, double)>(objc_msgSend)(macSyntheticBatterySource, sel_registerName("setCharge:"), macSyntheticBatterySourceObject.charge);
+            __kindof SVMacBatterySource * _Nullable sourceObject = casted.source;
+            id _Nullable source;
+            if (sourceObject == nil) {
+                source = nil;
+            } else if ([sourceObject isKindOfClass:[SVMacHostBatterySource class]]) {
+                source = [objc_lookUpClass("_VZMacHostBatterySource") new];
+            } else if ([sourceObject isKindOfClass:[SVMacSyntheticBatterySource class]]) {
+                source = [objc_lookUpClass("_VZMacSyntheticBatterySource") new];
+                
+                auto casted = static_cast<SVMacSyntheticBatterySource *>(sourceObject);
+                reinterpret_cast<void (*)(id, SEL, double)>(objc_msgSend)(source, sel_registerName("setCharge:"), casted.charge);
+                reinterpret_cast<void (*)(id, SEL, NSInteger)>(objc_msgSend)(source, sel_registerName("setConnectivity:"), casted.connectivity);
+            } else {
+                abort();
+            }
             
-            [pointingDevices addObject:macSyntheticBatterySource];
-            [macSyntheticBatterySource release];
+            reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(macBatteryPowerSourceDeviceConfiguration, sel_registerName("setSource:"), source);
+            [source release];
+            
+            [powerSourceDevices addObject:macBatteryPowerSourceDeviceConfiguration];
+            [macBatteryPowerSourceDeviceConfiguration release];
+        } else if ([powerSourceDeviceObject isKindOfClass:[SVMacWallPowerSourceDeviceConfiguration class]]) {
+            id macWallPowerSourceDeviceConfiguration = [objc_lookUpClass("_VZMacWallPowerSourceDeviceConfiguration") new];
+            [powerSourceDevices addObject:macWallPowerSourceDeviceConfiguration];
+            [macWallPowerSourceDeviceConfiguration release];
         }
     }
     
@@ -978,24 +994,37 @@
     return [graphicsDeviceObjects autorelease];
 }
 
-- (NSOrderedSet<__kindof SVMacBatterySource *> *)_isolated_makeManagedObjectsFromPowerSourceDevices:(NSArray *)powerSourceDevices {
+- (NSOrderedSet<__kindof SVPowerSourceDeviceConfiguration *> *)_isolated_makeManagedObjectsFromPowerSourceDevices:(NSArray *)powerSourceDevices {
     NSManagedObjectContext *managedObjectContext = self.backgroundContext;
-    NSMutableOrderedSet<__kindof SVMacBatterySource *> *powerSourceDevicesObjects = [[NSMutableOrderedSet alloc] initWithCapacity:powerSourceDevices.count];
+    NSMutableOrderedSet<__kindof SVPowerSourceDeviceConfiguration *> *powerSourceDevicesObjects = [[NSMutableOrderedSet alloc] initWithCapacity:powerSourceDevices.count];
     
     for (id powerSourceDevice in powerSourceDevices) {
-        if ([powerSourceDevice isKindOfClass:objc_lookUpClass("_VZMacHostBatterySource")]) {
-            SVMacHostBatterySource *object = [[SVMacHostBatterySource alloc] initWithContext:managedObjectContext];
+        if ([powerSourceDevice isKindOfClass:objc_lookUpClass("_VZMacBatteryPowerSourceDeviceConfiguration")]) {
+            SVMacBatteryPowerSourceDeviceConfiguration *object = [[SVMacBatteryPowerSourceDeviceConfiguration alloc] initWithContext:managedObjectContext];
+            
+            id _Nullable source = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(powerSourceDevice, sel_registerName("source"));
+            __kindof SVMacBatterySource * _Nullable sourceObject;
+            if (source == nil) {
+                sourceObject = nil;
+            } else if ([source isKindOfClass:objc_lookUpClass("_VZMacHostBatterySource")]) {
+                sourceObject = [[SVMacHostBatterySource alloc] initWithContext:managedObjectContext];
+            } else if ([source isKindOfClass:objc_lookUpClass("_VZMacSyntheticBatterySource")]) {
+                SVMacSyntheticBatterySource *macSyntheticBatterySource = [[SVMacSyntheticBatterySource alloc] initWithContext:managedObjectContext];
+                macSyntheticBatterySource.charge = reinterpret_cast<double (*)(id, SEL)>(objc_msgSend)(source, sel_registerName("charge"));
+                macSyntheticBatterySource.connectivity = reinterpret_cast<int64_t (*)(id, SEL)>(objc_msgSend)(source, sel_registerName("connectivity"));
+                
+                sourceObject = macSyntheticBatterySource;
+            } else {
+                abort();
+            }
+            
+            object.source = sourceObject;
+            [sourceObject release];
+            
             [powerSourceDevicesObjects addObject:object];
             [object release];
-        } else if ([powerSourceDevice isKindOfClass:objc_lookUpClass("_VZMacSyntheticBatterySource")]) {
-            SVMacSyntheticBatterySource *object = [[SVMacSyntheticBatterySource alloc] initWithContext:managedObjectContext];
-            
-            double charge = reinterpret_cast<double (*)(id, SEL)>(objc_msgSend)(powerSourceDevice, sel_registerName("charge"));
-            object.charge = charge;
-            
-            NSInteger connectivity = reinterpret_cast<NSInteger (*)(id, SEL)>(objc_msgSend)(powerSourceDevice, sel_registerName("connectivity"));
-            object.connectivity = connectivity;
-            
+        } else if ([powerSourceDevice isKindOfClass:objc_lookUpClass("_VZMacWallPowerSourceDeviceConfiguration")]) {
+            SVMacWallPowerSourceDeviceConfiguration *object = [[SVMacWallPowerSourceDeviceConfiguration alloc] initWithContext:managedObjectContext];
             [powerSourceDevicesObjects addObject:object];
             [object release];
         } else {

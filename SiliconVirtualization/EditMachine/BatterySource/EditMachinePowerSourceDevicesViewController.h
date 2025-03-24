@@ -1,5 +1,5 @@
 //
-//  EditMachineBatterySourceDevicesViewController.h
+//  EditMachinePowerSourceDevicesViewController.h
 //  SiliconVirtualization
 //
 //  Created by Jinwoo Kim on 3/24/25.
@@ -10,12 +10,12 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class EditMachineBatterySourceDevicesViewController;
-@protocol EditMachineBatterySourceDevicesViewControllerDelegate <NSObject>
-- (void)editMachineBatterySourceDevicesViewController:(EditMachineBatterySourceDevicesViewController *)editMachineBatterySourceDevicesViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration;
+@class EditMachinePowerSourceDevicesViewController;
+@protocol EditMachinePowerSourceDevicesViewControllerDelegate <NSObject>
+- (void)editMachinePowerSourceDevicesViewController:(EditMachinePowerSourceDevicesViewController *)editMachinePowerSourceDevicesViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration;
 @end
 
-@interface EditMachineBatterySourceDevicesViewController : NSViewController
+@interface EditMachinePowerSourceDevicesViewController : NSViewController
 + (instancetype)new NS_UNAVAILABLE;
 - (instancetype)init NS_UNAVAILABLE;
 - (instancetype)initWithNibName:(nullable NSNibName)nibNameOrNil bundle:(nullable NSBundle *)nibBundleOrNil NS_UNAVAILABLE;
@@ -23,7 +23,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (instancetype)initWithConfiguration:(VZVirtualMachineConfiguration *)configuration;
 
 @property (copy, nonatomic) VZVirtualMachineConfiguration *configuration;
-@property (assign, nonatomic, nullable) id<EditMachineBatterySourceDevicesViewControllerDelegate> delegate;
+@property (assign, nonatomic, nullable) id<EditMachinePowerSourceDevicesViewControllerDelegate> delegate;
 @end
 
 NS_ASSUME_NONNULL_END

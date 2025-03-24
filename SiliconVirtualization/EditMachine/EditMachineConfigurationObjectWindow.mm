@@ -41,12 +41,12 @@
 }
 
 - (instancetype)init {
-    self = [super initWithContentRect:NSMakeRect(0., 0., 400, 600.) styleMask:NSWindowStyleMaskBorderless | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable | NSWindowStyleMaskTitled backing:NSBackingStoreBuffered defer:NO];
+    self = [super initWithContentRect:NSMakeRect(0., 0., 400, 200.) styleMask:NSWindowStyleMaskBorderless | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable | NSWindowStyleMaskTitled backing:NSBackingStoreBuffered defer:NO];
     
     if (self) {
         self.title = @"Edit";
         self.releasedWhenClosed = NO;
-        self.contentMinSize = NSMakeSize(400., 600.);
+        self.contentMinSize = NSMakeSize(400., 200.);
         
         NSViewController *contentViewController = [NSViewController new];
         self.contentViewController = contentViewController;

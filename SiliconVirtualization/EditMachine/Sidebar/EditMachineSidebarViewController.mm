@@ -161,6 +161,7 @@
     EditMachineSidebarItemModel *keyboardsItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeKeyboards];
     EditMachineSidebarItemModel *networksItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeNetworks];
     EditMachineSidebarItemModel *graphicsItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeGraphics];
+    EditMachineSidebarItemModel *powerSourceDevicesItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypePowerSourceDevices];
     EditMachineSidebarItemModel *pointingDevicesItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypePointingDevices];
     EditMachineSidebarItemModel *storagesItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeStorages];
     EditMachineSidebarItemModel *audioItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeAudio];
@@ -176,6 +177,7 @@
         keyboardsItemModel,
         networksItemModel,
         graphicsItemModel,
+        powerSourceDevicesItemModel,
         pointingDevicesItemModel,
         storagesItemModel,
         usbItemModel,
@@ -190,6 +192,7 @@
     [keyboardsItemModel release];
     [networksItemModel release];
     [graphicsItemModel release];
+    [powerSourceDevicesItemModel release];
     [pointingDevicesItemModel release];
     [storagesItemModel release];
     [audioItemModel release];

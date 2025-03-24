@@ -16,7 +16,7 @@
 #import "SVAudioDeviceConfiguration.h"
 #import "SVUSBControllerConfiguration.h"
 #import "SVDirectorySharingDeviceConfiguration.h"
-#import "SVMacBatterySource.h"
+#import "SVPowerSourceDeviceConfiguration.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -35,7 +35,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (retain, nonatomic, nullable) NSOrderedSet<SVNetworkDeviceConfiguration *> *networkDevices;
 @property (retain, nonatomic, nullable) SVPlatformConfiguration *platform;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVPointingDeviceConfiguration *> *pointingDevices;
-@property (retain, nonatomic, nullable) NSOrderedSet<SVMacBatterySource *> *powerSourceDevices;
+@property (nullable, nonatomic, retain) NSOrderedSet<SVPowerSourceDeviceConfiguration *> *powerSourceDevices;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVStorageDeviceConfiguration *> *storageDevices;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVUSBControllerConfiguration *> *usbControllers;
 
@@ -105,16 +105,16 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)addPointingDevices:(NSOrderedSet<SVPointingDeviceConfiguration *> *)values;
 - (void)removePointingDevices:(NSOrderedSet<SVPointingDeviceConfiguration *> *)values;
 
-- (void)insertObject:(SVMacBatterySource *)value inPowerSourceDevicesAtIndex:(NSUInteger)idx;
+- (void)insertObject:(SVPowerSourceDeviceConfiguration *)value inPowerSourceDevicesAtIndex:(NSUInteger)idx;
 - (void)removeObjectFromPowerSourceDevicesAtIndex:(NSUInteger)idx;
-- (void)insertPowerSourceDevices:(NSArray<SVMacBatterySource *> *)value atIndexes:(NSIndexSet *)indexes;
+- (void)insertPowerSourceDevices:(NSArray<SVPowerSourceDeviceConfiguration *> *)value atIndexes:(NSIndexSet *)indexes;
 - (void)removePowerSourceDevicesAtIndexes:(NSIndexSet *)indexes;
-- (void)replaceObjectInPowerSourceDevicesAtIndex:(NSUInteger)idx withObject:(SVMacBatterySource *)value;
-- (void)replacePowerSourceDevicesAtIndexes:(NSIndexSet *)indexes withPowerSourceDevices:(NSArray<SVMacBatterySource *> *)values;
-- (void)addPowerSourceDevicesObject:(SVMacBatterySource *)value;
-- (void)removePowerSourceDevicesObject:(SVMacBatterySource *)value;
-- (void)addPowerSourceDevices:(NSOrderedSet<SVMacBatterySource *> *)values;
-- (void)removePowerSourceDevices:(NSOrderedSet<SVMacBatterySource *> *)values;
+- (void)replaceObjectInPowerSourceDevicesAtIndex:(NSUInteger)idx withObject:(SVPowerSourceDeviceConfiguration *)value;
+- (void)replacePowerSourceDevicesAtIndexes:(NSIndexSet *)indexes withPowerSourceDevices:(NSArray<SVPowerSourceDeviceConfiguration *> *)values;
+- (void)addPowerSourceDevicesObject:(SVPowerSourceDeviceConfiguration *)value;
+- (void)removePowerSourceDevicesObject:(SVPowerSourceDeviceConfiguration *)value;
+- (void)addPowerSourceDevices:(NSOrderedSet<SVPowerSourceDeviceConfiguration *> *)values;
+- (void)removePowerSourceDevices:(NSOrderedSet<SVPowerSourceDeviceConfiguration *> *)values;
 
 - (void)insertObject:(SVStorageDeviceConfiguration *)value inStorageDevicesAtIndex:(NSUInteger)idx;
 - (void)removeObjectFromStorageDevicesAtIndex:(NSUInteger)idx;

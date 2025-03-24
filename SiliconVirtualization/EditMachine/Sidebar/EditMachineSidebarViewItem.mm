@@ -121,6 +121,10 @@
             textField.stringValue = @"Pointing Devices";
             break;
         }
+        case EditMachineSidebarItemModelTypePowerSourceDevices: {
+            textField.stringValue = @"Power Source Devices";
+            break;
+        }
         case EditMachineSidebarItemModelTypeGraphics: {
             textField.stringValue = @"Graphics";
             break;
@@ -173,6 +177,10 @@
         }
         case EditMachineSidebarItemModelTypePointingDevices: {
             imageView.image = [NSImage imageWithSystemSymbolName:@"cursorarrow" accessibilityDescription:nil];
+            break;
+        }
+        case EditMachineSidebarItemModelTypePowerSourceDevices: {
+            imageView.image = [NSImage imageWithSystemSymbolName:selected ? @"battery.100percent" : @"battery.0percent" accessibilityDescription:nil];
             break;
         }
         case EditMachineSidebarItemModelTypeMemory: {
