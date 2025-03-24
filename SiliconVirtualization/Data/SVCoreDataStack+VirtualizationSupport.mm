@@ -30,7 +30,7 @@
     virtualMachineConfigurationObject.pointingDevices = [self _isolated_makeManagedObjectsFromPointingDevices:virtualMachineConfiguration.pointingDevices];
     virtualMachineConfigurationObject.graphicsDevices = [self _isolated_makeManagedObjectsFromGraphicsDevices:virtualMachineConfiguration.graphicsDevices];
     
-    NSArray *powerSourceDevices = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(virtualMachineConfiguration, sel_registerName("powerSourceDevices"));
+    NSArray *powerSourceDevices = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(virtualMachineConfiguration, sel_registerName("_powerSourceDevices"));
     virtualMachineConfigurationObject.powerSourceDevices = [self _isolated_makeManagedObjectsFromPowerSourceDevices:powerSourceDevices];
     
     virtualMachineConfigurationObject.storageDevices = [self _isolated_makeManagedObjectsFromStorageDevices:virtualMachineConfiguration.storageDevices];
@@ -616,7 +616,7 @@
     virtualMachineConfiguration.pointingDevices = [self _isolated_makeManagedObjectsFromPointingDevices:machineConfiguration.pointingDevices];
     virtualMachineConfiguration.graphicsDevices = [self _isolated_makeManagedObjectsFromGraphicsDevices:machineConfiguration.graphicsDevices];
     
-    NSArray *powerSourceDevices = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(machineConfiguration, sel_registerName("powerSourceDevices"));
+    NSArray *powerSourceDevices = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(machineConfiguration, sel_registerName("_powerSourceDevices"));
     virtualMachineConfiguration.powerSourceDevices = [self _isolated_makeManagedObjectsFromPowerSourceDevices:powerSourceDevices];
     
     virtualMachineConfiguration.storageDevices = [self _isolated_makeManagedObjectsFromStorageDevices:machineConfiguration.storageDevices];
