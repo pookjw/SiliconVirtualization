@@ -17,6 +17,7 @@
 #import "SVUSBControllerConfiguration.h"
 #import "SVDirectorySharingDeviceConfiguration.h"
 #import "SVPowerSourceDeviceConfiguration.h"
+#import "SVBiometricDeviceConfiguration.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -27,6 +28,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (retain, nonatomic, nullable) NSNumber *cpuCount;
 @property (retain, nonatomic, nullable) NSNumber *memorySize;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVAudioDeviceConfiguration *> *audioDevices;
+@property (nullable, nonatomic, retain) NSOrderedSet<SVBiometricDeviceConfiguration *> *biometricDevices;
 @property (retain, nonatomic, nullable) SVBootLoader *bootLoader;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVDirectorySharingDeviceConfiguration *> *directorySharingDevices;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVGraphicsDeviceConfiguration *> *graphicsDevices;
@@ -49,6 +51,17 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)removeAudioDevicesObject:(SVAudioDeviceConfiguration *)value;
 - (void)addAudioDevices:(NSOrderedSet<SVAudioDeviceConfiguration *> *)values;
 - (void)removeAudioDevices:(NSOrderedSet<SVAudioDeviceConfiguration *> *)values;
+
+- (void)insertObject:(SVBiometricDeviceConfiguration *)value inBiometricDevicesAtIndex:(NSUInteger)idx;
+- (void)removeObjectFromBiometricDevicesAtIndex:(NSUInteger)idx;
+- (void)insertBiometricDevices:(NSArray<SVBiometricDeviceConfiguration *> *)value atIndexes:(NSIndexSet *)indexes;
+- (void)removeBiometricDevicesAtIndexes:(NSIndexSet *)indexes;
+- (void)replaceObjectInBiometricDevicesAtIndex:(NSUInteger)idx withObject:(SVBiometricDeviceConfiguration *)value;
+- (void)replaceBiometricDevicesAtIndexes:(NSIndexSet *)indexes withBiometricDevices:(NSArray<SVBiometricDeviceConfiguration *> *)values;
+- (void)addBiometricDevicesObject:(SVBiometricDeviceConfiguration *)value;
+- (void)removeBiometricDevicesObject:(SVBiometricDeviceConfiguration *)value;
+- (void)addBiometricDevices:(NSOrderedSet<SVBiometricDeviceConfiguration *> *)values;
+- (void)removeBiometricDevices:(NSOrderedSet<SVBiometricDeviceConfiguration *> *)values;
 
 - (void)insertObject:(SVDirectorySharingDeviceConfiguration *)value inDirectorySharingDevicesAtIndex:(NSUInteger)idx;
 - (void)removeObjectFromDirectorySharingDevicesAtIndex:(NSUInteger)idx;

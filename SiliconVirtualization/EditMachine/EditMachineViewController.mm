@@ -20,10 +20,11 @@
 #import "EditMachineUSBViewController.h"
 #import "EditMachineDirectorySharingViewController.h"
 #import "EditMachinePowerSourceDevicesViewController.h"
+#import "EditMachineBiometricDevicesViewController.h"
 #import <objc/message.h>
 #import <objc/runtime.h>
 
-@interface EditMachineViewController () <EditMachineSidebarViewControllerDelegate, EditMachineBootLoaderViewControllerDelegate, EditMachineCPUViewControllerDelegate, EditMachineMemoryViewControllerDelegate, EditMachineKeyboardsViewControllerDelegate, EditMachineNetworksViewControllerDelegate, EditMachinePointingDevicesViewControllerDelegate, EditMachineGraphicsViewControllerDelegate, EditMachineStoragesViewControllerDelegate, EditMachinePlatformViewControllerDelegate, EditMachineAudioDevicesViewControllerDelegate, EditMachineUSBViewControllerDelegate, EditMachineDirectorySharingViewControllerDelegate, EditMachinePowerSourceDevicesViewControllerDelegate>
+@interface EditMachineViewController () <EditMachineSidebarViewControllerDelegate, EditMachineBootLoaderViewControllerDelegate, EditMachineCPUViewControllerDelegate, EditMachineMemoryViewControllerDelegate, EditMachineKeyboardsViewControllerDelegate, EditMachineNetworksViewControllerDelegate, EditMachinePointingDevicesViewControllerDelegate, EditMachineGraphicsViewControllerDelegate, EditMachineStoragesViewControllerDelegate, EditMachinePlatformViewControllerDelegate, EditMachineAudioDevicesViewControllerDelegate, EditMachineUSBViewControllerDelegate, EditMachineDirectorySharingViewControllerDelegate, EditMachinePowerSourceDevicesViewControllerDelegate, EditMachineBiometricDevicesViewControllerDelegate>
 @property (retain, nonatomic, readonly, getter=_splitViewController) NSSplitViewController *splitViewController;
 
 @property (retain, nonatomic, readonly, getter=_bootLoaderViewController) EditMachineBootLoaderViewController *bootLoaderViewController;
@@ -67,6 +68,9 @@
 
 @property (retain, nonatomic, readonly, getter=_directorySharingViewController) EditMachineDirectorySharingViewController *directorySharingViewController;
 @property (retain, nonatomic, readonly, getter=_directorySharingSplitViewItem) NSSplitViewItem *directorySharingSplitViewItem;
+
+@property (retain, nonatomic, readonly, getter=_biometricDevicesViewController) EditMachineBiometricDevicesViewController *biometricDevicesViewController;
+@property (retain, nonatomic, readonly, getter=_biometricDevicesSplitViewItem) NSSplitViewItem *biometricDevicesSplitViewItem;
 @end
 
 @implementation EditMachineViewController
@@ -99,6 +103,8 @@
 @synthesize powerSourceDevicesSplitViewItem = _powerSourceDevicesSplitViewItem;
 @synthesize directorySharingViewController = _directorySharingViewController;
 @synthesize directorySharingSplitViewItem = _directorySharingSplitViewItem;
+@synthesize biometricDevicesViewController = _biometricDevicesViewController;
+@synthesize biometricDevicesSplitViewItem = _biometricDevicesSplitViewItem;
 
 - (instancetype)initWithConfiguration:(VZVirtualMachineConfiguration *)configuration {
     if (self = [super init]) {
@@ -139,6 +145,8 @@
     [_powerSourceDevicesSplitViewItem release];
     [_directorySharingViewController release];
     [_directorySharingSplitViewItem release];
+    [_biometricDevicesViewController release];
+    [_biometricDevicesSplitViewItem release];
     [super dealloc];
 }
 
@@ -435,6 +443,25 @@
     return directorySharingSplitViewItem;
 }
 
+- (EditMachineBiometricDevicesViewController *)_biometricDevicesViewController {
+    if (auto biometricDevicesViewController = _biometricDevicesViewController) return biometricDevicesViewController;
+    
+    EditMachineBiometricDevicesViewController *biometricDevicesViewController = [[EditMachineBiometricDevicesViewController alloc] initWithConfiguration:self.configuration];
+    biometricDevicesViewController.delegate = self;
+    
+    _biometricDevicesViewController = biometricDevicesViewController;
+    return biometricDevicesViewController;
+}
+
+- (NSSplitViewItem *)_biometricDevicesSplitViewItem {
+    if (auto biometricDevicesSplitViewItem = _biometricDevicesSplitViewItem) return biometricDevicesSplitViewItem;
+    
+    NSSplitViewItem *biometricDevicesSplitViewItem = [NSSplitViewItem contentListWithViewController:self.biometricDevicesViewController];
+    
+    _biometricDevicesSplitViewItem = [biometricDevicesSplitViewItem retain];
+    return biometricDevicesSplitViewItem;
+}
+
 - (void)_notifyDelegate {
     if (auto delegate = self.delegate) {
         [delegate editMachineViewController:self didUpdateConfiguration:self.configuration];
@@ -508,6 +535,11 @@
             self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.directorySharingSplitViewItem];
             break;
         }
+        case EditMachineSidebarItemModelTypeBiometicDevice: {
+            self.biometricDevicesViewController.configuration = self.configuration;
+            self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.biometricDevicesSplitViewItem];
+            break;
+        }
         default:
             abort();
     }
@@ -574,6 +606,11 @@
 }
 
 - (void)editMachinePowerSourceDevicesViewController:(EditMachinePowerSourceDevicesViewController *)editMachinePowerSourceDevicesViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
+    self.configuration = configuration;
+    [self _notifyDelegate];
+}
+
+- (void)editMachineBiometricDevicesViewController:(EditMachineBiometricDevicesViewController *)editMachineBiometricDevicesViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
     self.configuration = configuration;
     [self _notifyDelegate];
 }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23786.1" systemVersion="24E5238a" minimumToolsVersion="Automatic" sourceLanguage="Objective-C" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23787" systemVersion="24E246" minimumToolsVersion="Automatic" sourceLanguage="Objective-C" userDefinedModelVersionIdentifier="">
     <entity name="AudioDeviceConfiguration" representedClassName="SVAudioDeviceConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="audioDevices" inverseEntity="VirtualMachineConfiguration"/>
     </entity>
@@ -8,6 +8,9 @@
     </entity>
     <entity name="AudioOutputStreamSink" representedClassName="SVAudioOutputStreamSink" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <relationship name="outputStream" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtioSoundDeviceOutputStreamConfiguration" inverseName="sink" inverseEntity="VirtioSoundDeviceOutputStreamConfiguration"/>
+    </entity>
+    <entity name="BiometricDeviceConfiguration" representedClassName="SVBiometricDeviceConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class">
+        <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="biometricDevices" inverseEntity="VirtualMachineConfiguration"/>
     </entity>
     <entity name="BootLoader" representedClassName="SVBootLoader" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="bootLoader" inverseEntity="VirtualMachineConfiguration"/>
@@ -93,6 +96,7 @@
         <attribute name="charge" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="connectivity" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
     </entity>
+    <entity name="MacTouchIDDeviceConfiguration" representedClassName="SVMacTouchIDDeviceConfiguration" parentEntity="BiometricDeviceConfiguration" syncable="YES" codeGenerationType="class"/>
     <entity name="MacTrackpadConfiguration" representedClassName="SVMacTrackpadConfiguration" parentEntity="PointingDeviceConfiguration" syncable="YES" codeGenerationType="class"/>
     <entity name="MacWallPowerSourceDeviceConfiguration" representedClassName="SVMacWallPowerSourceDeviceConfiguration" parentEntity="PowerSourceDeviceConfiguration" syncable="YES" codeGenerationType="class"/>
     <entity name="MultipleDirectoryShare" representedClassName="SVMultipleDirectoryShare" parentEntity="DirectoryShare" syncable="YES" codeGenerationType="class">
@@ -178,6 +182,7 @@
         <attribute name="cpuCount" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromData" customClassName="NSNumber"/>
         <attribute name="memorySize" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromData" customClassName="NSNumber"/>
         <relationship name="audioDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="AudioDeviceConfiguration" inverseName="machine" inverseEntity="AudioDeviceConfiguration"/>
+        <relationship name="biometricDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="BiometricDeviceConfiguration" inverseName="machine" inverseEntity="BiometricDeviceConfiguration"/>
         <relationship name="bootLoader" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="BootLoader" inverseName="machine" inverseEntity="BootLoader"/>
         <relationship name="directorySharingDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="DirectorySharingDeviceConfiguration" inverseName="machine" inverseEntity="DirectorySharingDeviceConfiguration"/>
         <relationship name="graphicsDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="GraphicsDeviceConfiguration" inverseName="machine" inverseEntity="GraphicsDeviceConfiguration"/>

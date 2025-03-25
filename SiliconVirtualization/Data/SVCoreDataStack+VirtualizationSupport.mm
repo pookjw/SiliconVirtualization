@@ -25,6 +25,10 @@
     
     virtualMachineConfigurationObject.keyboards = [self _isolated_makeManagedObjectsFromKeyboards:virtualMachineConfiguration.keyboards];
     virtualMachineConfigurationObject.audioDevices = [self _isolated_makeManagedObjectsFromAudioDevices:virtualMachineConfiguration.audioDevices];
+    
+    NSArray *biometricDevices = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(virtualMachineConfiguration, sel_registerName("_biometricDevices"));
+    virtualMachineConfigurationObject.biometricDevices = [self _isolated_makeManagedObjectsFromBiometricDevices:biometricDevices];
+    
     virtualMachineConfigurationObject.directorySharingDevices = [self _isolated_makeManagedObjectsFromDirectorySharingDevices:virtualMachineConfiguration.directorySharingDevices];
     virtualMachineConfigurationObject.networkDevices = [self _isolated_makeManagedObjectsFromNetworkDevices:virtualMachineConfiguration.networkDevices];
     virtualMachineConfigurationObject.pointingDevices = [self _isolated_makeManagedObjectsFromPointingDevices:virtualMachineConfiguration.pointingDevices];
@@ -220,6 +224,23 @@
     
     virtualMachineConfiguration.audioDevices = audioDevices;
     [audioDevices release];
+    
+    //
+    
+    NSMutableArray *biometricDevices = [[NSMutableArray alloc] initWithCapacity:virtualMachineConfigurationObject.biometricDevices.count];
+    
+    for (__kindof SVBiometricDeviceConfiguration *biometricDeviceConfiguration in virtualMachineConfigurationObject.biometricDevices) {
+        if ([biometricDeviceConfiguration isKindOfClass:[SVMacTouchIDDeviceConfiguration class]]) {
+            id configuration = [objc_lookUpClass("_VZMacTouchIDDeviceConfiguration") new];
+            [biometricDevices addObject:configuration];
+            [configuration release];
+        } else {
+            abort();
+        }
+    }
+    
+    reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(virtualMachineConfiguration, sel_registerName("_setBiometricDevices:"), biometricDevices);
+    [biometricDevices release];
     
     //
     
@@ -627,6 +648,10 @@
     
     virtualMachineConfiguration.keyboards = [self _isolated_makeManagedObjectsFromKeyboards:machineConfiguration.keyboards];
     virtualMachineConfiguration.audioDevices = [self _isolated_makeManagedObjectsFromAudioDevices:machineConfiguration.audioDevices];
+    
+    NSArray *biometricDevices = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(machineConfiguration, sel_registerName("_biometricDevices"));
+    virtualMachineConfiguration.biometricDevices = [self _isolated_makeManagedObjectsFromBiometricDevices:biometricDevices];
+    
     virtualMachineConfiguration.directorySharingDevices = [self _isolated_makeManagedObjectsFromDirectorySharingDevices:machineConfiguration.directorySharingDevices];
     virtualMachineConfiguration.networkDevices = [self _isolated_makeManagedObjectsFromNetworkDevices:machineConfiguration.networkDevices];
     virtualMachineConfiguration.pointingDevices = [self _isolated_makeManagedObjectsFromPointingDevices:machineConfiguration.pointingDevices];
@@ -709,6 +734,23 @@
     }
     
     return [platformConfigurationObject autorelease];
+}
+
+- (NSOrderedSet<__kindof SVBiometricDeviceConfiguration *> *)_isolated_makeManagedObjectsFromBiometricDevices:(NSArray *)biometricDevices {
+    NSManagedObjectContext *managedObjectContext = self.backgroundContext;
+    NSMutableOrderedSet<__kindof SVBiometricDeviceConfiguration *> *biometricDeviceObjects = [[NSMutableOrderedSet alloc] initWithCapacity:biometricDevices.count];
+    
+    for (id biometricDevice in biometricDevices) {
+        if ([biometricDevice isKindOfClass:objc_lookUpClass("_VZMacTouchIDDeviceConfiguration")]) {
+            SVMacTouchIDDeviceConfiguration *object = [[SVMacTouchIDDeviceConfiguration alloc] initWithContext:managedObjectContext];
+            [biometricDeviceObjects addObject:object];
+            [object release];
+        } else {
+            abort();
+        }
+    }
+    
+    return [biometricDeviceObjects autorelease];
 }
 
 - (NSOrderedSet<__kindof SVKeyboardConfiguration *> *)_isolated_makeManagedObjectsFromKeyboards:(NSArray<__kindof VZKeyboardConfiguration *> *)keyboards {

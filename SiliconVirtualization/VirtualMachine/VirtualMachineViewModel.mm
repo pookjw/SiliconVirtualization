@@ -67,25 +67,49 @@
         
         VZVirtualMachineConfiguration *configuration = [stack isolated_makeVirtualMachineConfigurationFromManagedObject:configurationObject];
         
-//        {
-//            id tdc = [objc_lookUpClass("_VZMacTouchIDDeviceConfiguration") new];
-//            reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(configuration, sel_registerName("_setBiometricDevices:"), @[tdc]);
-//            [tdc release];
-//            
-//            NSError * _Nullable error = nil;
-//            [configuration validateWithError:&error];
-//            assert(error == nil);
-//        }
-//        
-//        {
-//            id nedc = [objc_lookUpClass("_VZMacNeuralEngineDeviceConfiguration") new];
-//            reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(configuration, sel_registerName("_setAcceleratorDevices:"), @[nedc]);
-//            [nedc release];
-//            
-//            NSError * _Nullable error = nil;
-//            [configuration validateWithError:&error];
-//            assert(error == nil);
-//        }
+        {
+            id tdc = [objc_lookUpClass("_VZMacTouchIDDeviceConfiguration") new];
+            reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(configuration, sel_registerName("_setBiometricDevices:"), @[tdc]);
+            [tdc release];
+            
+            NSError * _Nullable error = nil;
+            [configuration validateWithError:&error];
+            assert(error == nil);
+        }
+        
+        {
+            __block NSURL *URL;
+            dispatch_sync(dispatch_get_main_queue(), ^{
+                NSSavePanel *panel = [NSSavePanel new];
+                [panel runModal];
+                URL = [panel.URL copy];
+                [panel release];
+            });
+            
+            NSError * _Nullable error = nil;
+            assert([URL startAccessingSecurityScopedResource]);
+            id storage = reinterpret_cast<id (*)(id, SEL, id, id *)>(objc_msgSend)([objc_lookUpClass("_VZSEPStorage") alloc], sel_registerName("initCreatingStorageAtURL:error:"), URL, &error);
+            [URL release];
+            assert(error == nil);
+            
+            id sep = reinterpret_cast<id (*)(id, SEL, id)>(objc_msgSend)([objc_lookUpClass("_VZSEPCoprocessorConfiguration") alloc], sel_registerName("initWithStorage:"), storage);
+            [storage release];
+            
+            reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(configuration, sel_registerName("_setCoprocessors:"), @[sep]);
+            [sep release];
+        }
+        {
+            id nedc = [objc_lookUpClass("_VZMacNeuralEngineDeviceConfiguration") new];
+//            reinterpret_cast<void (*)(id, SEL, BOOL)>(objc_msgSend)(nedc, sel_registerName("_setSignatureMismatchAllowed:"), YES);
+            id ad = [objc_lookUpClass("_VZMacScalerAcceleratorDeviceConfiguration") new];
+            reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(configuration, sel_registerName("_setAcceleratorDevices:"), @[nedc, ad]);
+            [nedc release];
+            [ad release];
+            
+            NSError * _Nullable error = nil;
+            [configuration validateWithError:&error];
+            assert(error == nil);
+        }
         
 //        {
 //            id config = [objc_lookUpClass("_VZMacBatteryPowerSourceDeviceConfiguration") new];

@@ -773,6 +773,25 @@
         ];
     }
     
+    NSEntityDescription *macTouchIDDeviceConfigurationEntity;
+    {
+        macTouchIDDeviceConfigurationEntity = [NSEntityDescription new];
+        macTouchIDDeviceConfigurationEntity.name = @"MacTouchIDDeviceConfiguration";
+        macTouchIDDeviceConfigurationEntity.managedObjectClassName = NSStringFromClass([SVMacTouchIDDeviceConfiguration class]);
+    }
+    
+    NSEntityDescription *biometricDeviceConfigurationEntity;
+    {
+        biometricDeviceConfigurationEntity = [NSEntityDescription new];
+        biometricDeviceConfigurationEntity.name = @"BiometricDeviceConfiguration";
+        biometricDeviceConfigurationEntity.managedObjectClassName = NSStringFromClass([SVBiometricDeviceConfiguration class]);
+        
+        biometricDeviceConfigurationEntity.abstract = YES;
+        biometricDeviceConfigurationEntity.subentities = @[
+            macTouchIDDeviceConfigurationEntity
+        ];
+    }
+    
     //
     
     {
@@ -1658,6 +1677,35 @@
         [macBatterySource_batteryPowerSourceDevice_relationship release];
     }
     
+    {
+        NSRelationshipDescription *virtualMachineConfiguration_biometricDevices_relationship = [NSRelationshipDescription new];
+        virtualMachineConfiguration_biometricDevices_relationship.name = @"biometricDevices";
+        virtualMachineConfiguration_biometricDevices_relationship.optional = YES;
+        virtualMachineConfiguration_biometricDevices_relationship.minCount = 0;
+        virtualMachineConfiguration_biometricDevices_relationship.maxCount = 0;
+        assert(virtualMachineConfiguration_biometricDevices_relationship.toMany);
+        virtualMachineConfiguration_biometricDevices_relationship.ordered = YES;
+        virtualMachineConfiguration_biometricDevices_relationship.destinationEntity = biometricDeviceConfigurationEntity;
+        virtualMachineConfiguration_biometricDevices_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *biometricDeviceConfigurationEntity_machine_relationship = [NSRelationshipDescription new];
+        biometricDeviceConfigurationEntity_machine_relationship.name = @"machine";
+        biometricDeviceConfigurationEntity_machine_relationship.minCount = 0;
+        biometricDeviceConfigurationEntity_machine_relationship.maxCount = 1;
+        assert(!biometricDeviceConfigurationEntity_machine_relationship.toMany);
+        biometricDeviceConfigurationEntity_machine_relationship.destinationEntity = virtualMachineConfigurationEntity;
+        biometricDeviceConfigurationEntity_machine_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        virtualMachineConfiguration_biometricDevices_relationship.inverseRelationship = biometricDeviceConfigurationEntity_machine_relationship;
+        biometricDeviceConfigurationEntity_machine_relationship.inverseRelationship = virtualMachineConfiguration_biometricDevices_relationship;
+        
+        virtualMachineConfigurationEntity.properties = [virtualMachineConfigurationEntity.properties arrayByAddingObject:virtualMachineConfiguration_biometricDevices_relationship];
+        biometricDeviceConfigurationEntity.properties = [biometricDeviceConfigurationEntity.properties arrayByAddingObject:biometricDeviceConfigurationEntity_machine_relationship];
+        
+        [virtualMachineConfiguration_biometricDevices_relationship release];
+        [biometricDeviceConfigurationEntity_machine_relationship release];
+    }
+    
     //
     
     managedObjectModel.entities = @[
@@ -1720,7 +1768,9 @@
         macBatterySourceEntity,
         macBatteryPowerSourceDeviceConfigurationEntity,
         macWallPowerSourceDeviceConfigurationEntity,
-        powerSourceDeviceConfigurationEntity
+        powerSourceDeviceConfigurationEntity,
+        macTouchIDDeviceConfigurationEntity,
+        biometricDeviceConfigurationEntity
     ];
     
     for (NSEntityDescription *entity in managedObjectModel.entities) {
@@ -1793,6 +1843,8 @@
     [macBatteryPowerSourceDeviceConfigurationEntity release];
     [macWallPowerSourceDeviceConfigurationEntity release];
     [powerSourceDeviceConfigurationEntity release];
+    [macTouchIDDeviceConfigurationEntity release];
+    [biometricDeviceConfigurationEntity release];
     
     return [managedObjectModel autorelease];
 }

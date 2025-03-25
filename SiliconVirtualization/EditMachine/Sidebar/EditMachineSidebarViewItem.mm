@@ -141,6 +141,10 @@
             textField.stringValue = @"Directory Sharing";
             break;
         }
+        case EditMachineSidebarItemModelTypeBiometicDevice: {
+            textField.stringValue = @"Biometrics";
+            break;
+        }
         default:
             abort();
     }
@@ -201,6 +205,10 @@
         }
         case EditMachineSidebarItemModelTypeDirectorySharing: {
             imageView.image = [NSImage imageWithSystemSymbolName:selected ? @"folder.fill" : @"folder" accessibilityDescription:nil];
+            break;
+        }
+        case EditMachineSidebarItemModelTypeBiometicDevice: {
+            imageView.image = [NSImage imageWithSystemSymbolName:@"touchid" accessibilityDescription:nil];
             break;
         }
         default:

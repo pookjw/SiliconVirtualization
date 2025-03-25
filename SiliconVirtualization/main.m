@@ -20,3 +20,12 @@ int main(int argc, const char * argv[]) {
     
     return 0;
 }
+
+/*
+ _VZSEPCoprocessorConfiguration
+ _VZSEPStorage
+ -[VZVirtualMachineConfiguration(VZPrivate) _setCoprocessors:]
+ 
+ _VZMacTouchIDDeviceConfiguration
+ _setBiometricDevices
+ */
