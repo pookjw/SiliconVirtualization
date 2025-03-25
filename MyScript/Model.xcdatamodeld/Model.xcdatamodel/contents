@@ -15,6 +15,9 @@
     <entity name="BootLoader" representedClassName="SVBootLoader" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="bootLoader" inverseEntity="VirtualMachineConfiguration"/>
     </entity>
+    <entity name="CoprocessorConfiguration" representedClassName="SVCoprocessorConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class">
+        <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="coprocessors" inverseEntity="VirtualMachineConfiguration"/>
+    </entity>
     <entity name="DirectoryShare" representedClassName="SVDirectoryShare" syncable="YES" codeGenerationType="class">
         <relationship name="fileSystemDevice" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtioFileSystemDeviceConfiguration" inverseName="share" inverseEntity="VirtioFileSystemDeviceConfiguration"/>
     </entity>
@@ -120,7 +123,15 @@
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="pointingDevices" inverseEntity="VirtualMachineConfiguration"/>
     </entity>
     <entity name="PowerSourceDeviceConfiguration" representedClassName="SVPowerSourceDeviceConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class">
-        <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration"/>
+        <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="powerSourceDevices" inverseEntity="VirtualMachineConfiguration"/>
+    </entity>
+    <entity name="SEPCoprocessorConfiguration" representedClassName="SVSEPCoprocessorConfiguration" parentEntity="CoprocessorConfiguration" syncable="YES" codeGenerationType="class">
+        <attribute name="romBinaryBookmarkData" optional="YES" attributeType="Binary"/>
+        <relationship name="storage" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="SEPStorage" inverseName="sepCoprocessor" inverseEntity="SEPStorage"/>
+    </entity>
+    <entity name="SEPStorage" representedClassName="SVSEPStorage" syncable="YES" codeGenerationType="class">
+        <attribute name="bookmarkData" optional="YES" attributeType="Binary"/>
+        <relationship name="sepCoprocessor" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SEPCoprocessorConfiguration" inverseName="storage" inverseEntity="SEPCoprocessorConfiguration"/>
     </entity>
     <entity name="SharedDirectory" representedClassName="SVSharedDirectory" syncable="YES" codeGenerationType="class">
         <attribute name="bookmarkData" optional="YES" attributeType="Binary"/>
@@ -184,6 +195,7 @@
         <relationship name="audioDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="AudioDeviceConfiguration" inverseName="machine" inverseEntity="AudioDeviceConfiguration"/>
         <relationship name="biometricDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="BiometricDeviceConfiguration" inverseName="machine" inverseEntity="BiometricDeviceConfiguration"/>
         <relationship name="bootLoader" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="BootLoader" inverseName="machine" inverseEntity="BootLoader"/>
+        <relationship name="coprocessors" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="CoprocessorConfiguration" inverseName="machine" inverseEntity="CoprocessorConfiguration"/>
         <relationship name="directorySharingDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="DirectorySharingDeviceConfiguration" inverseName="machine" inverseEntity="DirectorySharingDeviceConfiguration"/>
         <relationship name="graphicsDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="GraphicsDeviceConfiguration" inverseName="machine" inverseEntity="GraphicsDeviceConfiguration"/>
         <relationship name="keyboards" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="KeyboardConfiguration" inverseName="machine" inverseEntity="KeyboardConfiguration"/>
@@ -191,7 +203,7 @@
         <relationship name="networkDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="NetworkDeviceConfiguration" inverseName="machine" inverseEntity="NetworkDeviceConfiguration"/>
         <relationship name="platform" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="PlatformConfiguration" inverseName="machine" inverseEntity="PlatformConfiguration"/>
         <relationship name="pointingDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="PointingDeviceConfiguration" inverseName="machine" inverseEntity="PointingDeviceConfiguration"/>
-        <relationship name="powerSourceDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="PowerSourceDeviceConfiguration"/>
+        <relationship name="powerSourceDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="PowerSourceDeviceConfiguration" inverseName="machine" inverseEntity="PowerSourceDeviceConfiguration"/>
         <relationship name="storageDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="StorageDeviceConfiguration" inverseName="machine" inverseEntity="StorageDeviceConfiguration"/>
         <relationship name="usbControllers" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="USBControllerConfiguration" inverseName="machine" inverseEntity="USBControllerConfiguration"/>
     </entity>

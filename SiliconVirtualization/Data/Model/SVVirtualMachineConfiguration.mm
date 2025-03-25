@@ -27,6 +27,7 @@
 @dynamic powerSourceDevices;
 @dynamic storageDevices;
 @dynamic usbControllers;
+@dynamic coprocessors;
 
 + (NSFetchRequest<SVVirtualMachineConfiguration *> *)fetchRequest {
     return [NSFetchRequest fetchRequestWithEntityName:@"VirtualMachineConfiguration"];

@@ -168,6 +168,7 @@
     EditMachineSidebarItemModel *usbItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeUSB];
     EditMachineSidebarItemModel *directorySharingItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeDirectorySharing];
     EditMachineSidebarItemModel *biometicDeviceItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeBiometicDevice];
+    EditMachineSidebarItemModel *coprocessorsItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeCoprocessors];
     
     [snapshot appendItemsWithIdentifiers:@[
         bootLoaderItemModel,
@@ -183,7 +184,8 @@
         storagesItemModel,
         usbItemModel,
         directorySharingItemModel,
-        biometicDeviceItemModel
+        biometicDeviceItemModel,
+        coprocessorsItemModel
     ]
                intoSectionWithIdentifier:[NSNull null]];
     
@@ -201,6 +203,7 @@
     [usbItemModel release];
     [directorySharingItemModel release];
     [biometicDeviceItemModel release];
+    [coprocessorsItemModel release];
     
     [self.dataSource applySnapshot:snapshot animatingDifferences:YES];
     [snapshot release];

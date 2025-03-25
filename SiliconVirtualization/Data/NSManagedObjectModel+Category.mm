@@ -792,6 +792,54 @@
         ];
     }
     
+    NSEntityDescription *SEPCoprocessorConfigurationEntity;
+    {
+        SEPCoprocessorConfigurationEntity = [NSEntityDescription new];
+        SEPCoprocessorConfigurationEntity.name = @"SEPCoprocessorConfiguration";
+        SEPCoprocessorConfigurationEntity.managedObjectClassName = NSStringFromClass([SVSEPCoprocessorConfiguration class]);
+        
+        NSAttributeDescription *romBinaryBookmarkDataAttribute = [NSAttributeDescription new];
+        romBinaryBookmarkDataAttribute.name = @"romBinaryBookmarkData";
+        romBinaryBookmarkDataAttribute.optional = YES;
+        romBinaryBookmarkDataAttribute.attributeType = NSBinaryDataAttributeType;
+        
+        SEPCoprocessorConfigurationEntity.properties = @[
+            romBinaryBookmarkDataAttribute
+        ];
+        
+        [romBinaryBookmarkDataAttribute release];
+    }
+    
+    NSEntityDescription *coprocessorConfigurationEntity;
+    {
+        coprocessorConfigurationEntity = [NSEntityDescription new];
+        coprocessorConfigurationEntity.name = @"CoprocessorConfiguration";
+        coprocessorConfigurationEntity.managedObjectClassName = NSStringFromClass([SVCoprocessorConfiguration class]);
+        
+        coprocessorConfigurationEntity.abstract = YES;
+        coprocessorConfigurationEntity.subentities = @[
+            SEPCoprocessorConfigurationEntity
+        ];
+    }
+    
+    NSEntityDescription *SEPStorageEntity;
+    {
+        SEPStorageEntity = [NSEntityDescription new];
+        SEPStorageEntity.name = @"SEPStorage";
+        SEPStorageEntity.managedObjectClassName = NSStringFromClass([SVSEPStorage class]);
+        
+        NSAttributeDescription *bookmarkDataAttribute = [NSAttributeDescription new];
+        bookmarkDataAttribute.name = @"bookmarkData";
+        bookmarkDataAttribute.optional = YES;
+        bookmarkDataAttribute.attributeType = NSBinaryDataAttributeType;
+        
+        SEPStorageEntity.properties = @[
+            bookmarkDataAttribute
+        ];
+        
+        [bookmarkDataAttribute release];
+    }
+    
     //
     
     {
@@ -1706,6 +1754,63 @@
         [biometricDeviceConfigurationEntity_machine_relationship release];
     }
     
+    {
+        NSRelationshipDescription *virtualMachineConfiguration_coprocessors_relationship = [NSRelationshipDescription new];
+        virtualMachineConfiguration_coprocessors_relationship.name = @"coprocessors";
+        virtualMachineConfiguration_coprocessors_relationship.optional = YES;
+        virtualMachineConfiguration_coprocessors_relationship.minCount = 0;
+        virtualMachineConfiguration_coprocessors_relationship.maxCount = 0;
+        assert(virtualMachineConfiguration_coprocessors_relationship.toMany);
+        virtualMachineConfiguration_coprocessors_relationship.ordered = YES;
+        virtualMachineConfiguration_coprocessors_relationship.destinationEntity = coprocessorConfigurationEntity;
+        virtualMachineConfiguration_coprocessors_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *coprocessorConfigurationEntity_machine_relationship = [NSRelationshipDescription new];
+        coprocessorConfigurationEntity_machine_relationship.name = @"machine";
+        coprocessorConfigurationEntity_machine_relationship.minCount = 0;
+        coprocessorConfigurationEntity_machine_relationship.maxCount = 1;
+        assert(!coprocessorConfigurationEntity_machine_relationship.toMany);
+        coprocessorConfigurationEntity_machine_relationship.destinationEntity = virtualMachineConfigurationEntity;
+        coprocessorConfigurationEntity_machine_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        virtualMachineConfiguration_coprocessors_relationship.inverseRelationship = coprocessorConfigurationEntity_machine_relationship;
+        coprocessorConfigurationEntity_machine_relationship.inverseRelationship = virtualMachineConfiguration_coprocessors_relationship;
+        
+        virtualMachineConfigurationEntity.properties = [virtualMachineConfigurationEntity.properties arrayByAddingObject:virtualMachineConfiguration_coprocessors_relationship];
+        coprocessorConfigurationEntity.properties = [coprocessorConfigurationEntity.properties arrayByAddingObject:coprocessorConfigurationEntity_machine_relationship];
+        
+        [virtualMachineConfiguration_coprocessors_relationship release];
+        [coprocessorConfigurationEntity_machine_relationship release];
+    }
+    
+    {
+        NSRelationshipDescription *SEPCoprocessorConfiguration_storage_relationship = [NSRelationshipDescription new];
+        SEPCoprocessorConfiguration_storage_relationship.name = @"storage";
+        SEPCoprocessorConfiguration_storage_relationship.optional = YES;
+        SEPCoprocessorConfiguration_storage_relationship.minCount = 0;
+        SEPCoprocessorConfiguration_storage_relationship.maxCount = 1;
+        assert(!SEPCoprocessorConfiguration_storage_relationship.toMany);
+        SEPCoprocessorConfiguration_storage_relationship.destinationEntity = SEPStorageEntity;
+        SEPCoprocessorConfiguration_storage_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *SEPStorage_sepCoprocessor_relationship = [NSRelationshipDescription new];
+        SEPStorage_sepCoprocessor_relationship.name = @"sepCoprocessor";
+        SEPStorage_sepCoprocessor_relationship.minCount = 0;
+        SEPStorage_sepCoprocessor_relationship.maxCount = 1;
+        assert(!SEPStorage_sepCoprocessor_relationship.toMany);
+        SEPStorage_sepCoprocessor_relationship.destinationEntity = SEPCoprocessorConfigurationEntity;
+        SEPStorage_sepCoprocessor_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        SEPCoprocessorConfiguration_storage_relationship.inverseRelationship = SEPStorage_sepCoprocessor_relationship;
+        SEPStorage_sepCoprocessor_relationship.inverseRelationship = SEPCoprocessorConfiguration_storage_relationship;
+        
+        SEPCoprocessorConfigurationEntity.properties = [SEPCoprocessorConfigurationEntity.properties arrayByAddingObject:SEPCoprocessorConfiguration_storage_relationship];
+        SEPStorageEntity.properties = [SEPStorageEntity.properties arrayByAddingObject:SEPStorage_sepCoprocessor_relationship];
+        
+        [SEPCoprocessorConfiguration_storage_relationship release];
+        [SEPStorage_sepCoprocessor_relationship release];
+    }
+    
     //
     
     managedObjectModel.entities = @[
@@ -1770,7 +1875,10 @@
         macWallPowerSourceDeviceConfigurationEntity,
         powerSourceDeviceConfigurationEntity,
         macTouchIDDeviceConfigurationEntity,
-        biometricDeviceConfigurationEntity
+        biometricDeviceConfigurationEntity,
+        SEPCoprocessorConfigurationEntity,
+        coprocessorConfigurationEntity,
+        SEPStorageEntity
     ];
     
     for (NSEntityDescription *entity in managedObjectModel.entities) {
@@ -1845,6 +1953,9 @@
     [powerSourceDeviceConfigurationEntity release];
     [macTouchIDDeviceConfigurationEntity release];
     [biometricDeviceConfigurationEntity release];
+    [SEPCoprocessorConfigurationEntity release];
+    [coprocessorConfigurationEntity release];
+    [SEPStorageEntity release];
     
     return [managedObjectModel autorelease];
 }

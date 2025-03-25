@@ -23,6 +23,9 @@
     virtualMachineConfigurationObject.cpuCount = @(virtualMachineConfiguration.CPUCount);
     virtualMachineConfigurationObject.memorySize = @(virtualMachineConfiguration.memorySize);
     
+    NSArray *coprocessors = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(virtualMachineConfiguration, sel_registerName("_coprocessors"));
+    virtualMachineConfigurationObject.coprocessors = [self _isolated_makeManagedObjectsFromCoprocessors:coprocessors];
+    
     virtualMachineConfigurationObject.keyboards = [self _isolated_makeManagedObjectsFromKeyboards:virtualMachineConfiguration.keyboards];
     virtualMachineConfigurationObject.audioDevices = [self _isolated_makeManagedObjectsFromAudioDevices:virtualMachineConfiguration.audioDevices];
     
@@ -223,7 +226,71 @@
     }
     
     virtualMachineConfiguration.audioDevices = audioDevices;
-    [audioDevices release];
+    [audioDevices release];//
+    
+    NSMutableArray *coprocessors = [[NSMutableArray alloc] initWithCapacity:virtualMachineConfigurationObject.coprocessors.count];
+    
+    for (__kindof SVCoprocessorConfiguration *coprocessorObject in virtualMachineConfigurationObject.coprocessors) {
+        if ([coprocessorObject isKindOfClass:[SVSEPCoprocessorConfiguration class]]) {
+            auto casted = static_cast<SVSEPCoprocessorConfiguration *>(coprocessorObject);
+            SVSEPStorage *storageObject = casted.storage;
+            NSData *bookmarkData = storageObject.bookmarkData;
+            assert(bookmarkData != nil);
+            
+            NSError * _Nullable error = nil;
+            
+            BOOL stale;
+            NSURL *URL = [[NSURL alloc] initByResolvingBookmarkData:bookmarkData
+                                                            options:NSURLBookmarkResolutionWithoutMounting | NSURLBookmarkResolutionWithSecurityScope
+                                                      relativeToURL:nil
+                                                bookmarkDataIsStale:&stale
+                                                              error:&error];
+            assert(error == nil);
+            
+            if (stale) {
+                URL = [self _refreshStaleURL:URL];
+            }
+            
+            assert([URL startAccessingSecurityScopedResource]);
+            
+            id storage = reinterpret_cast<id (*)(id, SEL, id)>(objc_msgSend)([objc_lookUpClass("_VZSEPStorage") alloc], sel_registerName("initWithURL:"), URL);
+            [URL release];
+            
+            id coprocessor = reinterpret_cast<id (*)(id, SEL, id)>(objc_msgSend)([objc_lookUpClass("_VZSEPCoprocessorConfiguration") alloc], sel_registerName("initWithStorage:"), storage);
+            [storage release];
+            
+            {
+                if (NSData *romBinaryBookmarkData = casted.romBinaryBookmarkData) {
+                    NSError * _Nullable error = nil;
+                    
+                    BOOL stale;
+                    NSURL *romBinaryURL = [[NSURL alloc] initByResolvingBookmarkData:romBinaryBookmarkData
+                                                                    options:NSURLBookmarkResolutionWithoutMounting | NSURLBookmarkResolutionWithSecurityScope
+                                                              relativeToURL:nil
+                                                        bookmarkDataIsStale:&stale
+                                                                      error:&error];
+                    assert(error == nil);
+                    
+                    if (stale) {
+                        romBinaryURL = [self _refreshStaleURL:romBinaryURL];
+                    }
+                    
+                    assert([romBinaryURL startAccessingSecurityScopedResource]);
+                    
+                    reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(coprocessor, sel_registerName("setRomBinaryURL:"), romBinaryURL);
+                    [romBinaryURL release];
+                }
+            }
+            
+            [coprocessors addObject:coprocessor];
+            [coprocessor release];
+        } else {
+            abort();
+        }
+    }
+    
+    reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(virtualMachineConfiguration, sel_registerName("_setCoprocessors:"), coprocessors);
+    [coprocessors release];
     
     //
     
@@ -649,6 +716,9 @@
     virtualMachineConfiguration.keyboards = [self _isolated_makeManagedObjectsFromKeyboards:machineConfiguration.keyboards];
     virtualMachineConfiguration.audioDevices = [self _isolated_makeManagedObjectsFromAudioDevices:machineConfiguration.audioDevices];
     
+    NSArray *coprocessors = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(machineConfiguration, sel_registerName("_coprocessors"));
+    virtualMachineConfiguration.coprocessors = [self _isolated_makeManagedObjectsFromCoprocessors:coprocessors];
+    
     NSArray *biometricDevices = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(machineConfiguration, sel_registerName("_biometricDevices"));
     virtualMachineConfiguration.biometricDevices = [self _isolated_makeManagedObjectsFromBiometricDevices:biometricDevices];
     
@@ -927,6 +997,52 @@
     }
     
     return [directorySharingDeviceObjects autorelease];
+}
+
+- (NSOrderedSet<__kindof SVCoprocessorConfiguration *> *)_isolated_makeManagedObjectsFromCoprocessors:(NSArray *)coprocessors {
+    NSManagedObjectContext *managedObjectContext = self.backgroundContext;
+    NSMutableOrderedSet<__kindof SVCoprocessorConfiguration *> *coprocessorObjects = [[NSMutableOrderedSet alloc] initWithCapacity:coprocessors.count];
+    
+    for (id coprocessor in coprocessors) {
+        if ([coprocessor isKindOfClass:objc_lookUpClass("_VZSEPCoprocessorConfiguration")]) {
+            SVSEPCoprocessorConfiguration *SEPCoprocessorConfigurationObject = [[SVSEPCoprocessorConfiguration alloc] initWithContext:managedObjectContext];
+            
+            {
+                id storage = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(coprocessor, sel_registerName("storage"));
+                NSURL *URL = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(storage, sel_registerName("URL"));
+                assert(URL != nil);
+                
+                SVSEPStorage *storageObject = [[SVSEPStorage alloc] initWithContext:managedObjectContext];
+                
+                assert([URL startAccessingSecurityScopedResource]);
+                NSError * _Nullable error = nil;
+                storageObject.bookmarkData = [URL bookmarkDataWithOptions:NSURLBookmarkCreationWithSecurityScope includingResourceValuesForKeys:nil relativeToURL:nil error:&error];
+                assert(error == nil);
+                [URL stopAccessingSecurityScopedResource];
+                
+                SEPCoprocessorConfigurationObject.storage = storageObject;
+                [storageObject release];
+            }
+            
+            {
+                NSURL * _Nullable romBinaryURL = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(coprocessor, sel_registerName("romBinaryURL"));
+                if (romBinaryURL != nil) {
+                    assert([romBinaryURL startAccessingSecurityScopedResource]);
+                    NSError * _Nullable error = nil;
+                    SEPCoprocessorConfigurationObject.romBinaryBookmarkData = [romBinaryURL bookmarkDataWithOptions:NSURLBookmarkCreationWithSecurityScope includingResourceValuesForKeys:nil relativeToURL:nil error:&error];
+                    assert(error == nil);
+                    [romBinaryURL stopAccessingSecurityScopedResource];
+                }
+            }
+            
+            [coprocessorObjects addObject:SEPCoprocessorConfigurationObject];
+            [SEPCoprocessorConfigurationObject release];
+        } else {
+            abort();
+        }
+    }
+    
+    return [coprocessorObjects autorelease];
 }
 
 - (NSOrderedSet<__kindof SVNetworkDeviceConfiguration *> *)_isolated_makeManagedObjectsFromNetworkDevices:(NSArray<__kindof VZNetworkDeviceConfiguration *> *)networkDevices {

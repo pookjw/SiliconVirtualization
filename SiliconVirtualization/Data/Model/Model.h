@@ -67,3 +67,6 @@
 #import "SVMacSyntheticBatterySource.h"
 #import "SVBiometricDeviceConfiguration.h"
 #import "SVMacTouchIDDeviceConfiguration.h"
+#import "SVCoprocessorConfiguration.h"
+#import "SVSEPCoprocessorConfiguration.h"
+#import "SVSEPStorage.h"

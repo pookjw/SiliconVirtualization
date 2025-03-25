@@ -145,6 +145,10 @@
             textField.stringValue = @"Biometrics";
             break;
         }
+        case EditMachineSidebarItemModelTypeCoprocessors: {
+            textField.stringValue = @"Coprocessors";
+            break;
+        }
         default:
             abort();
     }
@@ -209,6 +213,10 @@
         }
         case EditMachineSidebarItemModelTypeBiometicDevice: {
             imageView.image = [NSImage imageWithSystemSymbolName:@"touchid" accessibilityDescription:nil];
+            break;
+        }
+        case EditMachineSidebarItemModelTypeCoprocessors: {
+            imageView.image = [NSImage imageWithSystemSymbolName:selected ? @"cpu.fill" : @"cpu" accessibilityDescription:nil];
             break;
         }
         default:

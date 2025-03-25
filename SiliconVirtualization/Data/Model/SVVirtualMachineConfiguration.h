@@ -18,6 +18,7 @@
 #import "SVDirectorySharingDeviceConfiguration.h"
 #import "SVPowerSourceDeviceConfiguration.h"
 #import "SVBiometricDeviceConfiguration.h"
+#import "SVCoprocessorConfiguration.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -30,6 +31,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (retain, nonatomic, nullable) NSOrderedSet<SVAudioDeviceConfiguration *> *audioDevices;
 @property (nullable, nonatomic, retain) NSOrderedSet<SVBiometricDeviceConfiguration *> *biometricDevices;
 @property (retain, nonatomic, nullable) SVBootLoader *bootLoader;
+@property (nullable, nonatomic, retain) NSOrderedSet<SVCoprocessorConfiguration *> *coprocessors;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVDirectorySharingDeviceConfiguration *> *directorySharingDevices;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVGraphicsDeviceConfiguration *> *graphicsDevices;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVKeyboardConfiguration *> *keyboards;
@@ -62,6 +64,17 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)removeBiometricDevicesObject:(SVBiometricDeviceConfiguration *)value;
 - (void)addBiometricDevices:(NSOrderedSet<SVBiometricDeviceConfiguration *> *)values;
 - (void)removeBiometricDevices:(NSOrderedSet<SVBiometricDeviceConfiguration *> *)values;
+
+- (void)insertObject:(SVCoprocessorConfiguration *)value inCoprocessorsAtIndex:(NSUInteger)idx;
+- (void)removeObjectFromCoprocessorsAtIndex:(NSUInteger)idx;
+- (void)insertCoprocessors:(NSArray<SVCoprocessorConfiguration *> *)value atIndexes:(NSIndexSet *)indexes;
+- (void)removeCoprocessorsAtIndexes:(NSIndexSet *)indexes;
+- (void)replaceObjectInCoprocessorsAtIndex:(NSUInteger)idx withObject:(SVCoprocessorConfiguration *)value;
+- (void)replaceCoprocessorsAtIndexes:(NSIndexSet *)indexes withCoprocessors:(NSArray<SVCoprocessorConfiguration *> *)values;
+- (void)addCoprocessorsObject:(SVCoprocessorConfiguration *)value;
+- (void)removeCoprocessorsObject:(SVCoprocessorConfiguration *)value;
+- (void)addCoprocessors:(NSOrderedSet<SVCoprocessorConfiguration *> *)values;
+- (void)removeCoprocessors:(NSOrderedSet<SVCoprocessorConfiguration *> *)values;
 
 - (void)insertObject:(SVDirectorySharingDeviceConfiguration *)value inDirectorySharingDevicesAtIndex:(NSUInteger)idx;
 - (void)removeObjectFromDirectorySharingDevicesAtIndex:(NSUInteger)idx;
