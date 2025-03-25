@@ -20,6 +20,7 @@
 #import "SVBiometricDeviceConfiguration.h"
 #import "SVCoprocessorConfiguration.h"
 #import "SVAcceleratorDeviceConfiguration.h"
+#import "SVMemoryBalloonDeviceConfiguration.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -38,6 +39,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (retain, nonatomic, nullable) NSOrderedSet<SVGraphicsDeviceConfiguration *> *graphicsDevices;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVKeyboardConfiguration *> *keyboards;
 @property (retain, nonatomic, nullable) SVVirtualMachine *machine;
+@property (nullable, nonatomic, retain) NSOrderedSet<SVMemoryBalloonDeviceConfiguration *> *memoryBalloonDevices;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVNetworkDeviceConfiguration *> *networkDevices;
 @property (retain, nonatomic, nullable) SVPlatformConfiguration *platform;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVPointingDeviceConfiguration *> *pointingDevices;
@@ -121,6 +123,17 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)removeKeyboardsObject:(SVKeyboardConfiguration *)value;
 - (void)addKeyboards:(NSOrderedSet<SVKeyboardConfiguration *> *)values;
 - (void)removeKeyboards:(NSOrderedSet<SVKeyboardConfiguration *> *)values;
+
+- (void)insertObject:(SVMemoryBalloonDeviceConfiguration *)value inMemoryBalloonDevicesAtIndex:(NSUInteger)idx;
+- (void)removeObjectFromMemoryBalloonDevicesAtIndex:(NSUInteger)idx;
+- (void)insertMemoryBalloonDevices:(NSArray<SVMemoryBalloonDeviceConfiguration *> *)value atIndexes:(NSIndexSet *)indexes;
+- (void)removeMemoryBalloonDevicesAtIndexes:(NSIndexSet *)indexes;
+- (void)replaceObjectInMemoryBalloonDevicesAtIndex:(NSUInteger)idx withObject:(SVMemoryBalloonDeviceConfiguration *)value;
+- (void)replaceMemoryBalloonDevicesAtIndexes:(NSIndexSet *)indexes withMemoryBalloonDevices:(NSArray<SVMemoryBalloonDeviceConfiguration *> *)values;
+- (void)addMemoryBalloonDevicesObject:(SVMemoryBalloonDeviceConfiguration *)value;
+- (void)removeMemoryBalloonDevicesObject:(SVMemoryBalloonDeviceConfiguration *)value;
+- (void)addMemoryBalloonDevices:(NSOrderedSet<SVMemoryBalloonDeviceConfiguration *> *)values;
+- (void)removeMemoryBalloonDevices:(NSOrderedSet<SVMemoryBalloonDeviceConfiguration *> *)values;
 
 - (void)insertObject:(SVNetworkDeviceConfiguration *)value inNetworkDevicesAtIndex:(NSUInteger)idx;
 - (void)removeObjectFromNetworkDevicesAtIndex:(NSUInteger)idx;

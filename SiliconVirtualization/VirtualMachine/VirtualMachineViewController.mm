@@ -11,6 +11,7 @@
 #import <objc/runtime.h>
 #import "NSStringFromVZVirtualMachineState.h"
 #import "VirtualMachineViewModel.h"
+#import "EditMachineViewController.h"
 
 OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self class] }; */
 
@@ -32,6 +33,9 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
 @property (retain, nonatomic, readonly, getter=_moreMenuToolbarItem) NSMenuToolbarItem *moreMenuToolbarItem;
 @property (retain, nonatomic, readonly, getter=_stateToolbarItem) NSToolbarItem *stateToolbarItem;
 
+@property (retain, nonatomic, readonly, getter=_editMachineToolbarItem) NSToolbarItem *editMachineToolbarItem;
+@property (retain, nonatomic, readonly, getter=_editMachineViewController) EditMachineViewController *editMachineViewController;
+
 @property (retain, nonatomic, readonly, getter=_viewModel) VirtualMachineViewModel *viewModel;
 @end
 
@@ -46,6 +50,8 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
 @synthesize restoreMachineStateToolbarItem = _restoreMachineStateToolbarItem;
 @synthesize moreMenuToolbarItem = _moreMenuToolbarItem;
 @synthesize stateToolbarItem = _stateToolbarItem;
+@synthesize editMachineToolbarItem = _editMachineToolbarItem;
+@synthesize editMachineViewController = _editMachineViewController;
 @synthesize viewModel = _viewModel;
 
 + (NSInteger)_stopMenuItemTag { return 1001; }
@@ -65,6 +71,8 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     [_restoreMachineStateToolbarItem release];
     [_moreMenuToolbarItem release];
     [_stateToolbarItem release];
+    [_editMachineToolbarItem release];
+    [_editMachineViewController release];
     [_viewModel release];
     [super dealloc];
 }
@@ -98,6 +106,7 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
                 }
                 
                 virtualMachineView.virtualMachine = newVirtualMachine;
+                self.editMachineViewController.machine = newVirtualMachine;
                 [newVirtualMachine addObserver:self forKeyPath:@"state" options:NSKeyValueObservingOptionNew context:NULL];
                 [self _updateToolbarItems];
                 
@@ -301,6 +310,28 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     return stateToolbarItem;
 }
 
+- (NSToolbarItem *)_editMachineToolbarItem {
+    if (auto editMachineToolbarItem = _editMachineToolbarItem) return editMachineToolbarItem;
+    
+    NSToolbarItem *editMachineToolbarItem = [[NSToolbarItem alloc] initWithItemIdentifier:@"Edit Machine"];
+    editMachineToolbarItem.label = @"Edit";
+    editMachineToolbarItem.image = [NSImage imageWithSystemSymbolName:@"gear" accessibilityDescription:nil];
+    editMachineToolbarItem.target = self;
+    editMachineToolbarItem.action = @selector(_didTriggerEditMachineToolbarItem:);
+    
+    _editMachineToolbarItem = editMachineToolbarItem;
+    return editMachineToolbarItem;
+}
+
+- (EditMachineViewController *)_editMachineViewController {
+    if (auto editMachineViewController = _editMachineViewController) return editMachineViewController;
+    
+    EditMachineViewController *editMachineViewController = [EditMachineViewController new];
+    
+    _editMachineViewController = editMachineViewController;
+    return editMachineViewController;
+}
+
 - (void)_didTriggerStartToolbarItem:(NSToolbarItem *)sender {
     VirtualMachineViewModel *viewModel = self.viewModel;
     
@@ -444,6 +475,16 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     [panel release];
 }
 
+- (void)_didTriggerEditMachineToolbarItem:(NSToolbarItem *)sender {
+    self.editMachineViewController.machine = self.virtualMachineView.virtualMachine;
+    
+    NSPopover *popover = [NSPopover new];
+    popover.behavior = NSPopoverBehaviorSemitransient;
+    popover.contentViewController = self.editMachineViewController;
+    [popover showRelativeToToolbarItem:sender];
+    [popover release];
+}
+
 - (void)_queue_startAccessingSecurityScopedResourcesWithVirtualMachine:(VZVirtualMachine *)virtualMachine {
     VZVirtualMachineConfiguration *_currentConfiguration = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(virtualMachine, sel_registerName("_currentConfiguration"));
     
@@ -551,6 +592,7 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
         self.stopMenuToolbarItem.itemIdentifier,
         self.resumeToolbarItem.itemIdentifier,
         self.pauseToolbarItem.itemIdentifier,
+        self.editMachineToolbarItem.itemIdentifier,
         self.moreMenuToolbarItem.itemIdentifier,
         self.stateToolbarItem.itemIdentifier
     ];
@@ -569,6 +611,8 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
         return self.stopMenuToolbarItem;
     } else if ([self.pauseToolbarItem.itemIdentifier isEqualToString:itemIdentifier]) {
         return self.pauseToolbarItem;
+    } else if ([self.editMachineToolbarItem.itemIdentifier isEqualToString:itemIdentifier]) {
+        return self.editMachineToolbarItem;
     } else if ([self.saveMachineStateToolbarItem.itemIdentifier isEqualToString:itemIdentifier]) {
         return self.saveMachineStateToolbarItem;
     } else if ([self.restoreMachineStateToolbarItem.itemIdentifier isEqualToString:itemIdentifier]) {

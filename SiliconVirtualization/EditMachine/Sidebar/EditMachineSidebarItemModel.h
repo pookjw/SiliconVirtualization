@@ -25,7 +25,9 @@ typedef NS_ENUM(NSUInteger, EditMachineSidebarItemModelType) {
     EditMachineSidebarItemModelTypeDirectorySharing,
     EditMachineSidebarItemModelTypeBiometicDevice,
     EditMachineSidebarItemModelTypeCoprocessors,
-    EditMachineSidebarItemModelTypeAcceleratorDevices
+    EditMachineSidebarItemModelTypeAcceleratorDevices,
+    
+    EditMachineSidebarItemModelTypeMemoryBalloonDevices
 };
 
 @interface EditMachineSidebarItemModel : NSObject

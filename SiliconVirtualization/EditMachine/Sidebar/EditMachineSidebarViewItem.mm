@@ -153,6 +153,10 @@
             textField.stringValue = @"Accelerator Devices";
             break;
         }
+        case EditMachineSidebarItemModelTypeMemoryBalloonDevices: {
+            textField.stringValue = @"Memory Balloon Devices";;
+            break;
+        }
         default:
             abort();
     }
@@ -225,6 +229,10 @@
         }
         case EditMachineSidebarItemModelTypeAcceleratorDevices: {
             imageView.image = [NSImage imageWithSystemSymbolName:@"figure.run" accessibilityDescription:nil];
+            break;
+        }
+        case EditMachineSidebarItemModelTypeMemoryBalloonDevices: {
+            imageView.image = [NSImage imageWithSystemSymbolName:selected ? @"balloon.fill" : @"balloon" accessibilityDescription:nil];
             break;
         }
         default:

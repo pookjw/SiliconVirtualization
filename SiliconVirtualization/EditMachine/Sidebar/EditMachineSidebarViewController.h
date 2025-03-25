@@ -17,8 +17,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface EditMachineSidebarViewController : NSViewController
 @property (assign, nonatomic, nullable) id<EditMachineSidebarViewControllerDelegate> delegate;
-@property (retain, nonatomic) EditMachineSidebarItemModel *itemModel; // notifyingDelegate = NO
-- (void)setItemModel:(EditMachineSidebarItemModel *)itemModel notifyingDelegate:(BOOL)notifyingDelegate;
+
+@property (copy, nonatomic) NSArray<EditMachineSidebarItemModel *> *itemModels;
+
+@property (retain, nonatomic) EditMachineSidebarItemModel *selectedItemModel; // notifyingDelegate = NO
+- (void)selectItemModel:(EditMachineSidebarItemModel *)itemModel notifyingDelegate:(BOOL)notifyingDelegate;
 @end
 
 NS_ASSUME_NONNULL_END

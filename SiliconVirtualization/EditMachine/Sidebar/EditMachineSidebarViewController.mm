@@ -58,9 +58,18 @@
     self.view = self.scrollView;
 }
 
-- (void)viewDidLoad {
-    [super viewDidLoad];
-    [self _loadDataSource];
+- (NSArray<EditMachineSidebarItemModel *> *)itemModels {
+    return self.dataSource.snapshot.itemIdentifiers;
+}
+
+- (void)setItemModels:(NSArray<EditMachineSidebarItemModel *> *)itemModels {
+    NSDiffableDataSourceSnapshot<NSNull *, EditMachineSidebarItemModel *> *snapshot = [NSDiffableDataSourceSnapshot new];
+    
+    [snapshot appendSectionsWithIdentifiers:@[[NSNull null]]];
+    [snapshot appendItemsWithIdentifiers:itemModels intoSectionWithIdentifier:[NSNull null]];
+    
+    [self.dataSource applySnapshot:snapshot animatingDifferences:YES];
+    [snapshot release];
 }
 
 - (NSCollectionView *)_collectionView {
@@ -149,70 +158,7 @@
     return scrollView;
 }
 
-- (void)_loadDataSource {
-    NSDiffableDataSourceSnapshot<NSNull *, EditMachineSidebarItemModel *> *snapshot = [NSDiffableDataSourceSnapshot new];
-    
-    [snapshot appendSectionsWithIdentifiers:@[[NSNull null]]];
-    
-    EditMachineSidebarItemModel *bootLoaderItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeBootLoader];
-    EditMachineSidebarItemModel *platformItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypePlatform];
-    EditMachineSidebarItemModel *CPUItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeCPU];
-    EditMachineSidebarItemModel *memoryItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeMemory];
-    EditMachineSidebarItemModel *keyboardsItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeKeyboards];
-    EditMachineSidebarItemModel *networksItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeNetworks];
-    EditMachineSidebarItemModel *graphicsItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeGraphics];
-    EditMachineSidebarItemModel *powerSourceDevicesItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypePowerSourceDevices];
-    EditMachineSidebarItemModel *pointingDevicesItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypePointingDevices];
-    EditMachineSidebarItemModel *storagesItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeStorages];
-    EditMachineSidebarItemModel *audioItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeAudio];
-    EditMachineSidebarItemModel *usbItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeUSB];
-    EditMachineSidebarItemModel *directorySharingItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeDirectorySharing];
-    EditMachineSidebarItemModel *biometicDeviceItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeBiometicDevice];
-    EditMachineSidebarItemModel *coprocessorsItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeCoprocessors];
-    EditMachineSidebarItemModel *acceleratorDevicesItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeAcceleratorDevices];
-    
-    [snapshot appendItemsWithIdentifiers:@[
-        bootLoaderItemModel,
-        platformItemModel,
-        CPUItemModel,
-        memoryItemModel,
-        audioItemModel,
-        keyboardsItemModel,
-        networksItemModel,
-        graphicsItemModel,
-        powerSourceDevicesItemModel,
-        pointingDevicesItemModel,
-        storagesItemModel,
-        usbItemModel,
-        directorySharingItemModel,
-        biometicDeviceItemModel,
-        coprocessorsItemModel,
-        acceleratorDevicesItemModel
-    ]
-               intoSectionWithIdentifier:[NSNull null]];
-    
-    [bootLoaderItemModel release];
-    [platformItemModel release];
-    [CPUItemModel release];
-    [memoryItemModel release];
-    [keyboardsItemModel release];
-    [networksItemModel release];
-    [graphicsItemModel release];
-    [powerSourceDevicesItemModel release];
-    [pointingDevicesItemModel release];
-    [storagesItemModel release];
-    [audioItemModel release];
-    [usbItemModel release];
-    [directorySharingItemModel release];
-    [biometicDeviceItemModel release];
-    [coprocessorsItemModel release];
-    [acceleratorDevicesItemModel release];
-    
-    [self.dataSource applySnapshot:snapshot animatingDifferences:YES];
-    [snapshot release];
-}
-
-- (EditMachineSidebarItemModel *)itemModel {
+- (EditMachineSidebarItemModel *)selectedItemModel {
     for (NSIndexPath *indexPath in self.collectionView.selectionIndexPaths) {
         if (EditMachineSidebarItemModel *itemModel = [self.dataSource itemIdentifierForIndexPath:indexPath]) {
             return itemModel;
@@ -222,11 +168,11 @@
     abort();
 }
 
-- (void)setItemModel:(EditMachineSidebarItemModel *)itemModel {
-    [self setItemModel:itemModel notifyingDelegate:NO];
+- (void)setSelectedItemModel:(EditMachineSidebarItemModel *)itemModel {
+    [self selectItemModel:itemModel notifyingDelegate:NO];
 }
 
-- (void)setItemModel:(EditMachineSidebarItemModel *)itemModel notifyingDelegate:(BOOL)notifyingDelegate {
+- (void)selectItemModel:(EditMachineSidebarItemModel *)itemModel notifyingDelegate:(BOOL)notifyingDelegate {
     NSIndexPath *indexPath = [self.dataSource indexPathForItemIdentifier:itemModel];
     assert(indexPath != nil);
     
