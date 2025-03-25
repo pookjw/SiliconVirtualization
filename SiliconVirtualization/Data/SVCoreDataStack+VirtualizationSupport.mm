@@ -45,6 +45,7 @@
     
     virtualMachineConfigurationObject.storageDevices = [self _isolated_makeManagedObjectsFromStorageDevices:virtualMachineConfiguration.storageDevices];
     virtualMachineConfigurationObject.usbControllers = [self _isolated_makeManagedObjectsFromUSBControllers:virtualMachineConfiguration.usbControllers];
+    virtualMachineConfigurationObject.memoryBalloonDevices = [self _isolated_makeManagedObjectsFromMemoryBalloonDevices:virtualMachineConfiguration.memoryBalloonDevices];
     
     //
     
@@ -722,6 +723,23 @@
     
     //
     
+    NSMutableArray<__kindof VZMemoryBalloonDeviceConfiguration *> *memoryBalloonDevices = [[NSMutableArray alloc] initWithCapacity:virtualMachineConfigurationObject.memoryBalloonDevices.count];
+    
+    for (__kindof SVMemoryBalloonDeviceConfiguration *memoryBalloonDeviceObject in virtualMachineConfigurationObject.memoryBalloonDevices) {
+        if ([memoryBalloonDeviceObject isKindOfClass:[SVVirtioTraditionalMemoryBalloonDeviceConfiguration class]]) {
+            VZVirtioTraditionalMemoryBalloonDeviceConfiguration *configuration = [[VZVirtioTraditionalMemoryBalloonDeviceConfiguration alloc] init];
+            [memoryBalloonDevices addObject:configuration];
+            [configuration release];
+        } else {
+            abort();
+        }
+    }
+    
+    virtualMachineConfiguration.memoryBalloonDevices = memoryBalloonDevices;
+    [memoryBalloonDevices release];
+    
+    //
+    
     return [virtualMachineConfiguration autorelease];
 }
 
@@ -757,6 +775,7 @@
     
     virtualMachineConfiguration.storageDevices = [self _isolated_makeManagedObjectsFromStorageDevices:machineConfiguration.storageDevices];
     virtualMachineConfiguration.usbControllers = [self _isolated_makeManagedObjectsFromUSBControllers:machineConfiguration.usbControllers];
+    virtualMachineConfiguration.memoryBalloonDevices = [self _isolated_makeManagedObjectsFromMemoryBalloonDevices:machineConfiguration.memoryBalloonDevices];
 }
 
 - (__kindof SVBootLoader * _Nullable)_isolated_makeManagedObjectFromBootLoader:(__kindof VZBootLoader * _Nullable)bootLoader {
@@ -1338,6 +1357,23 @@
     }
     
     return [USBControllerObjects autorelease];
+}
+
+- (NSOrderedSet<__kindof SVMemoryBalloonDeviceConfiguration *> *)_isolated_makeManagedObjectsFromMemoryBalloonDevices:(NSArray<VZMemoryBalloonDeviceConfiguration *> *)memoryBalloonDevices {
+    NSManagedObjectContext *managedObjectContext = self.backgroundContext;
+    NSMutableOrderedSet<__kindof SVMemoryBalloonDeviceConfiguration *> *memoryBalloonDeviceConfigurationObjects = [[NSMutableOrderedSet alloc] initWithCapacity:memoryBalloonDevices.count];
+    
+    for (VZMemoryBalloonDeviceConfiguration *memoryBalloonDevice in memoryBalloonDevices) {
+        if ([memoryBalloonDevice isKindOfClass:[VZVirtioTraditionalMemoryBalloonDeviceConfiguration class]]) {
+            SVVirtioTraditionalMemoryBalloonDeviceConfiguration *object = [[SVVirtioTraditionalMemoryBalloonDeviceConfiguration alloc] initWithContext:managedObjectContext];
+            [memoryBalloonDeviceConfigurationObjects addObject:object];
+            [object release];
+        } else {
+            abort();
+        }
+    }
+    
+    return [memoryBalloonDeviceConfigurationObjects autorelease];
 }
 
 - (NSURL *)_refreshStaleURL:(NSURL *)URL NS_RETURNS_RETAINED {

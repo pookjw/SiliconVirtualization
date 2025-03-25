@@ -105,7 +105,7 @@
     
     __kindof VZMemoryBalloonDevice *configuration = self.memoryBalloonDevices[row];
     
-    if ([configuration isKindOfClass:[VZVirtioTraditionalMemoryBalloonDeviceConfiguration class]]) {
+    if ([configuration isKindOfClass:[VZVirtioTraditionalMemoryBalloonDevice class]]) {
         cell.textField.stringValue = @"Virtio Traditional Memory Balloon";
     } else {
         abort();

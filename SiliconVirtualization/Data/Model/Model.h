@@ -72,3 +72,5 @@
 #import "SVSEPStorage.h"
 #import "SVAcceleratorDeviceConfiguration.h"
 #import "SVMacNeuralEngineDeviceConfiguration.h"
+#import "SVMemoryBalloonDeviceConfiguration.h"
+#import "SVVirtioTraditionalMemoryBalloonDeviceConfiguration.h"

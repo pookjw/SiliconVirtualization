@@ -859,6 +859,25 @@
         ];
     }
     
+    NSEntityDescription *virtioTraditionalMemoryBalloonDeviceConfigurationEntity;
+    {
+        virtioTraditionalMemoryBalloonDeviceConfigurationEntity = [NSEntityDescription new];
+        virtioTraditionalMemoryBalloonDeviceConfigurationEntity.name = @"VirtioTraditionalMemoryBalloonDeviceConfiguration";
+        virtioTraditionalMemoryBalloonDeviceConfigurationEntity.managedObjectClassName = NSStringFromClass([SVVirtioTraditionalMemoryBalloonDeviceConfiguration class]);
+    }
+    
+    NSEntityDescription *memoryBalloonDeviceConfigurationEntity;
+    {
+        memoryBalloonDeviceConfigurationEntity = [NSEntityDescription new];
+        memoryBalloonDeviceConfigurationEntity.name = @"MemoryBalloonDeviceConfiguration";
+        memoryBalloonDeviceConfigurationEntity.managedObjectClassName = NSStringFromClass([SVMemoryBalloonDeviceConfiguration class]);
+        
+        memoryBalloonDeviceConfigurationEntity.abstract = YES;
+        memoryBalloonDeviceConfigurationEntity.subentities = @[
+            virtioTraditionalMemoryBalloonDeviceConfigurationEntity
+        ];
+    }
+    
     //
     
     {
@@ -1859,6 +1878,35 @@
         [acceleratorDeviceConfigurationEntity_machine_relationship release];
     }
     
+    {
+        NSRelationshipDescription *virtualMachineConfiguration_memoryBalloonDevices_relationship = [NSRelationshipDescription new];
+        virtualMachineConfiguration_memoryBalloonDevices_relationship.name = @"memoryBalloonDevices";
+        virtualMachineConfiguration_memoryBalloonDevices_relationship.optional = YES;
+        virtualMachineConfiguration_memoryBalloonDevices_relationship.minCount = 0;
+        virtualMachineConfiguration_memoryBalloonDevices_relationship.maxCount = 0;
+        assert(virtualMachineConfiguration_memoryBalloonDevices_relationship.toMany);
+        virtualMachineConfiguration_memoryBalloonDevices_relationship.ordered = YES;
+        virtualMachineConfiguration_memoryBalloonDevices_relationship.destinationEntity = memoryBalloonDeviceConfigurationEntity;
+        virtualMachineConfiguration_memoryBalloonDevices_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *memoryBalloonDeviceConfigurationEntity_machine_relationship = [NSRelationshipDescription new];
+        memoryBalloonDeviceConfigurationEntity_machine_relationship.name = @"machine";
+        memoryBalloonDeviceConfigurationEntity_machine_relationship.minCount = 0;
+        memoryBalloonDeviceConfigurationEntity_machine_relationship.maxCount = 1;
+        assert(!memoryBalloonDeviceConfigurationEntity_machine_relationship.toMany);
+        memoryBalloonDeviceConfigurationEntity_machine_relationship.destinationEntity = virtualMachineConfigurationEntity;
+        memoryBalloonDeviceConfigurationEntity_machine_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        virtualMachineConfiguration_memoryBalloonDevices_relationship.inverseRelationship = memoryBalloonDeviceConfigurationEntity_machine_relationship;
+        memoryBalloonDeviceConfigurationEntity_machine_relationship.inverseRelationship = virtualMachineConfiguration_memoryBalloonDevices_relationship;
+        
+        virtualMachineConfigurationEntity.properties = [virtualMachineConfigurationEntity.properties arrayByAddingObject:virtualMachineConfiguration_memoryBalloonDevices_relationship];
+        memoryBalloonDeviceConfigurationEntity.properties = [memoryBalloonDeviceConfigurationEntity.properties arrayByAddingObject:memoryBalloonDeviceConfigurationEntity_machine_relationship];
+        
+        [virtualMachineConfiguration_memoryBalloonDevices_relationship release];
+        [memoryBalloonDeviceConfigurationEntity_machine_relationship release];
+    }
+    
     //
     
     managedObjectModel.entities = @[
@@ -1928,7 +1976,9 @@
         coprocessorConfigurationEntity,
         SEPStorageEntity,
         acceleratorDeviceConfigurationEntity,
-        macNeuralEngineDeviceConfigurationEntity
+        macNeuralEngineDeviceConfigurationEntity,
+        virtioTraditionalMemoryBalloonDeviceConfigurationEntity,
+        memoryBalloonDeviceConfigurationEntity
     ];
     
     for (NSEntityDescription *entity in managedObjectModel.entities) {
@@ -2008,6 +2058,8 @@
     [SEPStorageEntity release];
     [acceleratorDeviceConfigurationEntity release];
     [macNeuralEngineDeviceConfigurationEntity release];
+    [virtioTraditionalMemoryBalloonDeviceConfigurationEntity release];
+    [memoryBalloonDeviceConfigurationEntity release];
     
     return [managedObjectModel autorelease];
 }
