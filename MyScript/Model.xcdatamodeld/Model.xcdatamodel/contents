@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23787" systemVersion="24E246" minimumToolsVersion="Automatic" sourceLanguage="Objective-C" userDefinedModelVersionIdentifier="">
+    <entity name="AcceleratorDeviceConfiguration" representedClassName="SVAcceleratorDeviceConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class">
+        <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="acceleratorDevices" inverseEntity="VirtualMachineConfiguration"/>
+    </entity>
     <entity name="AudioDeviceConfiguration" representedClassName="SVAudioDeviceConfiguration" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <relationship name="machine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VirtualMachineConfiguration" inverseName="audioDevices" inverseEntity="VirtualMachineConfiguration"/>
     </entity>
@@ -86,6 +89,7 @@
         <attribute name="dataRepresentation" optional="YES" attributeType="Binary"/>
         <relationship name="platform" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MacPlatformConfiguration" inverseName="machineIdentifier" inverseEntity="MacPlatformConfiguration"/>
     </entity>
+    <entity name="MacNeuralEngineDeviceConfiguration" representedClassName="SVMacNeuralEngineDeviceConfiguration" parentEntity="AcceleratorDeviceConfiguration" syncable="YES" codeGenerationType="class"/>
     <entity name="MacOSBootLoader" representedClassName="SVMacOSBootLoader" parentEntity="BootLoader" syncable="YES" codeGenerationType="class"/>
     <entity name="MacOSVirtualMachineStartOptions" representedClassName="SVMacOSVirtualMachineStartOptions" parentEntity="VirtualMachineStartOptions" syncable="YES" codeGenerationType="class">
         <attribute name="startUpFromMacOSRecovery" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
@@ -192,6 +196,7 @@
     <entity name="VirtualMachineConfiguration" representedClassName="SVVirtualMachineConfiguration" syncable="YES" codeGenerationType="class">
         <attribute name="cpuCount" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromData" customClassName="NSNumber"/>
         <attribute name="memorySize" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromData" customClassName="NSNumber"/>
+        <relationship name="acceleratorDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="AcceleratorDeviceConfiguration" inverseName="machine" inverseEntity="AcceleratorDeviceConfiguration"/>
         <relationship name="audioDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="AudioDeviceConfiguration" inverseName="machine" inverseEntity="AudioDeviceConfiguration"/>
         <relationship name="biometricDevices" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="BiometricDeviceConfiguration" inverseName="machine" inverseEntity="BiometricDeviceConfiguration"/>
         <relationship name="bootLoader" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="BootLoader" inverseName="machine" inverseEntity="BootLoader"/>

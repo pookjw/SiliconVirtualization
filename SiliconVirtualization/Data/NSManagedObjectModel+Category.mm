@@ -840,6 +840,25 @@
         [bookmarkDataAttribute release];
     }
     
+    NSEntityDescription *macNeuralEngineDeviceConfigurationEntity;
+    {
+        macNeuralEngineDeviceConfigurationEntity = [NSEntityDescription new];
+        macNeuralEngineDeviceConfigurationEntity.name = @"MacNeuralEngineDeviceConfiguration";
+        macNeuralEngineDeviceConfigurationEntity.managedObjectClassName = NSStringFromClass([SVMacNeuralEngineDeviceConfiguration class]);
+    }
+    
+    NSEntityDescription *acceleratorDeviceConfigurationEntity;
+    {
+        acceleratorDeviceConfigurationEntity = [NSEntityDescription new];
+        acceleratorDeviceConfigurationEntity.name = @"AcceleratorDeviceConfiguration";
+        acceleratorDeviceConfigurationEntity.managedObjectClassName = NSStringFromClass([SVAcceleratorDeviceConfiguration class]);
+        
+        acceleratorDeviceConfigurationEntity.abstract = YES;
+        acceleratorDeviceConfigurationEntity.subentities = @[
+            macNeuralEngineDeviceConfigurationEntity
+        ];
+    }
+    
     //
     
     {
@@ -1811,6 +1830,35 @@
         [SEPStorage_sepCoprocessor_relationship release];
     }
     
+    {
+        NSRelationshipDescription *virtualMachineConfiguration_acceleratorDevices_relationship = [NSRelationshipDescription new];
+        virtualMachineConfiguration_acceleratorDevices_relationship.name = @"acceleratorDevices";
+        virtualMachineConfiguration_acceleratorDevices_relationship.optional = YES;
+        virtualMachineConfiguration_acceleratorDevices_relationship.minCount = 0;
+        virtualMachineConfiguration_acceleratorDevices_relationship.maxCount = 0;
+        assert(virtualMachineConfiguration_acceleratorDevices_relationship.toMany);
+        virtualMachineConfiguration_acceleratorDevices_relationship.ordered = YES;
+        virtualMachineConfiguration_acceleratorDevices_relationship.destinationEntity = acceleratorDeviceConfigurationEntity;
+        virtualMachineConfiguration_acceleratorDevices_relationship.deleteRule = NSCascadeDeleteRule;
+        
+        NSRelationshipDescription *acceleratorDeviceConfigurationEntity_machine_relationship = [NSRelationshipDescription new];
+        acceleratorDeviceConfigurationEntity_machine_relationship.name = @"machine";
+        acceleratorDeviceConfigurationEntity_machine_relationship.minCount = 0;
+        acceleratorDeviceConfigurationEntity_machine_relationship.maxCount = 1;
+        assert(!acceleratorDeviceConfigurationEntity_machine_relationship.toMany);
+        acceleratorDeviceConfigurationEntity_machine_relationship.destinationEntity = virtualMachineConfigurationEntity;
+        acceleratorDeviceConfigurationEntity_machine_relationship.deleteRule = NSNullifyDeleteRule;
+        
+        virtualMachineConfiguration_acceleratorDevices_relationship.inverseRelationship = acceleratorDeviceConfigurationEntity_machine_relationship;
+        acceleratorDeviceConfigurationEntity_machine_relationship.inverseRelationship = virtualMachineConfiguration_acceleratorDevices_relationship;
+        
+        virtualMachineConfigurationEntity.properties = [virtualMachineConfigurationEntity.properties arrayByAddingObject:virtualMachineConfiguration_acceleratorDevices_relationship];
+        acceleratorDeviceConfigurationEntity.properties = [acceleratorDeviceConfigurationEntity.properties arrayByAddingObject:acceleratorDeviceConfigurationEntity_machine_relationship];
+        
+        [virtualMachineConfiguration_acceleratorDevices_relationship release];
+        [acceleratorDeviceConfigurationEntity_machine_relationship release];
+    }
+    
     //
     
     managedObjectModel.entities = @[
@@ -1878,7 +1926,9 @@
         biometricDeviceConfigurationEntity,
         SEPCoprocessorConfigurationEntity,
         coprocessorConfigurationEntity,
-        SEPStorageEntity
+        SEPStorageEntity,
+        acceleratorDeviceConfigurationEntity,
+        macNeuralEngineDeviceConfigurationEntity
     ];
     
     for (NSEntityDescription *entity in managedObjectModel.entities) {
@@ -1956,6 +2006,8 @@
     [SEPCoprocessorConfigurationEntity release];
     [coprocessorConfigurationEntity release];
     [SEPStorageEntity release];
+    [acceleratorDeviceConfigurationEntity release];
+    [macNeuralEngineDeviceConfigurationEntity release];
     
     return [managedObjectModel autorelease];
 }

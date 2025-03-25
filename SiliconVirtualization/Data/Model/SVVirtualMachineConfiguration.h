@@ -19,6 +19,7 @@
 #import "SVPowerSourceDeviceConfiguration.h"
 #import "SVBiometricDeviceConfiguration.h"
 #import "SVCoprocessorConfiguration.h"
+#import "SVAcceleratorDeviceConfiguration.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -28,6 +29,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (NSFetchRequest<SVVirtualMachineConfiguration *> *)fetchRequest;
 @property (retain, nonatomic, nullable) NSNumber *cpuCount;
 @property (retain, nonatomic, nullable) NSNumber *memorySize;
+@property (nullable, nonatomic, retain) NSOrderedSet<SVAcceleratorDeviceConfiguration *> *acceleratorDevices;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVAudioDeviceConfiguration *> *audioDevices;
 @property (nullable, nonatomic, retain) NSOrderedSet<SVBiometricDeviceConfiguration *> *biometricDevices;
 @property (retain, nonatomic, nullable) SVBootLoader *bootLoader;
@@ -42,6 +44,17 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nullable, nonatomic, retain) NSOrderedSet<SVPowerSourceDeviceConfiguration *> *powerSourceDevices;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVStorageDeviceConfiguration *> *storageDevices;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVUSBControllerConfiguration *> *usbControllers;
+
+- (void)insertObject:(SVAcceleratorDeviceConfiguration *)value inAcceleratorDevicesAtIndex:(NSUInteger)idx;
+- (void)removeObjectFromAcceleratorDevicesAtIndex:(NSUInteger)idx;
+- (void)insertAcceleratorDevices:(NSArray<SVAcceleratorDeviceConfiguration *> *)value atIndexes:(NSIndexSet *)indexes;
+- (void)removeAcceleratorDevicesAtIndexes:(NSIndexSet *)indexes;
+- (void)replaceObjectInAcceleratorDevicesAtIndex:(NSUInteger)idx withObject:(SVAcceleratorDeviceConfiguration *)value;
+- (void)replaceAcceleratorDevicesAtIndexes:(NSIndexSet *)indexes withAcceleratorDevices:(NSArray<SVAcceleratorDeviceConfiguration *> *)values;
+- (void)addAcceleratorDevicesObject:(SVAcceleratorDeviceConfiguration *)value;
+- (void)removeAcceleratorDevicesObject:(SVAcceleratorDeviceConfiguration *)value;
+- (void)addAcceleratorDevices:(NSOrderedSet<SVAcceleratorDeviceConfiguration *> *)values;
+- (void)removeAcceleratorDevices:(NSOrderedSet<SVAcceleratorDeviceConfiguration *> *)values;
 
 - (void)insertObject:(SVAudioDeviceConfiguration *)value inAudioDevicesAtIndex:(NSUInteger)idx;
 - (void)removeObjectFromAudioDevicesAtIndex:(NSUInteger)idx;

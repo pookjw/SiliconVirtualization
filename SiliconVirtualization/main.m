@@ -22,10 +22,7 @@ int main(int argc, const char * argv[]) {
 }
 
 /*
- _VZSEPCoprocessorConfiguration
- _VZSEPStorage
- -[VZVirtualMachineConfiguration(VZPrivate) _setCoprocessors:]
- 
- _VZMacTouchIDDeviceConfiguration
- _setBiometricDevices
+ _VZMacNeuralEngineDeviceConfiguration
+ _VZAcceleratorDeviceConfiguration
+ -[VZVirtualMachineConfiguration(VZPrivate) _setAcceleratorDevices:]
  */

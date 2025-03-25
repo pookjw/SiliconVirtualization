@@ -70,3 +70,5 @@
 #import "SVCoprocessorConfiguration.h"
 #import "SVSEPCoprocessorConfiguration.h"
 #import "SVSEPStorage.h"
+#import "SVAcceleratorDeviceConfiguration.h"
+#import "SVMacNeuralEngineDeviceConfiguration.h"

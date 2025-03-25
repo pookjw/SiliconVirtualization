@@ -22,10 +22,11 @@
 #import "EditMachinePowerSourceDevicesViewController.h"
 #import "EditMachineBiometricDevicesViewController.h"
 #import "EditMachineCoprocessorsViewController.h"
+#import "EditMachineMacAcceleratorDevicesViewController.h"
 #import <objc/message.h>
 #import <objc/runtime.h>
 
-@interface EditMachineViewController () <EditMachineSidebarViewControllerDelegate, EditMachineBootLoaderViewControllerDelegate, EditMachineCPUViewControllerDelegate, EditMachineMemoryViewControllerDelegate, EditMachineKeyboardsViewControllerDelegate, EditMachineNetworksViewControllerDelegate, EditMachinePointingDevicesViewControllerDelegate, EditMachineGraphicsViewControllerDelegate, EditMachineStoragesViewControllerDelegate, EditMachinePlatformViewControllerDelegate, EditMachineAudioDevicesViewControllerDelegate, EditMachineUSBViewControllerDelegate, EditMachineDirectorySharingViewControllerDelegate, EditMachinePowerSourceDevicesViewControllerDelegate, EditMachineBiometricDevicesViewControllerDelegate, EditMachineCoprocessorsViewControllerDelegate>
+@interface EditMachineViewController () <EditMachineSidebarViewControllerDelegate, EditMachineBootLoaderViewControllerDelegate, EditMachineCPUViewControllerDelegate, EditMachineMemoryViewControllerDelegate, EditMachineKeyboardsViewControllerDelegate, EditMachineNetworksViewControllerDelegate, EditMachinePointingDevicesViewControllerDelegate, EditMachineGraphicsViewControllerDelegate, EditMachineStoragesViewControllerDelegate, EditMachinePlatformViewControllerDelegate, EditMachineAudioDevicesViewControllerDelegate, EditMachineUSBViewControllerDelegate, EditMachineDirectorySharingViewControllerDelegate, EditMachinePowerSourceDevicesViewControllerDelegate, EditMachineBiometricDevicesViewControllerDelegate, EditMachineCoprocessorsViewControllerDelegate, EditMachineMacAcceleratorDevicesViewControllerDelegate>
 @property (retain, nonatomic, readonly, getter=_splitViewController) NSSplitViewController *splitViewController;
 
 @property (retain, nonatomic, readonly, getter=_bootLoaderViewController) EditMachineBootLoaderViewController *bootLoaderViewController;
@@ -75,6 +76,9 @@
 
 @property (retain, nonatomic, readonly, getter=_coprocessorsViewController) EditMachineCoprocessorsViewController *coprocessorsViewController;
 @property (retain, nonatomic, readonly, getter=_coprocessorsSplitViewItem) NSSplitViewItem *coprocessorsSplitViewItem;
+
+@property (retain, nonatomic, readonly, getter=_macAcceleratorDevicesViewController) EditMachineMacAcceleratorDevicesViewController *macAcceleratorDevicesViewController;
+@property (retain, nonatomic, readonly, getter=_macAcceleratorDevicesSplitViewItem) NSSplitViewItem *macAcceleratorDevicesSplitViewItem;
 @end
 
 @implementation EditMachineViewController
@@ -111,6 +115,8 @@
 @synthesize biometricDevicesSplitViewItem = _biometricDevicesSplitViewItem;
 @synthesize coprocessorsViewController = _coprocessorsViewController;
 @synthesize coprocessorsSplitViewItem = _coprocessorsSplitViewItem;
+@synthesize macAcceleratorDevicesViewController = _macAcceleratorDevicesViewController;
+@synthesize macAcceleratorDevicesSplitViewItem = _macAcceleratorDevicesSplitViewItem;
 
 - (instancetype)initWithConfiguration:(VZVirtualMachineConfiguration *)configuration {
     if (self = [super init]) {
@@ -155,6 +161,8 @@
     [_biometricDevicesSplitViewItem release];
     [_coprocessorsViewController release];
     [_coprocessorsSplitViewItem release];
+    [_macAcceleratorDevicesViewController release];
+    [_macAcceleratorDevicesSplitViewItem release];
     [super dealloc];
 }
 
@@ -489,6 +497,25 @@
     return coprocessorsSplitViewItem;
 }
 
+- (EditMachineMacAcceleratorDevicesViewController *)_macAcceleratorDevicesViewController {
+    if (auto macAcceleratorDevicesViewController = _macAcceleratorDevicesViewController) return macAcceleratorDevicesViewController;
+    
+    EditMachineMacAcceleratorDevicesViewController *macAcceleratorDevicesViewController = [[EditMachineMacAcceleratorDevicesViewController alloc] initWithConfiguration:self.configuration];
+    macAcceleratorDevicesViewController.delegate = self;
+    
+    _macAcceleratorDevicesViewController = macAcceleratorDevicesViewController;
+    return macAcceleratorDevicesViewController;
+}
+
+- (NSSplitViewItem *)_macAcceleratorDevicesSplitViewItem {
+    if (auto macAcceleratorDevicesSplitViewItem = _macAcceleratorDevicesSplitViewItem) return macAcceleratorDevicesSplitViewItem;
+    
+    NSSplitViewItem *macAcceleratorDevicesSplitViewItem = [NSSplitViewItem contentListWithViewController:self.macAcceleratorDevicesViewController];
+    
+    _macAcceleratorDevicesSplitViewItem = [macAcceleratorDevicesSplitViewItem retain];
+    return macAcceleratorDevicesSplitViewItem;
+}
+
 - (void)_notifyDelegate {
     if (auto delegate = self.delegate) {
         [delegate editMachineViewController:self didUpdateConfiguration:self.configuration];
@@ -572,6 +599,11 @@
             self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.coprocessorsSplitViewItem];
             break;
         }
+        case EditMachineSidebarItemModelTypeAcceleratorDevices: {
+            self.macAcceleratorDevicesViewController.configuration = self.configuration;
+            self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.macAcceleratorDevicesSplitViewItem];
+            break;
+        }
         default:
             abort();
     }
@@ -648,6 +680,11 @@
 }
 
 - (void)editMachineCoprocessorsViewController:(EditMachineCoprocessorsViewController *)editMachineCoprocessorsViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
+    self.configuration = configuration;
+    [self _notifyDelegate];
+}
+
+- (void)editMachineMacAcceleratorDevicesViewController:(EditMachineMacAcceleratorDevicesViewController *)editMachineMacAcceleratorDevicesViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
     self.configuration = configuration;
     [self _notifyDelegate];
 }

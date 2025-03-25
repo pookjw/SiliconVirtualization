@@ -14,6 +14,7 @@
 
 @dynamic cpuCount;
 @dynamic memorySize;
+@dynamic acceleratorDevices;
 @dynamic audioDevices;
 @dynamic biometricDevices;
 @dynamic directorySharingDevices;

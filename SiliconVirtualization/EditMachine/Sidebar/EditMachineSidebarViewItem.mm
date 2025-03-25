@@ -149,6 +149,10 @@
             textField.stringValue = @"Coprocessors";
             break;
         }
+        case EditMachineSidebarItemModelTypeAcceleratorDevices: {
+            textField.stringValue = @"Accelerator Devices";
+            break;
+        }
         default:
             abort();
     }
@@ -217,6 +221,10 @@
         }
         case EditMachineSidebarItemModelTypeCoprocessors: {
             imageView.image = [NSImage imageWithSystemSymbolName:selected ? @"cpu.fill" : @"cpu" accessibilityDescription:nil];
+            break;
+        }
+        case EditMachineSidebarItemModelTypeAcceleratorDevices: {
+            imageView.image = [NSImage imageWithSystemSymbolName:@"figure.run" accessibilityDescription:nil];
             break;
         }
         default:

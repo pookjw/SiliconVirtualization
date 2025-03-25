@@ -23,6 +23,9 @@
     virtualMachineConfigurationObject.cpuCount = @(virtualMachineConfiguration.CPUCount);
     virtualMachineConfigurationObject.memorySize = @(virtualMachineConfiguration.memorySize);
     
+    NSArray *acceleratorDevices = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(virtualMachineConfiguration, sel_registerName("_acceleratorDevices"));
+    virtualMachineConfigurationObject.acceleratorDevices = [self _isolated_makeManagedObjectsFromAcceleratorDevices:acceleratorDevices];
+    
     NSArray *coprocessors = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(virtualMachineConfiguration, sel_registerName("_coprocessors"));
     virtualMachineConfigurationObject.coprocessors = [self _isolated_makeManagedObjectsFromCoprocessors:coprocessors];
     
@@ -226,7 +229,26 @@
     }
     
     virtualMachineConfiguration.audioDevices = audioDevices;
-    [audioDevices release];//
+    [audioDevices release];
+    
+    //
+    
+    NSMutableArray *acceleratorDevices = [[NSMutableArray alloc] initWithCapacity:virtualMachineConfigurationObject.acceleratorDevices.count];
+    
+    for (__kindof SVAcceleratorDeviceConfiguration *acceleratorDeviceConfigurationObject in virtualMachineConfigurationObject.acceleratorDevices) {
+        if ([acceleratorDeviceConfigurationObject isKindOfClass:[SVMacNeuralEngineDeviceConfiguration class]]) {
+            id configuration = [objc_lookUpClass("_VZMacNeuralEngineDeviceConfiguration") new];
+            [acceleratorDevices addObject:configuration];
+            [configuration release];
+        } else {
+            abort();
+        }
+    }
+    
+    reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(virtualMachineConfiguration, sel_registerName("_setAcceleratorDevices:"), acceleratorDevices);
+    [acceleratorDevices release];
+    
+    //
     
     NSMutableArray *coprocessors = [[NSMutableArray alloc] initWithCapacity:virtualMachineConfigurationObject.coprocessors.count];
     
@@ -716,6 +738,9 @@
     virtualMachineConfiguration.keyboards = [self _isolated_makeManagedObjectsFromKeyboards:machineConfiguration.keyboards];
     virtualMachineConfiguration.audioDevices = [self _isolated_makeManagedObjectsFromAudioDevices:machineConfiguration.audioDevices];
     
+    NSArray *acceleratorDevices = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(machineConfiguration, sel_registerName("_acceleratorDevices"));
+    virtualMachineConfiguration.acceleratorDevices = [self _isolated_makeManagedObjectsFromAcceleratorDevices:acceleratorDevices];
+    
     NSArray *coprocessors = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(machineConfiguration, sel_registerName("_coprocessors"));
     virtualMachineConfiguration.coprocessors = [self _isolated_makeManagedObjectsFromCoprocessors:coprocessors];
     
@@ -997,6 +1022,23 @@
     }
     
     return [directorySharingDeviceObjects autorelease];
+}
+
+- (NSOrderedSet<__kindof SVAcceleratorDeviceConfiguration *> *)_isolated_makeManagedObjectsFromAcceleratorDevices:(NSArray *)acceleratorDevices {
+    NSManagedObjectContext *managedObjectContext = self.backgroundContext;
+    NSMutableOrderedSet<__kindof SVAcceleratorDeviceConfiguration *> *acceleratorDeviceObjects = [[NSMutableOrderedSet alloc] initWithCapacity:acceleratorDevices.count];
+    
+    for (id acceleratorDevice in acceleratorDevices) {
+        if ([acceleratorDevice isKindOfClass:objc_lookUpClass("_VZMacNeuralEngineDeviceConfiguration")]) {
+            SVMacNeuralEngineDeviceConfiguration *object = [[SVMacNeuralEngineDeviceConfiguration alloc] initWithContext:managedObjectContext];
+            [acceleratorDeviceObjects addObject:object];
+            [object release];
+        } else {
+            abort();
+        }
+    }
+    
+    return [acceleratorDeviceObjects autorelease];
 }
 
 - (NSOrderedSet<__kindof SVCoprocessorConfiguration *> *)_isolated_makeManagedObjectsFromCoprocessors:(NSArray *)coprocessors {
