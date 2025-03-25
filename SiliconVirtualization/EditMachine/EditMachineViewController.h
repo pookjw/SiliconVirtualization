@@ -21,8 +21,10 @@ NS_ASSUME_NONNULL_BEGIN
 - (instancetype)initWithNibName:(nullable NSNibName)nibNameOrNil bundle:(nullable NSBundle *)nibBundleOrNil NS_UNAVAILABLE;
 - (nullable instancetype)initWithCoder:(NSCoder *)coder NS_UNAVAILABLE;
 - (instancetype)initWithConfiguration:(VZVirtualMachineConfiguration *)configuration;
+- (instancetype)initWithMachine:(VZVirtualMachine *)machine;
 
-@property (copy, nonatomic) VZVirtualMachineConfiguration *configuration;
+@property (copy, nonatomic, nullable) VZVirtualMachineConfiguration *configuration;
+@property (copy, nonatomic, nullable) VZVirtualMachine *machine;
 @property (assign, nonatomic, nullable) id<EditMachineViewControllerDelegate> delegate;
 @end
 

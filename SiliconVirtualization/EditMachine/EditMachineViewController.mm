@@ -119,8 +119,16 @@
 @synthesize macAcceleratorDevicesSplitViewItem = _macAcceleratorDevicesSplitViewItem;
 
 - (instancetype)initWithConfiguration:(VZVirtualMachineConfiguration *)configuration {
-    if (self = [super init]) {
-        self.configuration = configuration;
+    if (self = [super initWithNibName:nil bundle:nil]) {
+        _configuration = [configuration copy];
+    }
+    
+    return self;
+}
+
+- (instancetype)initWithMachine:(VZVirtualMachine *)machine {
+    if (self = [super initWithNibName:nil bundle:nil]) {
+        _machine = [machine retain];
     }
     
     return self;
@@ -130,6 +138,7 @@
     [_bootLoaderViewController release];
     [_bootLoaderSplitViewItem release];
     [_configuration release];
+    [_machine release];
     [_splitViewController release];
     [_sidebarViewController release];
     [_sidebarSplitViewItem release];
@@ -178,6 +187,26 @@
     EditMachineSidebarItemModel *itemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeDirectorySharing];
     [self.sidebarViewController setItemModel:itemModel notifyingDelegate:YES];
     [itemModel release];
+    
+    [self _didChangeModel];
+}
+
+- (void)setConfiguration:(VZVirtualMachineConfiguration *)configuration {
+    [_configuration release];
+    _configuration = [configuration copy];
+    
+    [self _didChangeModel];
+}
+
+- (void)setMachine:(VZVirtualMachine *)machine {
+    [_machine release];
+    _machine = [machine retain];
+    
+    [self _didChangeModel];
+}
+
+- (void)_didChangeModel {
+    abort();
 }
 
 - (NSSplitViewController *)_splitViewController {
