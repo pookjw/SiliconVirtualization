@@ -1,11 +1,11 @@
 //
-//  EditMachineViewController.mm
+//  EditMachineConfigurationViewController.mm
 //  SiliconVirtualization
 //
 //  Created by Jinwoo Kim on 3/16/25.
 //
 
-#import "EditMachineViewController.h"
+#import "EditMachineConfigurationViewController.h"
 #import "EditMachineSidebarViewController.h"
 #import "EditMachineCPUViewController.h"
 #import "EditMachineMemoryViewController.h"
@@ -26,7 +26,9 @@
 #import <objc/message.h>
 #import <objc/runtime.h>
 
-@interface EditMachineViewController () <EditMachineSidebarViewControllerDelegate, EditMachineBootLoaderViewControllerDelegate, EditMachineCPUViewControllerDelegate, EditMachineMemoryViewControllerDelegate, EditMachineKeyboardsViewControllerDelegate, EditMachineNetworksViewControllerDelegate, EditMachinePointingDevicesViewControllerDelegate, EditMachineGraphicsViewControllerDelegate, EditMachineStoragesViewControllerDelegate, EditMachinePlatformViewControllerDelegate, EditMachineAudioDevicesViewControllerDelegate, EditMachineUSBViewControllerDelegate, EditMachineDirectorySharingViewControllerDelegate, EditMachinePowerSourceDevicesViewControllerDelegate, EditMachineBiometricDevicesViewControllerDelegate, EditMachineCoprocessorsViewControllerDelegate, EditMachineMacAcceleratorDevicesViewControllerDelegate>
+@interface EditMachineConfigurationViewController () <EditMachineSidebarViewControllerDelegate, EditMachineBootLoaderViewControllerDelegate, EditMachineCPUViewControllerDelegate, EditMachineMemoryViewControllerDelegate, EditMachineKeyboardsViewControllerDelegate, EditMachineNetworksViewControllerDelegate, EditMachinePointingDevicesViewControllerDelegate, EditMachineGraphicsViewControllerDelegate, EditMachineStoragesViewControllerDelegate, EditMachinePlatformViewControllerDelegate, EditMachineAudioDevicesViewControllerDelegate, EditMachineUSBViewControllerDelegate, EditMachineDirectorySharingViewControllerDelegate, EditMachinePowerSourceDevicesViewControllerDelegate, EditMachineBiometricDevicesViewControllerDelegate, EditMachineCoprocessorsViewControllerDelegate, EditMachineMacAcceleratorDevicesViewControllerDelegate>
+@property (copy, nonatomic, setter=_setConfiguration:) VZVirtualMachineConfiguration *configuration;
+
 @property (retain, nonatomic, readonly, getter=_splitViewController) NSSplitViewController *splitViewController;
 
 @property (retain, nonatomic, readonly, getter=_bootLoaderViewController) EditMachineBootLoaderViewController *bootLoaderViewController;
@@ -81,7 +83,7 @@
 @property (retain, nonatomic, readonly, getter=_macAcceleratorDevicesSplitViewItem) NSSplitViewItem *macAcceleratorDevicesSplitViewItem;
 @end
 
-@implementation EditMachineViewController
+@implementation EditMachineConfigurationViewController
 @synthesize bootLoaderViewController = _bootLoaderViewController;
 @synthesize bootLoaderSplitViewItem = _bootLoaderSplitViewItem;
 @synthesize splitViewController = _splitViewController;
@@ -126,19 +128,10 @@
     return self;
 }
 
-- (instancetype)initWithMachine:(VZVirtualMachine *)machine {
-    if (self = [super initWithNibName:nil bundle:nil]) {
-        _machine = [machine retain];
-    }
-    
-    return self;
-}
-
 - (void)dealloc {
     [_bootLoaderViewController release];
     [_bootLoaderSplitViewItem release];
     [_configuration release];
-    [_machine release];
     [_splitViewController release];
     [_sidebarViewController release];
     [_sidebarSplitViewItem release];
@@ -187,26 +180,6 @@
     EditMachineSidebarItemModel *itemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeDirectorySharing];
     [self.sidebarViewController setItemModel:itemModel notifyingDelegate:YES];
     [itemModel release];
-    
-    [self _didChangeModel];
-}
-
-- (void)setConfiguration:(VZVirtualMachineConfiguration *)configuration {
-    [_configuration release];
-    _configuration = [configuration copy];
-    
-    [self _didChangeModel];
-}
-
-- (void)setMachine:(VZVirtualMachine *)machine {
-    [_machine release];
-    _machine = [machine retain];
-    
-    [self _didChangeModel];
-}
-
-- (void)_didChangeModel {
-    abort();
 }
 
 - (NSSplitViewController *)_splitViewController {

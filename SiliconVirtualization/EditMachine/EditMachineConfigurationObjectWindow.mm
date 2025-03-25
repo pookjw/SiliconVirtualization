@@ -6,13 +6,13 @@
 //
 
 #import "EditMachineConfigurationObjectWindow.h"
-#import "EditMachineViewController.h"
+#import "EditMachineConfigurationViewController.h"
 #import "SVCoreDataStack+VirtualizationSupport.h"
 
 @interface EditMachineConfigurationObjectWindow () <NSToolbarDelegate>
 @property (retain, nonatomic, readonly, getter=_machineConfigurationObject) SVVirtualMachineConfiguration *machineConfigurationObject;
 @property (retain, nonnull, readonly, getter=_saveToolbarItem) NSToolbarItem *saveToolbarItem;
-@property (nonatomic, retain, nullable, getter=_editMachineViewController) EditMachineViewController *editMachineViewController;
+@property (nonatomic, retain, nullable, getter=_editMachineViewController) EditMachineConfigurationViewController *editMachineViewController;
 @end
 
 @implementation EditMachineConfigurationObjectWindow
@@ -28,7 +28,7 @@
             VZVirtualMachineConfiguration *configuration = [SVCoreDataStack.sharedInstance isolated_makeVirtualMachineConfigurationFromManagedObject:machineConfigurationObject];
             
             dispatch_async(dispatch_get_main_queue(), ^{
-                EditMachineViewController *contentViewController = [[EditMachineViewController alloc] initWithConfiguration:configuration];
+                EditMachineConfigurationViewController *contentViewController = [[EditMachineConfigurationViewController alloc] initWithConfiguration:configuration];
                 self.contentViewController = contentViewController;
                 [contentViewController release];
                 
@@ -101,10 +101,10 @@
     }];
 }
 
-- (EditMachineViewController *)_editMachineViewController {
-    auto contentViewController = static_cast<EditMachineViewController *>(self.contentViewController);
+- (EditMachineConfigurationViewController *)_editMachineViewController {
+    auto contentViewController = static_cast<EditMachineConfigurationViewController *>(self.contentViewController);
     
-    if ([contentViewController isKindOfClass:[EditMachineViewController class]]) {
+    if ([contentViewController isKindOfClass:[EditMachineConfigurationViewController class]]) {
         return contentViewController;
     }
     

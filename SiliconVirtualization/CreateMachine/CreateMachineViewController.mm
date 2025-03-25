@@ -7,7 +7,7 @@
 
 #import "CreateMachineViewController.h"
 #import <Virtualization/Virtualization.h>
-#import "EditMachineViewController.h"
+#import "EditMachineConfigurationViewController.h"
 #import "SVCoreDataStack+VirtualizationSupport.h"
 #import <objc/message.h>
 #import <objc/runtime.h>
@@ -135,7 +135,7 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    EditMachineViewController *editMachineViewController = [[EditMachineViewController alloc] initWithConfiguration:self.machineConfiguration];
+    EditMachineConfigurationViewController *editMachineViewController = [[EditMachineConfigurationViewController alloc] initWithConfiguration:self.machineConfiguration];
     editMachineViewController.delegate = self;
     editMachineViewController.view.frame = self.view.bounds;
     editMachineViewController.view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
@@ -219,7 +219,7 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
     });
 }
 
-- (void)editMachineViewController:(EditMachineViewController *)editMachineViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
+- (void)editMachineViewController:(EditMachineConfigurationViewController *)editMachineViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
     self.machineConfiguration = configuration;
 }
 
