@@ -121,6 +121,27 @@
 //            [config release];
 //        }
         
+        {
+            id debugStubConfiguration = reinterpret_cast<id (*)(id, SEL, ushort)>(objc_msgSend)([objc_lookUpClass("_VZGDBDebugStubConfiguration") alloc], sel_registerName("initWithPort:"), 1234);
+            reinterpret_cast<void (*)(id, SEL, BOOL)>(objc_msgSend)(debugStubConfiguration, sel_registerName("setListensOnAllNetworkInterfaces:"), YES);
+            reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(configuration, sel_registerName("_setDebugStub:"), debugStubConfiguration);
+            [debugStubConfiguration release];
+        }
+        
+//        {
+//            NSArray *coprocessors = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(configuration, sel_registerName("_coprocessors"));
+//            for (id coprocessor in coprocessors) {
+//                if ([coprocessor isKindOfClass:objc_lookUpClass("_VZSEPCoprocessorConfiguration")]) {
+//                    id debugStubConfiguration = reinterpret_cast<id (*)(id, SEL, ushort)>(objc_msgSend)([objc_lookUpClass("_VZGDBDebugStubConfiguration") alloc], sel_registerName("initWithPort:"), 5678);
+//                    reinterpret_cast<void (*)(id, SEL, BOOL)>(objc_msgSend)(debugStubConfiguration, sel_registerName("setListensOnAllNetworkInterfaces:"), YES);
+//                    reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(coprocessor, sel_registerName("setDebugStub:"), debugStubConfiguration);
+//                    [debugStubConfiguration release];
+//                } else {
+//                    abort();
+//                }
+//            }
+//        }
+        
         BOOL startUpFromMacOSRecovery;
         __kindof SVVirtualMachineStartOptions *startOptions = virtualMachineObject.startOptions;
         if (startOptions == nil) {
@@ -135,6 +156,12 @@
         dispatch_async(_queue, ^{
             if ([_virtualMachineObject isEqual:virtualMachineObject]) {
                 VZVirtualMachine *virtualMachine = [[VZVirtualMachine alloc] initWithConfiguration:configuration queue:_queue];
+                
+                id _debugStub = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(virtualMachine, sel_registerName("_debugStub"));
+                if (_debugStub != nil) {
+                    reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(_debugStub, sel_registerName("setDelegate:"), self);
+                }
+                
                 self.isolated_virtualMachine = virtualMachine;
                 [virtualMachine release];
                 
@@ -190,6 +217,10 @@
 
 - (void)_didSaveObjectIDs:(NSNotification *)notification {
     
+}
+
+-(void)_debugStub:(id)_debugStub didStartListeningOnPort:(ushort)port {
+    NSLog(@"%s (%@, %hu)", __func__, _debugStub, port);
 }
 
 @end
