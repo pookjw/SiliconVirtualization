@@ -8,14 +8,14 @@
         <customObject id="-2" userLabel="File's Owner"/>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
-        <tableCellView id="xkj-fi-hGA" customClass="EditMachineDirectorySharingDevicesTableCellView">
+        <tableCellView id="qNH-qj-E8N" customClass="EditMachineConfigurationUSBControllersTableCellView">
             <rect key="frame" x="0.0" y="0.0" width="100" height="17"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
-                <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="D0s-Cf-jaP">
+                <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="DBC-Jh-PP7">
                     <rect key="frame" x="0.0" y="1" width="100" height="16"/>
                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
-                    <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="CUb-ma-Tig">
+                    <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="l5Q-VD-Xor">
                         <font key="font" usesAppearanceFont="YES"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -23,9 +23,9 @@
                 </textField>
             </subviews>
             <connections>
-                <outlet property="textField" destination="D0s-Cf-jaP" id="5k8-UH-BIf"/>
+                <outlet property="textField" destination="DBC-Jh-PP7" id="tbD-3q-WRN"/>
             </connections>
-            <point key="canvasLocation" x="-210" y="-17"/>
+            <point key="canvasLocation" x="-276" y="-55"/>
         </tableCellView>
     </objects>
 </document>

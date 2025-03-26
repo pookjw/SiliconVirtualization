@@ -1,29 +1,29 @@
 //
-//  EditMachineMemoryBalloonDevicesTableViewController.mm
+//  EditMachineUSBControllersTableViewController.mm
 //  SiliconVirtualization
 //
-//  Created by Jinwoo Kim on 3/25/25.
+//  Created by Jinwoo Kim on 3/26/25.
 //
 
-#import "EditMachineMemoryBalloonDevicesTableViewController.h"
-#import "EditMachineMemoryBalloonDevicesTableCellView.h"
+#import "EditMachineUSBControllersTableViewController.h"
+#import "EditMachineUSBControllersTableCellView.h"
 
-@interface EditMachineMemoryBalloonDevicesTableViewController () <NSTableViewDataSource, NSTableViewDelegate>
+@interface EditMachineUSBControllersTableViewController () <NSTableViewDataSource, NSTableViewDelegate>
 @property (class, nonatomic, readonly, getter=_cellItemIdentifier) NSUserInterfaceItemIdentifier cellItemIdentifier;
 @property (retain, nonatomic, readonly, getter=_scrollView) NSScrollView *scrollView;
 @property (retain, nonatomic, readonly, getter=_tableView) NSTableView *tableView;
 @end
 
-@implementation EditMachineMemoryBalloonDevicesTableViewController
+@implementation EditMachineUSBControllersTableViewController
 @synthesize scrollView = _scrollView;
 @synthesize tableView = _tableView;
 
 + (NSUserInterfaceItemIdentifier)_cellItemIdentifier {
-    return NSStringFromClass([EditMachineMemoryBalloonDevicesTableCellView class]);
+    return NSStringFromClass([EditMachineUSBControllersTableCellView class]);
 }
 
 - (void)dealloc {
-    [_memoryBalloonDevices release];
+    [_usbControllers release];
     [_scrollView release];
     [_tableView release];
     [super dealloc];
@@ -38,14 +38,14 @@
     [self.view addSubview:scrollView];
 }
 
-- (void)setMemoryBalloonDevices:(NSArray<__kindof VZMemoryBalloonDevice *> *)memoryBalloonDevices {
-    [_memoryBalloonDevices release];
-    _memoryBalloonDevices = [memoryBalloonDevices copy];
+- (void)setUSBControllers:(NSArray<__kindof VZUSBController *> *)usbControllers {
+    [_usbControllers release];
+    _usbControllers = [usbControllers copy];
     
-    [self _didChangeMemoryBalloonDevices];
+    [self _didChangeUSBControllers];
 }
 
-- (void)_didChangeMemoryBalloonDevices {
+- (void)_didChangeUSBControllers {
     NSTableView *tableView = self.tableView;
     NSInteger selectedRow = tableView.selectedRow;
     [tableView reloadData];
@@ -62,7 +62,7 @@
     if (delegate == nil) return;
     
     NSInteger selectedRow = self.tableView.selectedRow;
-    [delegate editMachineMemoryBalloonDevicesTableViewController:self didSelectAtIndex:selectedRow];
+    [delegate editMachineUSBControllersTableViewController:self didSelectAtIndex:selectedRow];
 }
 
 - (NSScrollView *)_scrollView {
@@ -80,8 +80,8 @@
     
     NSTableView *tableView = [NSTableView new];
     
-    NSNib *cellNib = [[NSNib alloc] initWithNibNamed:NSStringFromClass([EditMachineMemoryBalloonDevicesTableCellView class]) bundle:[NSBundle bundleForClass:[EditMachineMemoryBalloonDevicesTableCellView class]]];
-    [tableView registerNib:cellNib forIdentifier:EditMachineMemoryBalloonDevicesTableViewController.cellItemIdentifier];
+    NSNib *cellNib = [[NSNib alloc] initWithNibNamed:NSStringFromClass([EditMachineUSBControllersTableCellView class]) bundle:[NSBundle bundleForClass:[EditMachineUSBControllersTableCellView class]]];
+    [tableView registerNib:cellNib forIdentifier:EditMachineUSBControllersTableViewController.cellItemIdentifier];
     [cellNib release];
     
     NSTableColumn *tableColumn = [[NSTableColumn alloc] initWithIdentifier:@""];
@@ -98,16 +98,16 @@
 }
 
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView {
-    return self.memoryBalloonDevices.count;
+    return self.usbControllers.count;
 }
 
 - (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
-    EditMachineMemoryBalloonDevicesTableCellView *cell = [tableView makeViewWithIdentifier:EditMachineMemoryBalloonDevicesTableViewController.cellItemIdentifier owner:nil];
+    EditMachineUSBControllersTableCellView *cell = [tableView makeViewWithIdentifier:EditMachineUSBControllersTableViewController.cellItemIdentifier owner:nil];
     
-    __kindof VZMemoryBalloonDevice *configuration = self.memoryBalloonDevices[row];
+    __kindof VZUSBController *usbControllers = self.usbControllers[row];
     
-    if ([configuration isKindOfClass:[VZVirtioTraditionalMemoryBalloonDevice class]]) {
-        cell.textField.stringValue = @"Virtio Traditional Memory Balloon";
+    if ([usbControllers isKindOfClass:[VZXHCIController class]]) {
+        cell.textField.stringValue = @"XHCI Controller";
     } else {
         abort();
     }

@@ -17,8 +17,8 @@
 #import "EditMachinePointingDevicesViewController.h"
 #import "EditMachineNetworksViewController.h"
 #import "EditMachineAudioDevicesViewController.h"
-#import "EditMachineUSBViewController.h"
-#import "EditMachineDirectorySharingViewController.h"
+#import "EditMachineConfigurationUSBControllersViewController.h"
+#import "EditMachineConfigurationDirectorySharingViewController.h"
 #import "EditMachinePowerSourceDevicesViewController.h"
 #import "EditMachineBiometricDevicesViewController.h"
 #import "EditMachineCoprocessorsViewController.h"
@@ -27,7 +27,7 @@
 #import <objc/message.h>
 #import <objc/runtime.h>
 
-@interface EditMachineConfigurationViewController () <EditMachineSidebarViewControllerDelegate, EditMachineBootLoaderViewControllerDelegate, EditMachineCPUViewControllerDelegate, EditMachineMemoryViewControllerDelegate, EditMachineKeyboardsViewControllerDelegate, EditMachineNetworksViewControllerDelegate, EditMachinePointingDevicesViewControllerDelegate, EditMachineGraphicsViewControllerDelegate, EditMachineStoragesViewControllerDelegate, EditMachinePlatformViewControllerDelegate, EditMachineAudioDevicesViewControllerDelegate, EditMachineUSBViewControllerDelegate, EditMachineDirectorySharingViewControllerDelegate, EditMachinePowerSourceDevicesViewControllerDelegate, EditMachineBiometricDevicesViewControllerDelegate, EditMachineCoprocessorsViewControllerDelegate, EditMachineMacAcceleratorDevicesViewControllerDelegate, EditMachineConfigurationMemoryBalloonDevicesViewControllerDelegate>
+@interface EditMachineConfigurationViewController () <EditMachineSidebarViewControllerDelegate, EditMachineBootLoaderViewControllerDelegate, EditMachineCPUViewControllerDelegate, EditMachineMemoryViewControllerDelegate, EditMachineKeyboardsViewControllerDelegate, EditMachineNetworksViewControllerDelegate, EditMachinePointingDevicesViewControllerDelegate, EditMachineGraphicsViewControllerDelegate, EditMachineStoragesViewControllerDelegate, EditMachinePlatformViewControllerDelegate, EditMachineAudioDevicesViewControllerDelegate, EditMachineConfigurationUSBControllersViewControllerDelegate, EditMachineConfigurationDirectorySharingViewControllerDelegate, EditMachinePowerSourceDevicesViewControllerDelegate, EditMachineBiometricDevicesViewControllerDelegate, EditMachineCoprocessorsViewControllerDelegate, EditMachineMacAcceleratorDevicesViewControllerDelegate, EditMachineConfigurationMemoryBalloonDevicesViewControllerDelegate>
 @property (copy, nonatomic, setter=_setConfiguration:) VZVirtualMachineConfiguration *configuration;
 
 @property (retain, nonatomic, readonly, getter=_splitViewController) NSSplitViewController *splitViewController;
@@ -65,13 +65,13 @@
 @property (retain, nonatomic, readonly, getter=_platformViewController) EditMachinePlatformViewController *platformViewController;
 @property (retain, nonatomic, readonly, getter=_platformSplitViewItem) NSSplitViewItem *platformSplitViewItem;
 
-@property (retain, nonatomic, readonly, getter=_usbViewController) EditMachineUSBViewController *usbViewController;
+@property (retain, nonatomic, readonly, getter=_usbViewController) EditMachineConfigurationUSBControllersViewController *usbViewController;
 @property (retain, nonatomic, readonly, getter=_usbSplitViewItem) NSSplitViewItem *usbSplitViewItem;
 
 @property (retain, nonatomic, readonly, getter=_powerSourceDevicesViewController) EditMachinePowerSourceDevicesViewController *powerSourceDevicesViewController;
 @property (retain, nonatomic, readonly, getter=_powerSourceDevicesSplitViewItem) NSSplitViewItem *powerSourceDevicesSplitViewItem;
 
-@property (retain, nonatomic, readonly, getter=_directorySharingViewController) EditMachineDirectorySharingViewController *directorySharingViewController;
+@property (retain, nonatomic, readonly, getter=_directorySharingViewController) EditMachineConfigurationDirectorySharingViewController *directorySharingViewController;
 @property (retain, nonatomic, readonly, getter=_directorySharingSplitViewItem) NSSplitViewItem *directorySharingSplitViewItem;
 
 @property (retain, nonatomic, readonly, getter=_biometricDevicesViewController) EditMachineBiometricDevicesViewController *biometricDevicesViewController;
@@ -487,10 +487,10 @@
     return platformSplitViewItem;
 }
 
-- (EditMachineUSBViewController *)_usbViewController {
+- (EditMachineConfigurationUSBControllersViewController *)_usbViewController {
     if (auto usbViewController = _usbViewController) return usbViewController;
     
-    EditMachineUSBViewController *usbViewController = [[EditMachineUSBViewController alloc] initWithConfiguration:self.configuration];
+    EditMachineConfigurationUSBControllersViewController *usbViewController = [[EditMachineConfigurationUSBControllersViewController alloc] initWithConfiguration:self.configuration];
     usbViewController.delegate = self;
     
     _usbViewController = usbViewController;
@@ -506,10 +506,10 @@
     return usbSplitViewItem;
 }
 
-- (EditMachineDirectorySharingViewController *)_directorySharingViewController {
+- (EditMachineConfigurationDirectorySharingViewController *)_directorySharingViewController {
     if (auto directorySharingViewController = _directorySharingViewController) return directorySharingViewController;
     
-    EditMachineDirectorySharingViewController *directorySharingViewController = [[EditMachineDirectorySharingViewController alloc] initWithConfiguration:self.configuration];
+    EditMachineConfigurationDirectorySharingViewController *directorySharingViewController = [[EditMachineConfigurationDirectorySharingViewController alloc] initWithConfiguration:self.configuration];
     directorySharingViewController.delegate = self;
     
     _directorySharingViewController = directorySharingViewController;
@@ -749,12 +749,12 @@
     [self _notifyDelegate];
 }
 
-- (void)editMachineUSBViewController:(EditMachineUSBViewController *)editMachineUSBViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
+- (void)editMachineConfigurationUSBControllersViewController:(EditMachineConfigurationUSBControllersViewController *)editMachineUSBViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
     self.configuration = configuration;
     [self _notifyDelegate];
 }
 
-- (void)editMachineDirectorySharingViewController:(EditMachineDirectorySharingViewController *)editMachineDirectorySharingViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
+- (void)editMachineConfigurationDirectorySharingViewController:(EditMachineConfigurationDirectorySharingViewController *)editMachineDirectorySharingViewController didUpdateConfiguration:(VZVirtualMachineConfiguration *)configuration {
     self.configuration = configuration;
     [self _notifyDelegate];
 }

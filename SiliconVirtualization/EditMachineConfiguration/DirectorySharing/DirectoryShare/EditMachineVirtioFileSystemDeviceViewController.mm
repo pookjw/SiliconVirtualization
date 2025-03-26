@@ -7,6 +7,8 @@
 
 #import "EditMachineVirtioFileSystemDeviceViewController.h"
 #import "EditMachineVirtioFileSystemDeviceDirectoriesView.h"
+#import <objc/message.h>
+#import <objc/runtime.h>
 
 @interface EditMachineVirtioFileSystemDeviceViewController () <EditMachineVirtioFileSystemDeviceDirectoriesViewDelegate>
 @property (retain, nonatomic, readonly, getter=_stackView) NSStackView *stackView;
@@ -31,6 +33,7 @@
 
 - (void)dealloc {
     [_configuration release];
+    [_device release];
     [_stackView release];
     [_gridView release];
     [_directoryShareLabel release];
@@ -57,32 +60,67 @@
     [_configuration release];
     _configuration = [configuration copy];
     
-    [self _didChangeConfiguration];
+    if (VZVirtioFileSystemDevice *device = _device) {
+        [device release];
+        _device = nil;
+    }
+    
+    [self _didChangeConfigurationOrDevice];
 }
 
-- (void)_didChangeConfiguration {
-    __kindof VZDirectoryShare * _Nullable share = self.configuration.share;
+- (void)setDevice:(VZVirtioFileSystemDevice *)device {
+    [_device release];
+    _device = [device retain];
     
-    if (share == nil) {
-        [self.directorySharePopUpButton selectItemWithTitle:@"(None)"];
-        [self.gridView rowAtIndex:1].hidden = YES;
-        self.directoriesView.hidden = YES;
-    } else if ([share isKindOfClass:[VZSingleDirectoryShare class]]) {
-        auto casted = static_cast<VZSingleDirectoryShare *>(share);
+    if (VZVirtioFileSystemDeviceConfiguration *configuration = _configuration) {
+        [configuration release];
+        _configuration = nil;
+    }
+    
+    [self _didChangeConfigurationOrDevice];
+}
+
+- (void)_didChangeConfigurationOrDevice {
+    auto block = ^(__kindof VZDirectoryShare * _Nullable share) {
+        if (share == nil) {
+            [self.directorySharePopUpButton selectItemWithTitle:@"(None)"];
+            [self.gridView rowAtIndex:1].hidden = YES;
+            self.directoriesView.hidden = YES;
+        } else if ([share isKindOfClass:[VZSingleDirectoryShare class]]) {
+            auto casted = static_cast<VZSingleDirectoryShare *>(share);
+            
+            [self.directorySharePopUpButton selectItemWithTitle:@"Single"];
+            self.singleDirectoryShareURLLabel.stringValue = casted.directory.URL.absoluteString;
+            [self.gridView rowAtIndex:1].hidden = NO;
+            self.directoriesView.hidden = YES;
+        } else if ([share isKindOfClass:[VZMultipleDirectoryShare class]]) {
+            auto casted = static_cast<VZMultipleDirectoryShare *>(share);
+            
+            [self.directorySharePopUpButton selectItemWithTitle:@"Multiple"];
+            [self.gridView rowAtIndex:1].hidden = YES;
+            self.directoriesView.hidden = NO;
+            self.directoriesView.directories = casted.directories;
+        } else {
+            abort();
+        }
+    };
+    
+    if (VZVirtioFileSystemDeviceConfiguration *configuration = self.configuration) {
+        assert(self.device == nil);
+        block(configuration.share);
+    } else if (VZVirtioFileSystemDevice *device = self.device) {
+        dispatch_queue_t _queue;
+        assert(object_getInstanceVariable(device, "_queue", reinterpret_cast<void **>(&_queue)) != NULL);
+        assert(![_queue isEqual:dispatch_get_main_queue()]);
         
-        [self.directorySharePopUpButton selectItemWithTitle:@"Single"];
-        self.singleDirectoryShareURLLabel.stringValue = casted.directory.URL.absoluteString;
-        [self.gridView rowAtIndex:1].hidden = NO;
-        self.directoriesView.hidden = YES;
-    } else if ([share isKindOfClass:[VZMultipleDirectoryShare class]]) {
-        auto casted = static_cast<VZMultipleDirectoryShare *>(share);
-        
-        [self.directorySharePopUpButton selectItemWithTitle:@"Multiple"];
-        [self.gridView rowAtIndex:1].hidden = YES;
-        self.directoriesView.hidden = NO;
-        self.directoriesView.directories = casted.directories;
+        dispatch_async(_queue, ^{
+            VZDirectoryShare * _Nullable share = device.share;
+            dispatch_async(dispatch_get_main_queue(), ^{
+                block(share);
+            });
+        });
     } else {
-        abort();
+        block(nil);
     }
 }
 
@@ -216,34 +254,35 @@
 }
 
 - (void)_updateWithShare:(__kindof VZDirectoryShare * _Nullable)share {
-    VZVirtioFileSystemDeviceConfiguration *configuration = [self.configuration copy];
-    assert(configuration != nil);
-    configuration.share = share;
-    
-    self.configuration = configuration;
-    
-    if (auto delegate = self.delegate) {
-        [delegate editMachineVirtioFileSystemDeviceViewController:self didChangeConfiguration:configuration];
+    if (VZVirtioFileSystemDeviceConfiguration *configuration = [self.configuration copy]) {
+        assert(configuration != nil);
+        configuration.share = share;
+        
+        self.configuration = configuration;
+        
+        if (auto delegate = self.delegate) {
+            [delegate editMachineVirtioFileSystemDeviceViewController:self didChangeConfiguration:configuration];
+        }
+        
+        [configuration release];
+    } else if (VZVirtioFileSystemDevice *device = self.device) {
+        dispatch_queue_t _queue;
+        assert(object_getInstanceVariable(device, "_queue", reinterpret_cast<void **>(&_queue)) != NULL);
+        
+        dispatch_async(_queue, ^{
+            device.share = share;
+        });
+        
+        [self _didChangeConfigurationOrDevice];
+    } else {
+        abort();
     }
-    
-    [configuration release];
 }
 
 - (void)editMachineVirtioFileSystemDeviceDirectoriesView:(EditMachineVirtioFileSystemDeviceDirectoriesView *)editMachineVirtioFileSystemDeviceDirectoriesView didUpdateDirectories:(NSDictionary<NSString *,VZSharedDirectory *> *)directories {
-    VZVirtioFileSystemDeviceConfiguration *configuration = [self.configuration copy];
-    assert([configuration.share isKindOfClass:[VZMultipleDirectoryShare class]]);
-    
     VZMultipleDirectoryShare *share = [[VZMultipleDirectoryShare alloc] initWithDirectories:directories];
-    configuration.share = share;
+    [self _updateWithShare:share];
     [share release];
-    
-    self.configuration = configuration;
-    
-    if (auto delegate = self.delegate) {
-        [delegate editMachineVirtioFileSystemDeviceViewController:self didChangeConfiguration:configuration];
-    }
-    
-    [configuration release];
 }
 
 @end

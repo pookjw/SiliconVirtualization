@@ -1,5 +1,5 @@
 //
-//  EditMachineUSBDevicesTableCellView.h
+//  EditMachineConfigurationUSBDevicesTableCellView.h
 //  SiliconVirtualization
 //
 //  Created by Jinwoo Kim on 3/23/25.
@@ -9,7 +9,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface EditMachineUSBDevicesTableCellView : NSTableCellView
+@interface EditMachineConfigurationUSBDevicesTableCellView : NSTableCellView
 
 @end
 

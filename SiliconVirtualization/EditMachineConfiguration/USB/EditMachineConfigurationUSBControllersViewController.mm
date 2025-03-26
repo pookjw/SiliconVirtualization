@@ -1,21 +1,21 @@
 //
-//  EditMachineUSBViewController.mm
+//  EditMachineConfigurationUSBControllersViewController.mm
 //  SiliconVirtualization
 //
 //  Created by Jinwoo Kim on 3/23/25.
 //
 
-#import "EditMachineUSBViewController.h"
-#import "EditMachineUSBControllersTableViewController.h"
-#import "EditMachineUSBDevicesTableViewController.h"
+#import "EditMachineConfigurationUSBControllersViewController.h"
+#import "EditMachineConfigurationUSBControllersTableViewController.h"
+#import "EditMachineConfigurationUSBDevicesTableViewController.h"
 
-@interface EditMachineUSBViewController () <EditMachineUSBControllersTableViewControllerDelegate, EditMachineUSBDevicesTableViewControllerDelegate>
+@interface EditMachineConfigurationUSBControllersViewController () <EditMachineUSBControllersTableViewControllerDelegate, EditMachineConfigurationUSBDevicesTableViewControllerDelegate>
 @property (retain, nonatomic, readonly, getter=_splitViewController) NSSplitViewController *splitViewController;
 
-@property (retain, nonatomic, readonly, getter=_usbControllersTableViewController) EditMachineUSBControllersTableViewController *usbControllersTableViewController;
+@property (retain, nonatomic, readonly, getter=_usbControllersTableViewController) EditMachineConfigurationUSBControllersTableViewController *usbControllersTableViewController;
 @property (retain, nonatomic, readonly, getter=_usbControllersTableSplitView) NSSplitViewItem *usbControllersTableSplitView;
 
-@property (retain, nonatomic, readonly, getter=_usbDevicesTableViewController) EditMachineUSBDevicesTableViewController *usbDevicesTableViewController;
+@property (retain, nonatomic, readonly, getter=_usbDevicesTableViewController) EditMachineConfigurationUSBDevicesTableViewController *usbDevicesTableViewController;
 @property (retain, nonatomic, readonly, getter=_usbDevicesTableSplitView) NSSplitViewItem *usbDevicesTableSplitView;
 
 @property (retain, nonatomic, readonly, getter=_emptyUSBControllerViewController) NSViewController *emptyUSBControllerViewController;
@@ -24,7 +24,7 @@
 @property (assign, nonatomic, getter=_selectedUSBControllerIndex, setter=_setSelectedUSBControllerIndex:) NSInteger selectedUSBControllerIndex;
 @end
 
-@implementation EditMachineUSBViewController
+@implementation EditMachineConfigurationUSBControllersViewController
 @synthesize splitViewController = _splitViewController;
 @synthesize usbControllersTableViewController = _usbControllersTableViewController;
 @synthesize usbControllersTableSplitView = _usbControllersTableSplitView;
@@ -86,10 +86,10 @@
     return splitViewController;
 }
 
-- (EditMachineUSBControllersTableViewController *)_usbControllersTableViewController {
+- (EditMachineConfigurationUSBControllersTableViewController *)_usbControllersTableViewController {
     if (auto usbControllersTableViewController = _usbControllersTableViewController) return usbControllersTableViewController;
     
-    EditMachineUSBControllersTableViewController *usbControllersTableViewController = [EditMachineUSBControllersTableViewController new];
+    EditMachineConfigurationUSBControllersTableViewController *usbControllersTableViewController = [EditMachineConfigurationUSBControllersTableViewController new];
     usbControllersTableViewController.delegate = self;
     
     _usbControllersTableViewController = usbControllersTableViewController;
@@ -105,10 +105,10 @@
     return usbControllersTableSplitView;
 }
 
-- (EditMachineUSBDevicesTableViewController *)_usbDevicesTableViewController {
+- (EditMachineConfigurationUSBDevicesTableViewController *)_usbDevicesTableViewController {
     if (auto usbDevicesTableViewController = _usbDevicesTableViewController) return usbDevicesTableViewController;
     
-    EditMachineUSBDevicesTableViewController *usbDevicesTableViewController = [EditMachineUSBDevicesTableViewController new];
+    EditMachineConfigurationUSBDevicesTableViewController *usbDevicesTableViewController = [EditMachineConfigurationUSBDevicesTableViewController new];
     usbDevicesTableViewController.delegate = self;
     
     _usbDevicesTableViewController = usbDevicesTableViewController;
@@ -142,7 +142,7 @@
     return emptyUSBControllerSplitViewItem;
 }
 
-- (void)editMachineUSBControllersTableViewControllerDelegate:(EditMachineUSBControllersTableViewController *)editMachineUSBControllersTableViewControllerDelegate didSelectAtIndex:(NSInteger)selectedIndex {
+- (void)editMachineConfigurationUSBControllersTableViewController:(EditMachineConfigurationUSBControllersTableViewController *)editMachineUSBControllersTableViewControllerDelegate didSelectAtIndex:(NSInteger)selectedIndex {
     self.selectedUSBControllerIndex = selectedIndex;
     
     if ((selectedIndex == NSNotFound) or (selectedIndex == -1)) {
@@ -162,23 +162,23 @@
     }
 }
 
-- (void)editMachineUSBControllersTableViewControllerDelegate:(EditMachineUSBControllersTableViewController *)editMachineUSBControllersTableViewControllerDelegate didUpdateUSBControllers:(NSArray<__kindof VZUSBControllerConfiguration *> *)usbControllers {
+- (void)editMachineConfigurationUSBControllersTableViewController:(EditMachineConfigurationUSBControllersTableViewController *)editMachineUSBControllersTableViewControllerDelegate didUpdateUSBControllers:(NSArray<__kindof VZUSBControllerConfiguration *> *)usbControllers {
     VZVirtualMachineConfiguration *configuration = [self.configuration copy];
     configuration.usbControllers = usbControllers;
     self.configuration = configuration;
     
     if (auto delegate = self.delegate) {
-        [delegate editMachineUSBViewController:self didUpdateConfiguration:configuration];
+        [delegate editMachineConfigurationUSBControllersViewController:self didUpdateConfiguration:configuration];
     }
     
     [configuration release];
 }
 
-- (void)editMachineUSBDevicesTableViewController:(EditMachineUSBDevicesTableViewController *)editMachineUSBDevicesTableViewController didSelectAtIndex:(NSInteger)selectedIndex {
+- (void)editMachineConfigurationUSBDevicesTableViewController:(EditMachineConfigurationUSBDevicesTableViewController *)editMachineUSBDevicesTableViewController didSelectAtIndex:(NSInteger)selectedIndex {
     // nop
 }
 
-- (void)editMachineUSBDevicesTableViewController:(EditMachineUSBDevicesTableViewController *)editMachineUSBDevicesTableViewController didUpdateUSBDevices:(NSArray<id<VZUSBDeviceConfiguration>> *)usbDevices {
+- (void)editMachineConfigurationUSBDevicesTableViewController:(EditMachineConfigurationUSBDevicesTableViewController *)editMachineUSBDevicesTableViewController didUpdateUSBDevices:(NSArray<id<VZUSBDeviceConfiguration>> *)usbDevices {
     NSInteger selectedUSBControllerIndex = self.selectedUSBControllerIndex;
     assert((selectedUSBControllerIndex != NSNotFound) and (selectedUSBControllerIndex != -1));
     
@@ -191,7 +191,7 @@
     self.configuration = configuration;
     
     if (auto delegate = self.delegate) {
-        [delegate editMachineUSBViewController:self didUpdateConfiguration:configuration];
+        [delegate editMachineConfigurationUSBControllersViewController:self didUpdateConfiguration:configuration];
     }
     
     [configuration release];

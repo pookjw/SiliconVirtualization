@@ -1,34 +1,32 @@
 //
-//  EditMachineDirectorySharingDevicesTableViewController.mm
+//  EditMachineConfigurationUSBDevicesTableViewController.mm
 //  SiliconVirtualization
 //
 //  Created by Jinwoo Kim on 3/23/25.
 //
 
-#import "EditMachineDirectorySharingDevicesTableViewController.h"
-#import "EditMachineDirectorySharingDevicesTableCellView.h"
-#import "EditMachineDirectorySharingDevicesTagView.h"
+#import "EditMachineConfigurationUSBDevicesTableViewController.h"
+#import "EditMachineConfigurationUSBDevicesTableCellView.h"
+#import "DiskBlockDeviceStorageDeviceAttachmentConfigurationView.h"
 
-@interface EditMachineDirectorySharingDevicesTableViewController () <NSTableViewDataSource, NSTableViewDelegate, NSMenuDelegate>
+@interface EditMachineConfigurationUSBDevicesTableViewController () <NSTableViewDataSource, NSTableViewDelegate, NSMenuDelegate>
 @property (class, nonatomic, readonly, getter=_cellItemIdentifier) NSUserInterfaceItemIdentifier cellItemIdentifier;
 @property (retain, nonatomic, readonly, getter=_scrollView) NSScrollView *scrollView;
 @property (retain, nonatomic, readonly, getter=_tableView) NSTableView *tableView;
 @property (retain, nonatomic, readonly, getter=_createButton) NSButton *createButton;
-
 @end
 
-@implementation EditMachineDirectorySharingDevicesTableViewController
-
+@implementation EditMachineConfigurationUSBDevicesTableViewController
 @synthesize scrollView = _scrollView;
 @synthesize tableView = _tableView;
 @synthesize createButton = _createButton;
 
 + (NSUserInterfaceItemIdentifier)_cellItemIdentifier {
-    return NSStringFromClass([EditMachineDirectorySharingDevicesTableCellView class]);
+    return NSStringFromClass([EditMachineConfigurationUSBDevicesTableCellView class]);
 }
 
 - (void)dealloc {
-    [_directorySharingDevices release];
+    [_usbDevices release];
     [_scrollView release];
     [_tableView release];
     [_createButton release];
@@ -52,14 +50,14 @@
     ]];
 }
 
-- (void)setDirectorySharingDevices:(NSArray<__kindof VZDirectorySharingDeviceConfiguration *> *)directorySharingDevices {
-    [_directorySharingDevices release];
-    _directorySharingDevices = [directorySharingDevices copy];
+- (void)setUSBDevices:(NSArray<id<VZUSBDeviceConfiguration>> *)usbDevices {
+    [_usbDevices release];
+    _usbDevices = [usbDevices copy];
     
-    [self _didChangeDirectorySharingDevices];
+    [self _didChangeUSBDevices];
 }
 
-- (void)_didChangeDirectorySharingDevices {
+- (void)_didChangeUSBDevices {
     NSTableView *tableView = self.tableView;
     NSInteger selectedRow = tableView.selectedRow;
     [tableView reloadData];
@@ -76,7 +74,7 @@
     if (delegate == nil) return;
     
     NSInteger selectedRow = self.tableView.selectedRow;
-    [delegate editMachineDirectorySharingDevicesTableViewController:self didSelectAtIndex:selectedRow];
+    [delegate editMachineConfigurationUSBDevicesTableViewController:self didSelectAtIndex:selectedRow];
 }
 
 - (NSScrollView *)_scrollView {
@@ -94,8 +92,8 @@
     
     NSTableView *tableView = [NSTableView new];
     
-    NSNib *cellNib = [[NSNib alloc] initWithNibNamed:NSStringFromClass([EditMachineDirectorySharingDevicesTableCellView class]) bundle:[NSBundle bundleForClass:[EditMachineDirectorySharingDevicesTableCellView class]]];
-    [tableView registerNib:cellNib forIdentifier:EditMachineDirectorySharingDevicesTableViewController.cellItemIdentifier];
+    NSNib *cellNib = [[NSNib alloc] initWithNibNamed:NSStringFromClass([EditMachineConfigurationUSBDevicesTableCellView class]) bundle:[NSBundle bundleForClass:[EditMachineConfigurationUSBDevicesTableCellView class]]];
+    [tableView registerNib:cellNib forIdentifier:EditMachineConfigurationUSBDevicesTableViewController.cellItemIdentifier];
     [cellNib release];
     
     NSTableColumn *tableColumn = [[NSTableColumn alloc] initWithIdentifier:@""];
@@ -131,62 +129,78 @@
 - (void)_didTriggerCreateButton:(NSButton *)sender {
     NSMenu *menu = [NSMenu new];
     
-    NSMenuItem *virtioFileSystemItem = [NSMenuItem new];
-    virtioFileSystemItem.title = @"Virtio File System Device";
-    virtioFileSystemItem.target = self;
-    virtioFileSystemItem.action = @selector(_didTriggerVirtioFileSystemItem:);
-    [menu addItem:virtioFileSystemItem];
-    [virtioFileSystemItem release];
+    NSMenuItem *usbMassStorageItem = [NSMenuItem new];
+    usbMassStorageItem.title = @"USB Mass Storage";
+    usbMassStorageItem.target = self;
+    usbMassStorageItem.action = @selector(_didTriggerUSBMassStorageItem:);
+    [menu addItem:usbMassStorageItem];
+    [usbMassStorageItem release];
     
     [NSMenu popUpContextMenu:menu withEvent:self.view.window.currentEvent forView:sender];
     [menu release];
 }
 
-- (void)_didTriggerVirtioFileSystemItem:(NSMenuItem *)sender {
+- (void)_didTriggerUSBMassStorageItem:(NSMenuItem *)sender {
     NSAlert *alert = [NSAlert new];
     
-    alert.messageText = @"Tag";
+    alert.messageText = @"USB Mass Storage";
     
-    EditMachineDirectorySharingDevicesTagView *accessoryView = [EditMachineDirectorySharingDevicesTagView new];
+    DiskBlockDeviceStorageDeviceAttachmentConfigurationView *accessoryView = [DiskBlockDeviceStorageDeviceAttachmentConfigurationView new];
     NSSize fittingSize = accessoryView.fittingSize;
     accessoryView.frame = NSMakeRect(0., 0., fittingSize.width, fittingSize.height);
     alert.accessoryView = accessoryView;
     
+    [alert addButtonWithTitle:@"OK"];
+    [alert addButtonWithTitle:@"Cancel"];
+    
     [alert beginSheetModalForWindow:self.view.window completionHandler:^(NSModalResponse returnCode) {
-        NSString *tag = accessoryView.deviceTag;
-        if ([VZVirtioFileSystemDeviceConfiguration validateTag:tag error:NULL]) {
-            NSMutableArray<__kindof VZDirectorySharingDeviceConfiguration *> *directorySharingDevices = [self.directorySharingDevices mutableCopy];
+        if (returnCode == NSAlertFirstButtonReturn) {
+            NSFileHandle *fileHandle = [[NSFileHandle alloc] initWithFileDescriptor:accessoryView.fileDescriptor closeOnDealloc:NO];
             
-            VZVirtioFileSystemDeviceConfiguration *configuration = [[VZVirtioFileSystemDeviceConfiguration alloc] initWithTag:tag];
-            [directorySharingDevices addObject:configuration];
-            [configuration release];
+            NSError * _Nullable error = nil;
+            VZDiskBlockDeviceStorageDeviceAttachment *attachment = [[VZDiskBlockDeviceStorageDeviceAttachment alloc] initWithFileHandle:fileHandle readOnly:accessoryView.readOnly synchronizationMode:accessoryView.synchronizationMode error:&error];
+            [fileHandle release];
             
-            self.directorySharingDevices = directorySharingDevices;
-            
-            if (auto delegate = self.delegate) {
-                [delegate editMachineDirectorySharingDevicesTableViewController:self didUpdateDirectorySharingDevices:directorySharingDevices];
+            if (error != nil) {
+                NSLog(@"%@", error);
+                [attachment release];
+                return;
             }
             
-            [directorySharingDevices release];
+            VZUSBMassStorageDeviceConfiguration *configuration = [[VZUSBMassStorageDeviceConfiguration alloc] initWithAttachment:attachment];
+            [attachment release];
+            
+            NSArray<id<VZUSBDeviceConfiguration>> *usbDevices = self.usbDevices;
+            if (usbDevices == nil) {
+                usbDevices = @[configuration];
+            } else {
+                usbDevices = [usbDevices arrayByAddingObject:configuration];
+            }
+            [configuration release];
+            
+            self.usbDevices = usbDevices;
+            
+            if (auto delegate = self.delegate) {
+                [delegate editMachineConfigurationUSBDevicesTableViewController:self didUpdateUSBDevices:usbDevices];
+            }
         }
     }];
     
     [accessoryView release];
-    
     [alert release];
 }
 
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView {
-    return self.directorySharingDevices.count;
+    return self.usbDevices.count;
 }
 
 - (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
-    EditMachineDirectorySharingDevicesTableCellView *cell = [tableView makeViewWithIdentifier:EditMachineDirectorySharingDevicesTableViewController.cellItemIdentifier owner:nil];
+    EditMachineConfigurationUSBDevicesTableCellView *cell = [tableView makeViewWithIdentifier:EditMachineConfigurationUSBDevicesTableViewController.cellItemIdentifier owner:nil];
     
-    __kindof VZDirectorySharingDeviceConfiguration *configuration = self.directorySharingDevices[row];
+    id<VZUSBDeviceConfiguration> configuration = self.usbDevices[row];
     
-    if ([configuration isKindOfClass:[VZVirtioFileSystemDeviceConfiguration class]]) {
-        cell.textField.stringValue = @"Virtio File System Device";
+    if ([configuration isKindOfClass:[VZUSBMassStorageDeviceConfiguration class]]) {
+        cell.textField.stringValue = @"USB Mass Storage";
     } else {
         abort();
     }
@@ -219,16 +233,16 @@
     NSInteger clickedRow = self.tableView.clickedRow;
     assert((clickedRow != NSNotFound) and (clickedRow != -1));
     
-    NSMutableArray<__kindof VZDirectorySharingDeviceConfiguration *> *directorySharingDevices = [self.directorySharingDevices mutableCopy];
-    [directorySharingDevices removeObjectAtIndex:clickedRow];
+    NSMutableArray<id<VZUSBDeviceConfiguration>> *usbDevices = [self.usbDevices mutableCopy];
+    [usbDevices removeObjectAtIndex:clickedRow];
     
-    self.directorySharingDevices = directorySharingDevices;
+    self.usbDevices = usbDevices;
     
     if (auto delegate = self.delegate) {
-        [delegate editMachineDirectorySharingDevicesTableViewController:self didUpdateDirectorySharingDevices:directorySharingDevices];
+        [delegate editMachineConfigurationUSBDevicesTableViewController:self didUpdateUSBDevices:usbDevices];
     }
     
-    [directorySharingDevices release];
+    [usbDevices release];
 }
 
 @end

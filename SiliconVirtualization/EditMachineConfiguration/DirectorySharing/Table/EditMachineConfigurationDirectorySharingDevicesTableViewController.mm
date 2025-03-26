@@ -1,31 +1,34 @@
 //
-//  EditMachineUSBControllersTableViewController.mm
+//  EditMachineConfigurationDirectorySharingDevicesTableViewController.mm
 //  SiliconVirtualization
 //
 //  Created by Jinwoo Kim on 3/23/25.
 //
 
-#import "EditMachineUSBControllersTableViewController.h"
-#import "EditMachineUSBControllersTableCellView.h"
+#import "EditMachineConfigurationDirectorySharingDevicesTableViewController.h"
+#import "EditMachineConfigurationDirectorySharingDevicesTableCellView.h"
+#import "EditMachineDirectorySharingDevicesTagView.h"
 
-@interface EditMachineUSBControllersTableViewController () <NSTableViewDataSource, NSTableViewDelegate, NSMenuDelegate>
+@interface EditMachineConfigurationDirectorySharingDevicesTableViewController () <NSTableViewDataSource, NSTableViewDelegate, NSMenuDelegate>
 @property (class, nonatomic, readonly, getter=_cellItemIdentifier) NSUserInterfaceItemIdentifier cellItemIdentifier;
 @property (retain, nonatomic, readonly, getter=_scrollView) NSScrollView *scrollView;
 @property (retain, nonatomic, readonly, getter=_tableView) NSTableView *tableView;
 @property (retain, nonatomic, readonly, getter=_createButton) NSButton *createButton;
+
 @end
 
-@implementation EditMachineUSBControllersTableViewController
+@implementation EditMachineConfigurationDirectorySharingDevicesTableViewController
+
 @synthesize scrollView = _scrollView;
 @synthesize tableView = _tableView;
 @synthesize createButton = _createButton;
 
 + (NSUserInterfaceItemIdentifier)_cellItemIdentifier {
-    return NSStringFromClass([EditMachineUSBControllersTableCellView class]);
+    return NSStringFromClass([EditMachineConfigurationDirectorySharingDevicesTableCellView class]);
 }
 
 - (void)dealloc {
-    [_usbControllers release];
+    [_directorySharingDevices release];
     [_scrollView release];
     [_tableView release];
     [_createButton release];
@@ -49,14 +52,14 @@
     ]];
 }
 
-- (void)setUSBControllers:(NSArray<__kindof VZUSBControllerConfiguration *> *)usbControllers {
-    [_usbControllers release];
-    _usbControllers = [usbControllers copy];
+- (void)setDirectorySharingDevices:(NSArray<__kindof VZDirectorySharingDeviceConfiguration *> *)directorySharingDevices {
+    [_directorySharingDevices release];
+    _directorySharingDevices = [directorySharingDevices copy];
     
-    [self _didChangeUSBControllers];
+    [self _didChangeDirectorySharingDevices];
 }
 
-- (void)_didChangeUSBControllers {
+- (void)_didChangeDirectorySharingDevices {
     NSTableView *tableView = self.tableView;
     NSInteger selectedRow = tableView.selectedRow;
     [tableView reloadData];
@@ -73,7 +76,7 @@
     if (delegate == nil) return;
     
     NSInteger selectedRow = self.tableView.selectedRow;
-    [delegate editMachineUSBControllersTableViewControllerDelegate:self didSelectAtIndex:selectedRow];
+    [delegate editMachineConfigurationDirectorySharingDevicesTableViewController:self didSelectAtIndex:selectedRow];
 }
 
 - (NSScrollView *)_scrollView {
@@ -91,8 +94,8 @@
     
     NSTableView *tableView = [NSTableView new];
     
-    NSNib *cellNib = [[NSNib alloc] initWithNibNamed:NSStringFromClass([EditMachineUSBControllersTableCellView class]) bundle:[NSBundle bundleForClass:[EditMachineUSBControllersTableCellView class]]];
-    [tableView registerNib:cellNib forIdentifier:EditMachineUSBControllersTableViewController.cellItemIdentifier];
+    NSNib *cellNib = [[NSNib alloc] initWithNibNamed:NSStringFromClass([EditMachineConfigurationDirectorySharingDevicesTableCellView class]) bundle:[NSBundle bundleForClass:[EditMachineConfigurationDirectorySharingDevicesTableCellView class]]];
+    [tableView registerNib:cellNib forIdentifier:EditMachineConfigurationDirectorySharingDevicesTableViewController.cellItemIdentifier];
     [cellNib release];
     
     NSTableColumn *tableColumn = [[NSTableColumn alloc] initWithIdentifier:@""];
@@ -128,46 +131,62 @@
 - (void)_didTriggerCreateButton:(NSButton *)sender {
     NSMenu *menu = [NSMenu new];
     
-    NSMenuItem *XHCIItem = [NSMenuItem new];
-    XHCIItem.title = @"XHCI Controller";
-    XHCIItem.target = self;
-    XHCIItem.action = @selector(_didTriggerXHCIItem:);
-    [menu addItem:XHCIItem];
-    [XHCIItem release];
+    NSMenuItem *virtioFileSystemItem = [NSMenuItem new];
+    virtioFileSystemItem.title = @"Virtio File System Device";
+    virtioFileSystemItem.target = self;
+    virtioFileSystemItem.action = @selector(_didTriggerVirtioFileSystemItem:);
+    [menu addItem:virtioFileSystemItem];
+    [virtioFileSystemItem release];
     
     [NSMenu popUpContextMenu:menu withEvent:self.view.window.currentEvent forView:sender];
     [menu release];
 }
 
-- (void)_didTriggerXHCIItem:(NSMenuItem *)sender {
-    VZXHCIControllerConfiguration *configuration = [[VZXHCIControllerConfiguration alloc] init];
+- (void)_didTriggerVirtioFileSystemItem:(NSMenuItem *)sender {
+    NSAlert *alert = [NSAlert new];
     
-    NSArray<__kindof VZUSBControllerConfiguration *> *usbControllers = self.usbControllers;
-    if (usbControllers == nil) {
-        usbControllers = @[configuration];
-    } else {
-        usbControllers = [usbControllers arrayByAddingObject:configuration];
-    }
-    [configuration release];
+    alert.messageText = @"Tag";
     
-    self.usbControllers = usbControllers;
+    EditMachineDirectorySharingDevicesTagView *accessoryView = [EditMachineDirectorySharingDevicesTagView new];
+    NSSize fittingSize = accessoryView.fittingSize;
+    accessoryView.frame = NSMakeRect(0., 0., fittingSize.width, fittingSize.height);
+    alert.accessoryView = accessoryView;
     
-    if (auto delegate = self.delegate) {
-        [delegate editMachineUSBControllersTableViewControllerDelegate:self didUpdateUSBControllers:usbControllers];
-    }
+    [alert beginSheetModalForWindow:self.view.window completionHandler:^(NSModalResponse returnCode) {
+        NSString *tag = accessoryView.deviceTag;
+        if ([VZVirtioFileSystemDeviceConfiguration validateTag:tag error:NULL]) {
+            NSMutableArray<__kindof VZDirectorySharingDeviceConfiguration *> *directorySharingDevices = [self.directorySharingDevices mutableCopy];
+            
+            VZVirtioFileSystemDeviceConfiguration *configuration = [[VZVirtioFileSystemDeviceConfiguration alloc] initWithTag:tag];
+            [directorySharingDevices addObject:configuration];
+            [configuration release];
+            
+            self.directorySharingDevices = directorySharingDevices;
+            
+            if (auto delegate = self.delegate) {
+                [delegate editMachineConfigurationDirectorySharingDevicesTableViewController:self didUpdateDirectorySharingDevices:directorySharingDevices];
+            }
+            
+            [directorySharingDevices release];
+        }
+    }];
+    
+    [accessoryView release];
+    
+    [alert release];
 }
 
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView {
-    return self.usbControllers.count;
+    return self.directorySharingDevices.count;
 }
 
 - (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
-    EditMachineUSBControllersTableCellView *cell = [tableView makeViewWithIdentifier:EditMachineUSBControllersTableViewController.cellItemIdentifier owner:nil];
+    EditMachineConfigurationDirectorySharingDevicesTableCellView *cell = [tableView makeViewWithIdentifier:EditMachineConfigurationDirectorySharingDevicesTableViewController.cellItemIdentifier owner:nil];
     
-    __kindof VZUSBControllerConfiguration *configuration = self.usbControllers[row];
+    __kindof VZDirectorySharingDeviceConfiguration *configuration = self.directorySharingDevices[row];
     
-    if ([configuration isKindOfClass:[VZXHCIControllerConfiguration class]]) {
-        cell.textField.stringValue = @"XHCI";
+    if ([configuration isKindOfClass:[VZVirtioFileSystemDeviceConfiguration class]]) {
+        cell.textField.stringValue = @"Virtio File System Device";
     } else {
         abort();
     }
@@ -200,16 +219,16 @@
     NSInteger clickedRow = self.tableView.clickedRow;
     assert((clickedRow != NSNotFound) and (clickedRow != -1));
     
-    NSMutableArray<__kindof VZUSBControllerConfiguration *> *usbControllers = [self.usbControllers mutableCopy];
-    [usbControllers removeObjectAtIndex:clickedRow];
+    NSMutableArray<__kindof VZDirectorySharingDeviceConfiguration *> *directorySharingDevices = [self.directorySharingDevices mutableCopy];
+    [directorySharingDevices removeObjectAtIndex:clickedRow];
     
-    self.usbControllers = usbControllers;
+    self.directorySharingDevices = directorySharingDevices;
     
     if (auto delegate = self.delegate) {
-        [delegate editMachineUSBControllersTableViewControllerDelegate:self didUpdateUSBControllers:usbControllers];
+        [delegate editMachineConfigurationDirectorySharingDevicesTableViewController:self didUpdateDirectorySharingDevices:directorySharingDevices];
     }
     
-    [usbControllers release];
+    [directorySharingDevices release];
 }
 
 @end

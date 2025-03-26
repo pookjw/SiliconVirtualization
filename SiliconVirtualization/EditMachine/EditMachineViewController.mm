@@ -8,6 +8,8 @@
 #import "EditMachineViewController.h"
 #import "EditMachineSidebarViewController.h"
 #import "EditMachineMemoryBalloonDevicesViewController.h"
+#import "EditMachineDirectorySharingDevicesViewController.h"
+#import "EditMachineUSBControllersViewController.h"
 
 @interface EditMachineViewController () <EditMachineSidebarViewControllerDelegate>
 @property (retain, nonatomic, readonly, getter=_splitViewController) NSSplitViewController *splitViewController;
@@ -17,6 +19,12 @@
 
 @property (retain, nonatomic, readonly, getter=_memoryBalloonDevicesViewController) EditMachineMemoryBalloonDevicesViewController *memoryBalloonDevicesViewController;
 @property (retain, nonatomic, readonly, getter=_memoryBalloonDevicesSplitViewItem) NSSplitViewItem *memoryBalloonDevicesSplitViewItem;
+
+@property (retain, nonatomic, readonly, getter=_directorySharingDevicesViewController) EditMachineDirectorySharingDevicesViewController *directorySharingDevicesViewController;
+@property (retain, nonatomic, readonly, getter=_directorySharingDevicesSplitViewItem) NSSplitViewItem *directorySharingDevicesSplitViewItem;
+
+@property (retain, nonatomic, readonly, getter=_usbControllersViewController) EditMachineUSBControllersViewController *usbControllersViewController;
+@property (retain, nonatomic, readonly, getter=_usbControllersSplitViewItem) NSSplitViewItem *usbControllersSplitViewItem;
 @end
 
 @implementation EditMachineViewController
@@ -25,6 +33,10 @@
 @synthesize sidebarSplitViewItem = _sidebarSplitViewItem;
 @synthesize memoryBalloonDevicesViewController = _memoryBalloonDevicesViewController;
 @synthesize memoryBalloonDevicesSplitViewItem = _memoryBalloonDevicesSplitViewItem;
+@synthesize directorySharingDevicesViewController = _directorySharingDevicesViewController;
+@synthesize directorySharingDevicesSplitViewItem = _directorySharingDevicesSplitViewItem;
+@synthesize usbControllersViewController = _usbControllersViewController;
+@synthesize usbControllersSplitViewItem = _usbControllersSplitViewItem;
 
 - (instancetype)initWithMachine:(VZVirtualMachine *)machine {
     if (self = [super initWithNibName:nil bundle:nil]) {
@@ -41,6 +53,10 @@
     [_sidebarSplitViewItem release];
     [_memoryBalloonDevicesViewController release];
     [_memoryBalloonDevicesSplitViewItem release];
+    [_directorySharingDevicesViewController release];
+    [_directorySharingDevicesSplitViewItem release];
+    [_usbControllersViewController release];
+    [_usbControllersSplitViewItem release];
     [super dealloc];
 }
 
@@ -62,19 +78,25 @@
     
     [self _configureItemModels];
     
-    EditMachineSidebarItemModel *itemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeMemoryBalloonDevices];
+    EditMachineSidebarItemModel *itemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeUSB];
     [self.sidebarViewController selectItemModel:itemModel notifyingDelegate:YES];
     [itemModel release];
 }
 
 - (void)_configureItemModels {
     EditMachineSidebarItemModel *memoryBalloonDevicesItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeMemoryBalloonDevices];
+    EditMachineSidebarItemModel *directorySharingDevicesItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeDirectorySharing];
+    EditMachineSidebarItemModel *usbItemModel = [[EditMachineSidebarItemModel alloc] initWithType:EditMachineSidebarItemModelTypeUSB];
     
     self.sidebarViewController.itemModels = @[
-        memoryBalloonDevicesItemModel
+        memoryBalloonDevicesItemModel,
+        directorySharingDevicesItemModel,
+        usbItemModel
     ];
     
     [memoryBalloonDevicesItemModel release];
+    [directorySharingDevicesItemModel release];
+    [usbItemModel release];
 }
 
 - (NSSplitViewController *)_splitViewController {
@@ -125,11 +147,57 @@
     return memoryBalloonDevicesSplitViewItem;
 }
 
+- (EditMachineDirectorySharingDevicesViewController *)_directorySharingDevicesViewController {
+    if (auto directorySharingDevicesViewController = _directorySharingDevicesViewController) return directorySharingDevicesViewController;
+    
+    EditMachineDirectorySharingDevicesViewController *directorySharingDevicesViewController = [EditMachineDirectorySharingDevicesViewController new];
+    
+    _directorySharingDevicesViewController = directorySharingDevicesViewController;
+    return directorySharingDevicesViewController;
+}
+
+- (NSSplitViewItem *)_directorySharingDevicesSplitViewItem {
+    if (auto directorySharingDevicesSplitViewItem = _directorySharingDevicesSplitViewItem) return directorySharingDevicesSplitViewItem;
+    
+    NSSplitViewItem *directorySharingDevicesSplitViewItem = [NSSplitViewItem contentListWithViewController:self.directorySharingDevicesViewController];
+    
+    _directorySharingDevicesSplitViewItem = [directorySharingDevicesSplitViewItem retain];
+    return directorySharingDevicesSplitViewItem;
+}
+
+- (EditMachineUSBControllersViewController *)_usbControllersViewController {
+    if (auto usbControllersViewController = _usbControllersViewController) return usbControllersViewController;
+    
+    EditMachineUSBControllersViewController *usbControllersViewController = [EditMachineUSBControllersViewController new];
+    
+    _usbControllersViewController = usbControllersViewController;
+    return usbControllersViewController;
+}
+
+- (NSSplitViewItem *)_usbControllersSplitViewItem {
+    if (auto usbControllersSplitViewItem = _usbControllersSplitViewItem) return usbControllersSplitViewItem;
+    
+    NSSplitViewItem *usbControllersSplitViewItem = [NSSplitViewItem contentListWithViewController:self.usbControllersViewController];
+    
+    _usbControllersSplitViewItem = [usbControllersSplitViewItem retain];
+    return usbControllersSplitViewItem;
+}
+
 - (void)editMachineSidebarViewController:(EditMachineSidebarViewController *)editMachineSidebarViewController didSelectItemModel:(EditMachineSidebarItemModel *)itemModel {
     switch (itemModel.type) {
         case EditMachineSidebarItemModelTypeMemoryBalloonDevices: {
             self.memoryBalloonDevicesViewController.memoryBalloonDevices = self.machine.memoryBalloonDevices;
             self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.memoryBalloonDevicesSplitViewItem];
+            break;
+        }
+        case EditMachineSidebarItemModelTypeDirectorySharing: {
+            self.directorySharingDevicesViewController.directorySharingDevices = self.machine.directorySharingDevices;
+            self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.directorySharingDevicesSplitViewItem];
+            break;
+        }
+        case EditMachineSidebarItemModelTypeUSB: {
+            self.usbControllersViewController.usbControllers = self.machine.usbControllers;
+            self.splitViewController.splitViewItems = @[self.sidebarSplitViewItem, self.usbControllersSplitViewItem];
             break;
         }
         default:

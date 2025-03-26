@@ -1,15 +1,15 @@
 //
-//  EditMachineDirectorySharingViewController.mm
+//  EditMachineDirectorySharingDevicesViewController.mm
 //  SiliconVirtualization
 //
-//  Created by Jinwoo Kim on 3/23/25.
+//  Created by Jinwoo Kim on 3/26/25.
 //
 
-#import "EditMachineDirectorySharingViewController.h"
+#import "EditMachineDirectorySharingDevicesViewController.h"
 #import "EditMachineDirectorySharingDevicesTableViewController.h"
 #import "EditMachineVirtioFileSystemDeviceViewController.h"
 
-@interface EditMachineDirectorySharingViewController () <EditMachineDirectorySharingDevicesTableViewControllerDelegate, EditMachineVirtioFileSystemDeviceViewControllerDelegate>
+@interface EditMachineDirectorySharingDevicesViewController () <EditMachineDirectorySharingDevicesTableViewControllerDelegate>
 @property (retain, nonatomic, readonly, getter=_splitViewController) NSSplitViewController *splitViewController;
 
 @property (retain, nonatomic, readonly, getter=_directorySharingDevicesTableViewController) EditMachineDirectorySharingDevicesTableViewController *directorySharingDevicesTableViewController;
@@ -24,7 +24,7 @@
 @property (assign, nonatomic, getter=_selectedDeviceIndex, setter=_setSelectedDeviceIndex:) NSInteger selectedDeviceIndex;
 @end
 
-@implementation EditMachineDirectorySharingViewController
+@implementation EditMachineDirectorySharingDevicesViewController
 @synthesize splitViewController = _splitViewController;
 @synthesize directorySharingDevicesTableViewController = _directorySharingDevicesTableViewController;
 @synthesize directorySharingDevicesTableSplitViewItem = _directorySharingDevicesTableSplitViewItem;
@@ -33,9 +33,8 @@
 @synthesize emptyDeviceViewController = _emptyDeviceViewController;
 @synthesize emptyDeviceSplitViewItem = _emptyDeviceSplitViewItem;
 
-- (instancetype)initWithConfiguration:(VZVirtualMachineConfiguration *)configuration {
-    if (self = [super initWithNibName:nil bundle:nil]) {
-        _configuration = [configuration copy];
+- (instancetype)initWithNibName:(NSNibName)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
+    if (self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil]) {
         _selectedDeviceIndex = NSNotFound;
     }
     
@@ -43,7 +42,6 @@
 }
 
 - (void)dealloc {
-    [_configuration release];
     [_splitViewController release];
     [_directorySharingDevicesTableViewController release];
     [_directorySharingDevicesTableSplitViewItem release];
@@ -62,18 +60,18 @@
     splitViewController.view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
     [self.view addSubview:splitViewController.view];
     
-    [self _didChangeConfiguration];
+    [self _didChangeDirectorySharingDevices];
 }
 
-- (void)setConfiguration:(VZVirtualMachineConfiguration *)configuration {
-    [_configuration release];
-    _configuration = [configuration copy];
+- (void)setDirectorySharingDevices:(NSArray<__kindof VZDirectorySharingDevice *> *)directorySharingDevices {
+    [_directorySharingDevices release];
+    _directorySharingDevices = [directorySharingDevices copy];
     
-    [self _didChangeConfiguration];
+    [self _didChangeDirectorySharingDevices];
 }
 
-- (void)_didChangeConfiguration {
-    self.directorySharingDevicesTableViewController.directorySharingDevices = self.configuration.directorySharingDevices;
+- (void)_didChangeDirectorySharingDevices {
+    self.directorySharingDevicesTableViewController.directorySharingDevices = self.directorySharingDevices;
 }
 
 - (NSSplitViewController *)_splitViewController {
@@ -109,7 +107,6 @@
     if (auto virtioFileSystemDeviceViewController = _virtioFileSystemDeviceViewController) return virtioFileSystemDeviceViewController;
     
     EditMachineVirtioFileSystemDeviceViewController *virtioFileSystemDeviceViewController = [EditMachineVirtioFileSystemDeviceViewController new];
-    virtioFileSystemDeviceViewController.delegate = self;
     
     _virtioFileSystemDeviceViewController = virtioFileSystemDeviceViewController;
     return virtioFileSystemDeviceViewController;
@@ -150,47 +147,14 @@
         return;
     }
     
-    __kindof VZDirectorySharingDeviceConfiguration *directorySharingDevice = self.configuration.directorySharingDevices[selectedIndex];
+    __kindof VZDirectorySharingDevice *device = self.directorySharingDevices[selectedIndex];
     
-    if ([directorySharingDevice isKindOfClass:[VZVirtioFileSystemDeviceConfiguration class]]) {
-        self.virtioFileSystemDeviceViewController.configuration = directorySharingDevice;
+    if ([device isKindOfClass:[VZVirtioFileSystemDevice class]]) {
+        self.virtioFileSystemDeviceViewController.device = device;
         self.splitViewController.splitViewItems = @[self.directorySharingDevicesTableSplitViewItem, self.virtioFileSystemDeviceSplitViewItem];
     } else {
         abort();
     }
-}
-
-- (void)editMachineDirectorySharingDevicesTableViewController:(EditMachineDirectorySharingDevicesTableViewController *)editMachineDirectorySharingDevicesTableViewController didUpdateDirectorySharingDevices:(NSArray<__kindof VZDirectorySharingDeviceConfiguration *> *)directorySharingDevices {
-    VZVirtualMachineConfiguration *configuration = [self.configuration copy];
-    configuration.directorySharingDevices = directorySharingDevices;
-    self.configuration = configuration;
-    
-    if (auto delegate = self.delegate) {
-        [delegate editMachineDirectorySharingViewController:self didUpdateConfiguration:configuration];
-    }
-    
-    [configuration release];
-}
-
-- (void)editMachineVirtioFileSystemDeviceViewController:(nonnull EditMachineVirtioFileSystemDeviceViewController *)editMachineVirtioFileSystemDeviceViewController didChangeConfiguration:(nonnull VZVirtioFileSystemDeviceConfiguration *)configuration { 
-    NSInteger selectedDeviceIndex = self.selectedDeviceIndex;
-    assert((selectedDeviceIndex != NSNotFound) and (selectedDeviceIndex != -1));
-    
-    VZVirtualMachineConfiguration *_configuration = [self.configuration copy];
-    
-    NSMutableArray<VZDirectorySharingDeviceConfiguration *> *directorySharingDevices = [_configuration.directorySharingDevices mutableCopy];
-    [directorySharingDevices removeObjectAtIndex:selectedDeviceIndex];
-    [directorySharingDevices insertObject:configuration atIndex:selectedDeviceIndex];
-    _configuration.directorySharingDevices = directorySharingDevices;
-    [directorySharingDevices release];
-    
-    self.configuration = _configuration;
-    
-    if (auto delegate = self.delegate) {
-        [delegate editMachineDirectorySharingViewController:self didUpdateConfiguration:_configuration];
-    }
-    
-    [_configuration release];
 }
 
 @end

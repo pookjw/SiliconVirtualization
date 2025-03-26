@@ -1,32 +1,31 @@
 //
-//  EditMachineUSBDevicesTableViewController.mm
+//  EditMachineConfigurationUSBControllersTableViewController.mm
 //  SiliconVirtualization
 //
 //  Created by Jinwoo Kim on 3/23/25.
 //
 
-#import "EditMachineUSBDevicesTableViewController.h"
-#import "EditMachineUSBDevicesTableCellView.h"
-#import "DiskBlockDeviceStorageDeviceAttachmentConfigurationView.h"
+#import "EditMachineConfigurationUSBControllersTableViewController.h"
+#import "EditMachineConfigurationUSBControllersTableCellView.h"
 
-@interface EditMachineUSBDevicesTableViewController () <NSTableViewDataSource, NSTableViewDelegate, NSMenuDelegate>
+@interface EditMachineConfigurationUSBControllersTableViewController () <NSTableViewDataSource, NSTableViewDelegate, NSMenuDelegate>
 @property (class, nonatomic, readonly, getter=_cellItemIdentifier) NSUserInterfaceItemIdentifier cellItemIdentifier;
 @property (retain, nonatomic, readonly, getter=_scrollView) NSScrollView *scrollView;
 @property (retain, nonatomic, readonly, getter=_tableView) NSTableView *tableView;
 @property (retain, nonatomic, readonly, getter=_createButton) NSButton *createButton;
 @end
 
-@implementation EditMachineUSBDevicesTableViewController
+@implementation EditMachineConfigurationUSBControllersTableViewController
 @synthesize scrollView = _scrollView;
 @synthesize tableView = _tableView;
 @synthesize createButton = _createButton;
 
 + (NSUserInterfaceItemIdentifier)_cellItemIdentifier {
-    return NSStringFromClass([EditMachineUSBDevicesTableCellView class]);
+    return NSStringFromClass([EditMachineConfigurationUSBControllersTableCellView class]);
 }
 
 - (void)dealloc {
-    [_usbDevices release];
+    [_usbControllers release];
     [_scrollView release];
     [_tableView release];
     [_createButton release];
@@ -50,14 +49,14 @@
     ]];
 }
 
-- (void)setUSBDevices:(NSArray<id<VZUSBDeviceConfiguration>> *)usbDevices {
-    [_usbDevices release];
-    _usbDevices = [usbDevices copy];
+- (void)setUSBControllers:(NSArray<__kindof VZUSBControllerConfiguration *> *)usbControllers {
+    [_usbControllers release];
+    _usbControllers = [usbControllers copy];
     
-    [self _didChangeUSBDevices];
+    [self _didChangeUSBControllers];
 }
 
-- (void)_didChangeUSBDevices {
+- (void)_didChangeUSBControllers {
     NSTableView *tableView = self.tableView;
     NSInteger selectedRow = tableView.selectedRow;
     [tableView reloadData];
@@ -74,7 +73,7 @@
     if (delegate == nil) return;
     
     NSInteger selectedRow = self.tableView.selectedRow;
-    [delegate editMachineUSBDevicesTableViewController:self didSelectAtIndex:selectedRow];
+    [delegate editMachineConfigurationUSBControllersTableViewController:self didSelectAtIndex:selectedRow];
 }
 
 - (NSScrollView *)_scrollView {
@@ -92,8 +91,8 @@
     
     NSTableView *tableView = [NSTableView new];
     
-    NSNib *cellNib = [[NSNib alloc] initWithNibNamed:NSStringFromClass([EditMachineUSBDevicesTableCellView class]) bundle:[NSBundle bundleForClass:[EditMachineUSBDevicesTableCellView class]]];
-    [tableView registerNib:cellNib forIdentifier:EditMachineUSBDevicesTableViewController.cellItemIdentifier];
+    NSNib *cellNib = [[NSNib alloc] initWithNibNamed:NSStringFromClass([EditMachineConfigurationUSBControllersTableCellView class]) bundle:[NSBundle bundleForClass:[EditMachineConfigurationUSBControllersTableCellView class]]];
+    [tableView registerNib:cellNib forIdentifier:EditMachineConfigurationUSBControllersTableViewController.cellItemIdentifier];
     [cellNib release];
     
     NSTableColumn *tableColumn = [[NSTableColumn alloc] initWithIdentifier:@""];
@@ -129,78 +128,46 @@
 - (void)_didTriggerCreateButton:(NSButton *)sender {
     NSMenu *menu = [NSMenu new];
     
-    NSMenuItem *usbMassStorageItem = [NSMenuItem new];
-    usbMassStorageItem.title = @"USB Mass Storage";
-    usbMassStorageItem.target = self;
-    usbMassStorageItem.action = @selector(_didTriggerUSBMassStorageItem:);
-    [menu addItem:usbMassStorageItem];
-    [usbMassStorageItem release];
+    NSMenuItem *XHCIItem = [NSMenuItem new];
+    XHCIItem.title = @"XHCI Controller";
+    XHCIItem.target = self;
+    XHCIItem.action = @selector(_didTriggerXHCIItem:);
+    [menu addItem:XHCIItem];
+    [XHCIItem release];
     
     [NSMenu popUpContextMenu:menu withEvent:self.view.window.currentEvent forView:sender];
     [menu release];
 }
 
-- (void)_didTriggerUSBMassStorageItem:(NSMenuItem *)sender {
-    NSAlert *alert = [NSAlert new];
+- (void)_didTriggerXHCIItem:(NSMenuItem *)sender {
+    VZXHCIControllerConfiguration *configuration = [[VZXHCIControllerConfiguration alloc] init];
     
-    alert.messageText = @"USB Mass Storage";
+    NSArray<__kindof VZUSBControllerConfiguration *> *usbControllers = self.usbControllers;
+    if (usbControllers == nil) {
+        usbControllers = @[configuration];
+    } else {
+        usbControllers = [usbControllers arrayByAddingObject:configuration];
+    }
+    [configuration release];
     
-    DiskBlockDeviceStorageDeviceAttachmentConfigurationView *accessoryView = [DiskBlockDeviceStorageDeviceAttachmentConfigurationView new];
-    NSSize fittingSize = accessoryView.fittingSize;
-    accessoryView.frame = NSMakeRect(0., 0., fittingSize.width, fittingSize.height);
-    alert.accessoryView = accessoryView;
+    self.usbControllers = usbControllers;
     
-    [alert addButtonWithTitle:@"OK"];
-    [alert addButtonWithTitle:@"Cancel"];
-    
-    [alert beginSheetModalForWindow:self.view.window completionHandler:^(NSModalResponse returnCode) {
-        if (returnCode == NSAlertFirstButtonReturn) {
-            NSFileHandle *fileHandle = [[NSFileHandle alloc] initWithFileDescriptor:accessoryView.fileDescriptor closeOnDealloc:NO];
-            
-            NSError * _Nullable error = nil;
-            VZDiskBlockDeviceStorageDeviceAttachment *attachment = [[VZDiskBlockDeviceStorageDeviceAttachment alloc] initWithFileHandle:fileHandle readOnly:accessoryView.readOnly synchronizationMode:accessoryView.synchronizationMode error:&error];
-            [fileHandle release];
-            
-            if (error != nil) {
-                NSLog(@"%@", error);
-                [attachment release];
-                return;
-            }
-            
-            VZUSBMassStorageDeviceConfiguration *configuration = [[VZUSBMassStorageDeviceConfiguration alloc] initWithAttachment:attachment];
-            [attachment release];
-            
-            NSArray<id<VZUSBDeviceConfiguration>> *usbDevices = self.usbDevices;
-            if (usbDevices == nil) {
-                usbDevices = @[configuration];
-            } else {
-                usbDevices = [usbDevices arrayByAddingObject:configuration];
-            }
-            [configuration release];
-            
-            self.usbDevices = usbDevices;
-            
-            if (auto delegate = self.delegate) {
-                [delegate editMachineUSBDevicesTableViewController:self didUpdateUSBDevices:usbDevices];
-            }
-        }
-    }];
-    
-    [accessoryView release];
-    [alert release];
+    if (auto delegate = self.delegate) {
+        [delegate editMachineConfigurationUSBControllersTableViewController:self didUpdateUSBControllers:usbControllers];
+    }
 }
 
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView {
-    return self.usbDevices.count;
+    return self.usbControllers.count;
 }
 
 - (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
-    EditMachineUSBDevicesTableCellView *cell = [tableView makeViewWithIdentifier:EditMachineUSBDevicesTableViewController.cellItemIdentifier owner:nil];
+    EditMachineConfigurationUSBControllersTableCellView *cell = [tableView makeViewWithIdentifier:EditMachineConfigurationUSBControllersTableViewController.cellItemIdentifier owner:nil];
     
-    id<VZUSBDeviceConfiguration> configuration = self.usbDevices[row];
+    __kindof VZUSBControllerConfiguration *configuration = self.usbControllers[row];
     
-    if ([configuration isKindOfClass:[VZUSBMassStorageDeviceConfiguration class]]) {
-        cell.textField.stringValue = @"USB Mass Storage";
+    if ([configuration isKindOfClass:[VZXHCIControllerConfiguration class]]) {
+        cell.textField.stringValue = @"XHCI";
     } else {
         abort();
     }
@@ -233,16 +200,16 @@
     NSInteger clickedRow = self.tableView.clickedRow;
     assert((clickedRow != NSNotFound) and (clickedRow != -1));
     
-    NSMutableArray<id<VZUSBDeviceConfiguration>> *usbDevices = [self.usbDevices mutableCopy];
-    [usbDevices removeObjectAtIndex:clickedRow];
+    NSMutableArray<__kindof VZUSBControllerConfiguration *> *usbControllers = [self.usbControllers mutableCopy];
+    [usbControllers removeObjectAtIndex:clickedRow];
     
-    self.usbDevices = usbDevices;
+    self.usbControllers = usbControllers;
     
     if (auto delegate = self.delegate) {
-        [delegate editMachineUSBDevicesTableViewController:self didUpdateUSBDevices:usbDevices];
+        [delegate editMachineConfigurationUSBControllersTableViewController:self didUpdateUSBControllers:usbControllers];
     }
     
-    [usbDevices release];
+    [usbControllers release];
 }
 
 @end

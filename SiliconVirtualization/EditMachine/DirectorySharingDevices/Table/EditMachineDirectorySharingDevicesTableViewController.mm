@@ -1,29 +1,29 @@
 //
-//  EditMachineMemoryBalloonDevicesTableViewController.mm
+//  EditMachineDirectorySharingDevicesTableViewController.mm
 //  SiliconVirtualization
 //
-//  Created by Jinwoo Kim on 3/25/25.
+//  Created by Jinwoo Kim on 3/26/25.
 //
 
-#import "EditMachineMemoryBalloonDevicesTableViewController.h"
-#import "EditMachineMemoryBalloonDevicesTableCellView.h"
+#import "EditMachineDirectorySharingDevicesTableViewController.h"
+#import "EditMachineDirectorySharingDevicesTableCellView.h"
 
-@interface EditMachineMemoryBalloonDevicesTableViewController () <NSTableViewDataSource, NSTableViewDelegate>
+@interface EditMachineDirectorySharingDevicesTableViewController () <NSTableViewDataSource, NSTableViewDelegate>
 @property (class, nonatomic, readonly, getter=_cellItemIdentifier) NSUserInterfaceItemIdentifier cellItemIdentifier;
 @property (retain, nonatomic, readonly, getter=_scrollView) NSScrollView *scrollView;
 @property (retain, nonatomic, readonly, getter=_tableView) NSTableView *tableView;
 @end
 
-@implementation EditMachineMemoryBalloonDevicesTableViewController
+@implementation EditMachineDirectorySharingDevicesTableViewController
 @synthesize scrollView = _scrollView;
 @synthesize tableView = _tableView;
 
 + (NSUserInterfaceItemIdentifier)_cellItemIdentifier {
-    return NSStringFromClass([EditMachineMemoryBalloonDevicesTableCellView class]);
+    return NSStringFromClass([EditMachineDirectorySharingDevicesTableCellView class]);
 }
 
 - (void)dealloc {
-    [_memoryBalloonDevices release];
+    [_directorySharingDevices release];
     [_scrollView release];
     [_tableView release];
     [super dealloc];
@@ -38,14 +38,14 @@
     [self.view addSubview:scrollView];
 }
 
-- (void)setMemoryBalloonDevices:(NSArray<__kindof VZMemoryBalloonDevice *> *)memoryBalloonDevices {
-    [_memoryBalloonDevices release];
-    _memoryBalloonDevices = [memoryBalloonDevices copy];
+- (void)setDirectorySharingDevices:(NSArray<__kindof VZDirectorySharingDevice *> *)directorySharingDevices {
+    [_directorySharingDevices release];
+    _directorySharingDevices = [directorySharingDevices copy];
     
-    [self _didChangeMemoryBalloonDevices];
+    [self _didChangeDirectorySharingDevices];
 }
 
-- (void)_didChangeMemoryBalloonDevices {
+- (void)_didChangeDirectorySharingDevices {
     NSTableView *tableView = self.tableView;
     NSInteger selectedRow = tableView.selectedRow;
     [tableView reloadData];
@@ -62,7 +62,7 @@
     if (delegate == nil) return;
     
     NSInteger selectedRow = self.tableView.selectedRow;
-    [delegate editMachineMemoryBalloonDevicesTableViewController:self didSelectAtIndex:selectedRow];
+    [delegate editMachineDirectorySharingDevicesTableViewController:self didSelectAtIndex:selectedRow];
 }
 
 - (NSScrollView *)_scrollView {
@@ -80,8 +80,8 @@
     
     NSTableView *tableView = [NSTableView new];
     
-    NSNib *cellNib = [[NSNib alloc] initWithNibNamed:NSStringFromClass([EditMachineMemoryBalloonDevicesTableCellView class]) bundle:[NSBundle bundleForClass:[EditMachineMemoryBalloonDevicesTableCellView class]]];
-    [tableView registerNib:cellNib forIdentifier:EditMachineMemoryBalloonDevicesTableViewController.cellItemIdentifier];
+    NSNib *cellNib = [[NSNib alloc] initWithNibNamed:NSStringFromClass([EditMachineDirectorySharingDevicesTableCellView class]) bundle:[NSBundle bundleForClass:[EditMachineDirectorySharingDevicesTableCellView class]]];
+    [tableView registerNib:cellNib forIdentifier:EditMachineDirectorySharingDevicesTableViewController.cellItemIdentifier];
     [cellNib release];
     
     NSTableColumn *tableColumn = [[NSTableColumn alloc] initWithIdentifier:@""];
@@ -98,16 +98,16 @@
 }
 
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView {
-    return self.memoryBalloonDevices.count;
+    return self.directorySharingDevices.count;
 }
 
 - (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
-    EditMachineMemoryBalloonDevicesTableCellView *cell = [tableView makeViewWithIdentifier:EditMachineMemoryBalloonDevicesTableViewController.cellItemIdentifier owner:nil];
+    EditMachineDirectorySharingDevicesTableCellView *cell = [tableView makeViewWithIdentifier:EditMachineDirectorySharingDevicesTableViewController.cellItemIdentifier owner:nil];
     
-    __kindof VZMemoryBalloonDevice *configuration = self.memoryBalloonDevices[row];
+    __kindof VZDirectorySharingDevice *directorySharingDevice = self.directorySharingDevices[row];
     
-    if ([configuration isKindOfClass:[VZVirtioTraditionalMemoryBalloonDevice class]]) {
-        cell.textField.stringValue = @"Virtio Traditional Memory Balloon";
+    if ([directorySharingDevice isKindOfClass:[VZVirtioFileSystemDevice class]]) {
+        cell.textField.stringValue = @"Virtio File System Device";
     } else {
         abort();
     }

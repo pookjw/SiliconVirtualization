@@ -61,17 +61,17 @@
     splitViewController.view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
     [self.view addSubview:splitViewController.view];
     
-    [self _didChangeConfiguration];
+    [self _didChangeMemoryBalloonDevices];
 }
 
 - (void)setMemoryBalloonDevices:(NSArray<__kindof VZMemoryBalloonDevice *> *)memoryBalloonDevices {
     [_memoryBalloonDevices release];
     _memoryBalloonDevices = [memoryBalloonDevices copy];
     
-    self.memoryBalloonDevicesTableViewController.memoryBalloonDevices = memoryBalloonDevices;
+    [self _didChangeMemoryBalloonDevices];
 }
 
-- (void)_didChangeConfiguration {
+- (void)_didChangeMemoryBalloonDevices {
     self.memoryBalloonDevicesTableViewController.memoryBalloonDevices = self.memoryBalloonDevices;
 }
 

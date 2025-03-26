@@ -17,6 +17,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface EditMachineVirtioFileSystemDeviceViewController : NSViewController
 @property (copy, nonatomic, nullable) VZVirtioFileSystemDeviceConfiguration *configuration;
+@property (retain, nonatomic, nullable) VZVirtioFileSystemDevice *device;
 @property (assign, nonatomic, nullable) id<EditMachineVirtioFileSystemDeviceViewControllerDelegate> delegate;
 @end
 
