@@ -67,60 +67,6 @@
         
         VZVirtualMachineConfiguration *configuration = [stack isolated_makeVirtualMachineConfigurationFromManagedObject:configurationObject];
         
-//        {
-//            id tdc = [objc_lookUpClass("_VZMacTouchIDDeviceConfiguration") new];
-//            reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(configuration, sel_registerName("_setBiometricDevices:"), @[tdc]);
-//            [tdc release];
-//            
-//            NSError * _Nullable error = nil;
-//            [configuration validateWithError:&error];
-//            assert(error == nil);
-//        }
-//        
-//        {
-//            __block NSURL *URL;
-//            dispatch_sync(dispatch_get_main_queue(), ^{
-//                NSSavePanel *panel = [NSSavePanel new];
-//                [panel runModal];
-//                URL = [panel.URL copy];
-//                [panel release];
-//            });
-//            
-//            NSError * _Nullable error = nil;
-//            assert([URL startAccessingSecurityScopedResource]);
-//            id storage = reinterpret_cast<id (*)(id, SEL, id, id *)>(objc_msgSend)([objc_lookUpClass("_VZSEPStorage") alloc], sel_registerName("initCreatingStorageAtURL:error:"), URL, &error);
-//            [URL release];
-//            assert(error == nil);
-//            
-//            id sep = reinterpret_cast<id (*)(id, SEL, id)>(objc_msgSend)([objc_lookUpClass("_VZSEPCoprocessorConfiguration") alloc], sel_registerName("initWithStorage:"), storage);
-//            [storage release];
-//            
-//            reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(configuration, sel_registerName("_setCoprocessors:"), @[sep]);
-//            [sep release];
-//        }
-//        {
-//            id nedc = [objc_lookUpClass("_VZMacNeuralEngineDeviceConfiguration") new];
-////            reinterpret_cast<void (*)(id, SEL, BOOL)>(objc_msgSend)(nedc, sel_registerName("_setSignatureMismatchAllowed:"), YES);
-//            id ad = [objc_lookUpClass("_VZMacScalerAcceleratorDeviceConfiguration") new];
-//            reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(configuration, sel_registerName("_setAcceleratorDevices:"), @[nedc, ad]);
-//            [nedc release];
-//            [ad release];
-//            
-//            NSError * _Nullable error = nil;
-//            [configuration validateWithError:&error];
-//            assert(error == nil);
-//        }
-        
-//        {
-//            id config = [objc_lookUpClass("_VZMacBatteryPowerSourceDeviceConfiguration") new];
-//            
-//            id source = [objc_lookUpClass("_VZMacHostBatterySource") new];
-//            reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(config, sel_registerName("setSource:"), source);
-//            [source release];
-//            reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(configuration, sel_registerName("_setPowerSourceDevices:"), @[config]);
-//            [config release];
-//        }
-        
         {
             id debugStubConfiguration = reinterpret_cast<id (*)(id, SEL, ushort)>(objc_msgSend)([objc_lookUpClass("_VZGDBDebugStubConfiguration") alloc], sel_registerName("initWithPort:"), 1234);
             reinterpret_cast<void (*)(id, SEL, BOOL)>(objc_msgSend)(debugStubConfiguration, sel_registerName("setListensOnAllNetworkInterfaces:"), YES);
@@ -128,19 +74,11 @@
             [debugStubConfiguration release];
         }
         
-//        {
-//            NSArray *coprocessors = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(configuration, sel_registerName("_coprocessors"));
-//            for (id coprocessor in coprocessors) {
-//                if ([coprocessor isKindOfClass:objc_lookUpClass("_VZSEPCoprocessorConfiguration")]) {
-//                    id debugStubConfiguration = reinterpret_cast<id (*)(id, SEL, ushort)>(objc_msgSend)([objc_lookUpClass("_VZGDBDebugStubConfiguration") alloc], sel_registerName("initWithPort:"), 5678);
-//                    reinterpret_cast<void (*)(id, SEL, BOOL)>(objc_msgSend)(debugStubConfiguration, sel_registerName("setListensOnAllNetworkInterfaces:"), YES);
-//                    reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(coprocessor, sel_registerName("setDebugStub:"), debugStubConfiguration);
-//                    [debugStubConfiguration release];
-//                } else {
-//                    abort();
-//                }
-//            }
-//        }
+        for (VZMacGraphicsDeviceConfiguration *device in configuration.graphicsDevices) {
+            for (VZMacGraphicsDisplayConfiguration *display in device.displays) {
+                reinterpret_cast<void (*)(id, SEL, NSInteger)>(objc_msgSend)(display, sel_registerName("_setDisplayMode:"), 1);
+            }
+        }
         
         BOOL startUpFromMacOSRecovery;
         __kindof SVVirtualMachineStartOptions *startOptions = virtualMachineObject.startOptions;
@@ -157,9 +95,12 @@
             if ([_virtualMachineObject isEqual:virtualMachineObject]) {
                 VZVirtualMachine *virtualMachine = [[VZVirtualMachine alloc] initWithConfiguration:configuration queue:_queue];
                 
-                id _debugStub = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(virtualMachine, sel_registerName("_debugStub"));
-                if (_debugStub != nil) {
+                if (id _debugStub = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend)(virtualMachine, sel_registerName("_debugStub"))) {
                     reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(_debugStub, sel_registerName("setDelegate:"), self);
+                }
+                
+                for (__kindof VZUSBController *usbController in virtualMachine.usbControllers) {
+                    reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(usbController, sel_registerName("setDelegate:"), self);
                 }
                 
                 self.isolated_virtualMachine = virtualMachine;
@@ -221,6 +162,11 @@
 
 -(void)_debugStub:(id)_debugStub didStartListeningOnPort:(ushort)port {
     NSLog(@"%s (%@, %hu)", __func__, _debugStub, port);
+}
+
+// Not Working...
+- (void)usbController:(__kindof VZUSBController *)usbCintroller passthroughDeviceWillDisconnect:(id<VZUSBDevice>)device {
+    NSLog(@"%s (%@, %@)", __func__, usbCintroller, device);
 }
 
 @end
