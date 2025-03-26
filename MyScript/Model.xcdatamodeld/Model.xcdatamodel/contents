@@ -71,6 +71,7 @@
         <relationship name="batteryPowerSourceDevice" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MacBatteryPowerSourceDeviceConfiguration" inverseName="source" inverseEntity="MacBatteryPowerSourceDeviceConfiguration"/>
     </entity>
     <entity name="MacGraphicsDeviceConfiguration" representedClassName="SVMacGraphicsDeviceConfiguration" parentEntity="GraphicsDeviceConfiguration" syncable="YES" codeGenerationType="class">
+        <attribute name="prefersLowPower" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <relationship name="displays" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="MacGraphicsDisplayConfiguration" inverseName="graphicsDevice" inverseEntity="MacGraphicsDisplayConfiguration"/>
     </entity>
     <entity name="MacGraphicsDisplayConfiguration" representedClassName="SVMacGraphicsDisplayConfiguration" parentEntity="GraphicsDisplayConfiguration" syncable="YES" codeGenerationType="class">

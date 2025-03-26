@@ -528,6 +528,8 @@
             auto macGraphicsDeviceConfigurationObject = static_cast<SVMacGraphicsDeviceConfiguration *>(graphicsDeviceConfigurationObject);
             VZMacGraphicsDeviceConfiguration *macGraphicsDeviceConfiguration = [[VZMacGraphicsDeviceConfiguration alloc] init];
             
+            reinterpret_cast<void (*)(id, SEL, BOOL)>(objc_msgSend)(macGraphicsDeviceConfiguration, sel_registerName("_setPrefersLowPower:"), macGraphicsDeviceConfigurationObject.prefersLowPower);
+            
             NSOrderedSet<SVMacGraphicsDisplayConfiguration *> *displayObjects = macGraphicsDeviceConfigurationObject.displays;
             NSMutableArray<VZMacGraphicsDisplayConfiguration *> *displays = [[NSMutableArray alloc] initWithCapacity:displayObjects.count];
             
@@ -1174,6 +1176,9 @@
             auto macGraphicsDeviceConfiguration = static_cast<VZMacGraphicsDeviceConfiguration *>(graphicsDeviceConfiguration);
             
             SVMacGraphicsDeviceConfiguration *macGraphicsDeviceConfigurationObject = [[SVMacGraphicsDeviceConfiguration alloc] initWithContext:managedObjectContext];
+            
+            BOOL _prefersLowPower = reinterpret_cast<BOOL (*)(id, SEL)>(objc_msgSend)(graphicsDeviceConfiguration, sel_registerName("_prefersLowPower"));
+            macGraphicsDeviceConfigurationObject.prefersLowPower = _prefersLowPower;
             
             for (VZMacGraphicsDisplayConfiguration *macGraphicsDisplayConfiguration in macGraphicsDeviceConfiguration.displays) {
                 SVMacGraphicsDisplayConfiguration *macGraphicsDisplayConfigurationObject = [[SVMacGraphicsDisplayConfiguration alloc] initWithContext:managedObjectContext];

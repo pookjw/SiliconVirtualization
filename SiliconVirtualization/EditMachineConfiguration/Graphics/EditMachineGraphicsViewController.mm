@@ -73,10 +73,10 @@
 - (void)_didChangeConfiguration {
     VZVirtualMachineConfiguration *configuration = self.configuration;
     
-    self.devicesViewController.graphicsDevices = self.configuration.graphicsDevices;
+    self.devicesViewController.graphicsDevices = configuration.graphicsDevices;
     
     NSInteger selectedDeviceIndex = self.selectedDeviceIndex;
-    if ((selectedDeviceIndex == NSNotFound) or (selectedDeviceIndex == -1)) {
+    if ((selectedDeviceIndex == NSNotFound) or (selectedDeviceIndex == -1) or !(selectedDeviceIndex < configuration.graphicsDevices.count)) {
         self.macGraphicsDeviceViewController.macGraphicsDeviceConfiguration = nil;
     } else {
         self.macGraphicsDeviceViewController.macGraphicsDeviceConfiguration = static_cast<VZMacGraphicsDeviceConfiguration *>(configuration.graphicsDevices[selectedDeviceIndex]);
@@ -87,7 +87,12 @@
         self.macGraphicsDisplayViewController.configuration = nil;
     } else {
         auto deviceConfiguration = static_cast<VZMacGraphicsDeviceConfiguration *>(configuration.graphicsDevices[selectedDeviceIndex]);
-        self.macGraphicsDisplayViewController.configuration = deviceConfiguration.displays[selectedDisplayIndex];
+        
+        if (selectedDisplayIndex < deviceConfiguration.displays.count) {
+            self.macGraphicsDisplayViewController.configuration = deviceConfiguration.displays[selectedDisplayIndex];
+        } else {
+            self.macGraphicsDisplayViewController.configuration = nil;
+        }
     }
 }
 

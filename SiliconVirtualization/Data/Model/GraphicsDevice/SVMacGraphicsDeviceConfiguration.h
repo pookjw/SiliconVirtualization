@@ -13,6 +13,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface SVMacGraphicsDeviceConfiguration : SVGraphicsDeviceConfiguration
 + (NSFetchRequest<SVMacGraphicsDeviceConfiguration *> *)fetchRequest;
 
+@property (nonatomic) BOOL prefersLowPower;
 @property (retain, nonatomic, nullable) NSOrderedSet<SVMacGraphicsDisplayConfiguration *> *displays;
 
 - (void)insertObject:(SVMacGraphicsDisplayConfiguration *)value inDisplaysAtIndex:(NSUInteger)idx;

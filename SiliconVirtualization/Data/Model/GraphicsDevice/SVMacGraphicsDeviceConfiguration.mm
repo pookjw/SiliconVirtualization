@@ -12,6 +12,7 @@
 @implementation SVMacGraphicsDeviceConfiguration
 #pragma clang diagnostic pop
 
+@dynamic prefersLowPower;
 @dynamic displays;
 
 + (NSFetchRequest<SVMacGraphicsDeviceConfiguration *> *)fetchRequest {

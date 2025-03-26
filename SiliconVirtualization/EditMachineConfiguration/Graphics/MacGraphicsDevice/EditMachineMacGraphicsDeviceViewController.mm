@@ -7,8 +7,10 @@
 
 #import "EditMachineMacGraphicsDeviceViewController.h"
 #import "EditMachineMacGraphicsDeviceCellView.h"
+#import <objc/message.h>
+#import <objc/runtime.h>
 
-@interface EditMachineMacGraphicsDeviceViewController () <NSTableViewDataSource, NSTableViewDelegate>
+@interface EditMachineMacGraphicsDeviceViewController () <NSTableViewDataSource, NSTableViewDelegate, NSMenuDelegate>
 @property (class, nonatomic, readonly, getter=_cellIdentifier) NSUserInterfaceItemIdentifier cellIdentifier;
 @property (retain, nonatomic, readonly, getter=_tableView) NSTableView *tableView;
 @property (retain, nonatomic, readonly, getter=_scrollView) NSScrollView *scrollView;
@@ -103,6 +105,11 @@
     [tableView addTableColumn:inchColumn];
     [inchColumn release];
     
+    NSMenu *menu = [NSMenu new];
+    menu.delegate = self;
+    tableView.menu = menu;
+    [menu release];
+    
     _tableView = tableView;
     return tableView;
 }
@@ -181,6 +188,67 @@
         
         [delegate editMachineMacGraphicsDeviceViewController:self didSelectAtIndex:self.tableView.selectedRow];
     }
+}
+
+- (void)menuWillOpen:(NSMenu *)menu {
+    [menu removeAllItems];
+    
+    NSInteger clickedRow = self.tableView.clickedRow;
+    if ((clickedRow == NSNotFound) or (clickedRow == -1)) return;
+    
+    NSMenuItem *deleteItem = [NSMenuItem new];
+    deleteItem.title = @"Delete";
+    deleteItem.image = [NSImage imageWithSystemSymbolName:@"trash.fill" accessibilityDescription:nil];
+    deleteItem.target = self;
+    deleteItem.action = @selector(_didTriggerDeleteItem:);
+    [menu addItem:deleteItem];
+    [deleteItem release];
+    
+    NSMenuItem *prefersLowPowerItem = [NSMenuItem new];
+    prefersLowPowerItem.title = @"Prefers Low Power";
+    prefersLowPowerItem.image = [NSImage imageWithSystemSymbolName:@"battery.25percent" accessibilityDescription:nil];
+    prefersLowPowerItem.target = self;
+    prefersLowPowerItem.action = @selector(_didTriggerPrefersLowPowerItem:);
+    BOOL _prefersLowPower = reinterpret_cast<BOOL (*)(id, SEL)>(objc_msgSend)(self.macGraphicsDeviceConfiguration, sel_registerName("_prefersLowPower"));
+    prefersLowPowerItem.state = _prefersLowPower ? NSControlStateValueOn : NSControlStateValueOff;
+    [menu addItem:prefersLowPowerItem];
+    [prefersLowPowerItem release];
+}
+
+- (void)_didTriggerDeleteItem:(NSMenuItem *)sender {
+    NSInteger clickedRow = self.tableView.clickedRow;
+    assert((clickedRow != NSNotFound) and (clickedRow != -1));
+    
+    VZMacGraphicsDeviceConfiguration *macGraphicsDeviceConfiguration = [self.macGraphicsDeviceConfiguration copy];
+    
+    NSMutableArray<VZMacGraphicsDisplayConfiguration *> *displays = [macGraphicsDeviceConfiguration.displays mutableCopy];
+    [displays removeObjectAtIndex:clickedRow];
+    macGraphicsDeviceConfiguration.displays = displays;
+    [displays release];
+    
+    self.macGraphicsDeviceConfiguration = macGraphicsDeviceConfiguration;
+    
+    if (auto delegate = self.delegate) {
+        [delegate editMachineMacGraphicsDeviceViewController:self didUpdateConfiguration:macGraphicsDeviceConfiguration];
+    }
+    
+    [macGraphicsDeviceConfiguration release];
+}
+
+
+- (void)_didTriggerPrefersLowPowerItem:(NSMenuItem *)sender {
+    BOOL _prefersLowPower = (sender.state != NSControlStateValueOn);
+    
+    VZMacGraphicsDeviceConfiguration *macGraphicsDeviceConfiguration = [self.macGraphicsDeviceConfiguration copy];
+    reinterpret_cast<void (*)(id, SEL, BOOL)>(objc_msgSend)(macGraphicsDeviceConfiguration, sel_registerName("_setPrefersLowPower:"), _prefersLowPower);
+    
+    self.macGraphicsDeviceConfiguration = macGraphicsDeviceConfiguration;
+    
+    if (auto delegate = self.delegate) {
+        [delegate editMachineMacGraphicsDeviceViewController:self didUpdateConfiguration:macGraphicsDeviceConfiguration];
+    }
+    
+    [macGraphicsDeviceConfiguration release];
 }
 
 @end

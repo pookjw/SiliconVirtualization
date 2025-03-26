@@ -115,6 +115,17 @@
         macGraphicsDeviceConfigurationEntity = [NSEntityDescription new];
         macGraphicsDeviceConfigurationEntity.name = @"MacGraphicsDeviceConfiguration";
         macGraphicsDeviceConfigurationEntity.managedObjectClassName = NSStringFromClass([SVMacGraphicsDeviceConfiguration class]);
+        
+        NSAttributeDescription *prefersLowPowerAttribute = [NSAttributeDescription new];
+        prefersLowPowerAttribute.name = @"prefersLowPower";
+        prefersLowPowerAttribute.optional = YES;
+        prefersLowPowerAttribute.attributeType = NSBooleanAttributeType;
+        
+        macGraphicsDeviceConfigurationEntity.properties = @[
+            prefersLowPowerAttribute
+        ];
+        
+        [prefersLowPowerAttribute release];
     }
     
     NSEntityDescription *virtioGraphicsDeviceConfigurationEntity;
