@@ -75,6 +75,7 @@
         <relationship name="displays" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="MacGraphicsDisplayConfiguration" inverseName="graphicsDevice" inverseEntity="MacGraphicsDisplayConfiguration"/>
     </entity>
     <entity name="MacGraphicsDisplayConfiguration" representedClassName="SVMacGraphicsDisplayConfiguration" parentEntity="GraphicsDisplayConfiguration" syncable="YES" codeGenerationType="class">
+        <attribute name="displayMode" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="heightInPixels" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="pixelsPerInch" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="widthInPixels" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>

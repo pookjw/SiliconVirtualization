@@ -14,6 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface SVMacGraphicsDisplayConfiguration : SVGraphicsDisplayConfiguration
 + (NSFetchRequest<SVMacGraphicsDisplayConfiguration *> *)fetchRequest;
 
+@property (nonatomic) int64_t displayMode;
 @property (nonatomic) int64_t heightInPixels;
 @property (nonatomic) int64_t pixelsPerInch;
 @property (nonatomic) int64_t widthInPixels;

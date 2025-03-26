@@ -74,12 +74,6 @@
             [debugStubConfiguration release];
         }
         
-        for (VZMacGraphicsDeviceConfiguration *device in configuration.graphicsDevices) {
-            for (VZMacGraphicsDisplayConfiguration *display in device.displays) {
-                reinterpret_cast<void (*)(id, SEL, NSInteger)>(objc_msgSend)(display, sel_registerName("_setDisplayMode:"), 1);
-            }
-        }
-        
         BOOL startUpFromMacOSRecovery;
         __kindof SVVirtualMachineStartOptions *startOptions = virtualMachineObject.startOptions;
         if (startOptions == nil) {

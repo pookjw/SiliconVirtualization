@@ -152,6 +152,11 @@
         macGraphicsDisplayConfigurationEntity.name = @"MacGraphicsDisplayConfiguration";
         macGraphicsDisplayConfigurationEntity.managedObjectClassName = NSStringFromClass([SVMacGraphicsDisplayConfiguration class]);
         
+        NSAttributeDescription *displayModeAttribute = [NSAttributeDescription new];
+        displayModeAttribute.name = @"displayMode";
+        displayModeAttribute.optional = YES;
+        displayModeAttribute.attributeType = NSInteger64AttributeType;
+        
         NSAttributeDescription *heightInPixelsAttribute = [NSAttributeDescription new];
         heightInPixelsAttribute.name = @"heightInPixels";
         heightInPixelsAttribute.optional = YES;
@@ -168,11 +173,13 @@
         widthInPixelsAttribute.attributeType = NSInteger64AttributeType;
         
         macGraphicsDisplayConfigurationEntity.properties = @[
+            displayModeAttribute,
             heightInPixelsAttribute,
             pixelsPerInchAttribute,
             widthInPixelsAttribute
         ];
         
+        [displayModeAttribute release];
         [heightInPixelsAttribute release];
         [pixelsPerInchAttribute release];
         [widthInPixelsAttribute release];

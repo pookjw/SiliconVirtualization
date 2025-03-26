@@ -8,6 +8,7 @@
 #import "SVMacGraphicsDisplayConfiguration.h"
 
 @implementation SVMacGraphicsDisplayConfiguration
+@dynamic displayMode;
 @dynamic heightInPixels;
 @dynamic pixelsPerInch;
 @dynamic widthInPixels;

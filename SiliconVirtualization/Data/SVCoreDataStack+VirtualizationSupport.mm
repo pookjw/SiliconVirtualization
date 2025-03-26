@@ -535,6 +535,8 @@
             
             for (SVMacGraphicsDisplayConfiguration *displayObject in displayObjects) {
                 VZMacGraphicsDisplayConfiguration *macGraphicsDisplayConfiguration = [[VZMacGraphicsDisplayConfiguration alloc] initWithWidthInPixels:displayObject.widthInPixels heightInPixels:displayObject.heightInPixels pixelsPerInch:displayObject.pixelsPerInch];
+                reinterpret_cast<void (*)(id, SEL, NSInteger)>(objc_msgSend)(macGraphicsDisplayConfiguration, sel_registerName("_setDisplayMode:"), displayObject.displayMode);
+                
                 [displays addObject:macGraphicsDisplayConfiguration];
                 [macGraphicsDisplayConfiguration release];
             }
@@ -1183,6 +1185,9 @@
             for (VZMacGraphicsDisplayConfiguration *macGraphicsDisplayConfiguration in macGraphicsDeviceConfiguration.displays) {
                 SVMacGraphicsDisplayConfiguration *macGraphicsDisplayConfigurationObject = [[SVMacGraphicsDisplayConfiguration alloc] initWithContext:managedObjectContext];
                 
+                NSInteger _displayMode = reinterpret_cast<NSInteger (*)(id, SEL)>(objc_msgSend)(macGraphicsDisplayConfiguration, sel_registerName("_displayMode"));
+                
+                macGraphicsDisplayConfigurationObject.displayMode = _displayMode;
                 macGraphicsDisplayConfigurationObject.heightInPixels = macGraphicsDisplayConfiguration.heightInPixels;
                 macGraphicsDisplayConfigurationObject.pixelsPerInch = macGraphicsDisplayConfiguration.pixelsPerInch;
                 macGraphicsDisplayConfigurationObject.widthInPixels = macGraphicsDisplayConfiguration.widthInPixels;
