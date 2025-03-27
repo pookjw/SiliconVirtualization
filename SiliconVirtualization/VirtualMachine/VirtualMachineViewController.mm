@@ -592,6 +592,7 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
         self.stopMenuToolbarItem.itemIdentifier,
         self.resumeToolbarItem.itemIdentifier,
         self.pauseToolbarItem.itemIdentifier,
+        @"Separator",
         self.editMachineToolbarItem.itemIdentifier,
         self.moreMenuToolbarItem.itemIdentifier,
         self.stateToolbarItem.itemIdentifier
@@ -621,6 +622,8 @@ OBJC_EXPORT id objc_msgSendSuper2(void); /* objc_super superInfo = { self, [self
         return self.moreMenuToolbarItem;
     } else if ([self.stateToolbarItem.itemIdentifier isEqualToString:itemIdentifier]) {
         return self.stateToolbarItem;
+    } else if ([itemIdentifier isEqualToString:@"Separator"]) {
+        return reinterpret_cast<id (*)(Class, SEL, id, id, NSInteger)>(objc_msgSend)(objc_lookUpClass("NSSeparatorToolbarItem"), sel_registerName("separatorToolbarItemWithIdentifier:trackingSplitView:dividerIndex:"), itemIdentifier, nil, NSNotFound);
     } else {
         abort();
     }
