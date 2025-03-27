@@ -7,6 +7,8 @@
 
 #import "EditMachineMacGraphicsDisplayViewController.h"
 #import "EditMachineNumberTextField.h"
+#import <objc/message.h>
+#import <objc/runtime.h>
 
 @interface EditMachineMacGraphicsDisplayViewController () <NSTextFieldDelegate>
 @property (retain, nonatomic, readonly, getter=_gridView) NSGridView *gridView;
@@ -19,6 +21,9 @@
 
 @property (retain, nonatomic, readonly, getter=_pixelsPerInchLabel) NSTextField *pixelsPerInchLabel;
 @property (retain, nonatomic, readonly, getter=_pixelsPerInchTextField) EditMachineNumberTextField *pixelsPerInchTextField;
+
+@property (retain, nonatomic, readonly, getter=_displayModeLabel) NSTextField *displayModeLabel;
+@property (retain, nonatomic, readonly, getter=_displayModePopUpButton) NSPopUpButton *displayModePopUpButton;
 @end
 
 @implementation EditMachineMacGraphicsDisplayViewController
@@ -29,6 +34,8 @@
 @synthesize widthInPixelsTextField = _widthInPixelsTextField;
 @synthesize pixelsPerInchLabel = _pixelsPerInchLabel;
 @synthesize pixelsPerInchTextField = _pixelsPerInchTextField;
+@synthesize displayModeLabel = _displayModeLabel;
+@synthesize displayModePopUpButton = _displayModePopUpButton;
 
 - (void)dealloc {
     [_configuration release];
@@ -39,6 +46,8 @@
     [_widthInPixelsTextField release];
     [_pixelsPerInchLabel release];
     [_pixelsPerInchTextField release];
+    [_displayModeLabel release];
+    [_displayModePopUpButton release];
     [super dealloc];
 }
 
@@ -63,6 +72,9 @@
     _configuration = [configuration copy];
     
     [self _updateTextFields];
+    
+    NSInteger _displayMode = reinterpret_cast<NSInteger (*)(id, SEL)>(objc_msgSend)(configuration, sel_registerName("_displayMode"));
+    [self.displayModePopUpButton selectItemWithTitle:@(_displayMode).stringValue];
 }
 
 - (NSGridView *)_gridView {
@@ -71,12 +83,14 @@
     NSGridView *gridView = [NSGridView gridViewWithViews:@[
         @[self.heightInPixelsLabel, self.heightInPixelsTextField],
         @[self.widthInPixelsLabel, self.widthInPixelsTextField],
-        @[self.pixelsPerInchLabel, self.pixelsPerInchTextField]
+        @[self.pixelsPerInchLabel, self.pixelsPerInchTextField],
+        @[self.displayModeLabel, self.displayModePopUpButton]
     ]];
     
     [gridView cellAtColumnIndex:0 rowIndex:0].xPlacement = NSGridCellPlacementTrailing;
     [gridView cellAtColumnIndex:0 rowIndex:1].xPlacement = NSGridCellPlacementTrailing;
     [gridView cellAtColumnIndex:0 rowIndex:2].xPlacement = NSGridCellPlacementTrailing;
+    [gridView cellAtColumnIndex:0 rowIndex:3].xPlacement = NSGridCellPlacementTrailing;
     
     [gridView cellAtColumnIndex:1 rowIndex:0].customPlacementConstraints = @[
         [self.widthInPixelsTextField.widthAnchor constraintEqualToConstant:100.]
@@ -86,6 +100,9 @@
     ];
     [gridView cellAtColumnIndex:1 rowIndex:2].customPlacementConstraints = @[
         [self.pixelsPerInchTextField.widthAnchor constraintEqualToConstant:100.]
+    ];
+    [gridView cellAtColumnIndex:1 rowIndex:3].customPlacementConstraints = @[
+        [self.displayModePopUpButton.widthAnchor constraintEqualToConstant:100.]
     ];
     
     _gridView = [gridView retain];
@@ -149,6 +166,30 @@
     return pixelsPerInchTextField;
 }
 
+- (NSTextField *)_displayModeLabel {
+    if (auto displayModeLabel = _displayModeLabel) return displayModeLabel;
+    
+    NSTextField *displayModeLabel = [NSTextField wrappingLabelWithString:@"Display Mode"];
+    displayModeLabel.selectable = NO;
+    
+    _displayModeLabel = [displayModeLabel retain];
+    return displayModeLabel;
+}
+
+- (NSPopUpButton *)_displayModePopUpButton {
+    if (auto displayModePopUpButton = _displayModePopUpButton) return displayModePopUpButton;
+    
+    NSPopUpButton *displayModePopUpButton = [NSPopUpButton new];
+    [displayModePopUpButton addItemsWithTitles:@[
+        @"0", @"1"
+    ]];
+    displayModePopUpButton.target = self;
+    displayModePopUpButton.action = @selector(_didTriggerDisplayModePopUpButton:);
+    
+    _displayModePopUpButton = displayModePopUpButton;
+    return displayModePopUpButton;
+}
+
 - (void)_updateTextFields {
     VZMacGraphicsDisplayConfiguration * _Nullable configuration = self.configuration;
     
@@ -180,6 +221,21 @@
     } else {
         abort();
     }
+    
+    self.configuration = configuration;
+    
+    if (auto delegate = self.delegate) {
+        [delegate editMachineMacGraphicsDisplayViewController:self didUpdateConfiguration:configuration];
+    }
+    
+    [configuration release];
+}
+
+- (void)_didTriggerDisplayModePopUpButton:(NSPopUpButton *)sender {
+    NSInteger displayMode = sender.titleOfSelectedItem.integerValue;
+    
+    VZMacGraphicsDisplayConfiguration *configuration = [self.configuration copy];
+    reinterpret_cast<void (*)(id, SEL, NSInteger)>(objc_msgSend)(configuration, sel_registerName("_setDisplayMode:"), displayMode);
     
     self.configuration = configuration;
     
