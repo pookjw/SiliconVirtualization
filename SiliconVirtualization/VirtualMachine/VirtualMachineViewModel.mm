@@ -67,6 +67,21 @@
         
         VZVirtualMachineConfiguration *configuration = [stack isolated_makeVirtualMachineConfigurationFromManagedObject:configurationObject];
         
+//        BOOL _isProductionModeEnabled = reinterpret_cast<BOOL (*)(id, SEL)>(objc_msgSend)(configuration.platform, sel_registerName("_isProductionModeEnabled"));
+//        reinterpret_cast<void (*)(id, SEL, BOOL)>(objc_msgSend)(configuration.platform, sel_registerName("_setProductionModeEnabled:"), !_isProductionModeEnabled);
+        
+//        BOOL _isSIODescramblerEnabled = reinterpret_cast<BOOL (*)(id, SEL)>(objc_msgSend)(configuration.platform, sel_registerName("_isSIODescramblerEnabled"));
+//        reinterpret_cast<void (*)(id, SEL, BOOL)>(objc_msgSend)(configuration.platform, sel_registerName("_setSIODescramblerEnabled:"), !_isSIODescramblerEnabled);
+        
+        
+//        for (VZMacGraphicsDeviceConfiguration *device in configuration.graphicsDevices) {
+//            // 0x4 미만
+//            reinterpret_cast<void (*)(id, SEL, BOOL)>(objc_msgSend)(device, sel_registerName("_setDeviceFeatureLevel:"), 3);
+//            
+//            BOOL _enableProcessIsolation = reinterpret_cast<BOOL (*)(id, SEL)>(objc_msgSend)(device, sel_registerName("_enableProcessIsolation"));
+//            reinterpret_cast<void (*)(id, SEL, BOOL)>(objc_msgSend)(device, sel_registerName("_setEnableProcessIsolation:"), !_enableProcessIsolation);
+//        }
+        
         {
             id debugStubConfiguration = reinterpret_cast<id (*)(id, SEL, ushort)>(objc_msgSend)([objc_lookUpClass("_VZGDBDebugStubConfiguration") alloc], sel_registerName("initWithPort:"), 1234);
             reinterpret_cast<void (*)(id, SEL, BOOL)>(objc_msgSend)(debugStubConfiguration, sel_registerName("setListensOnAllNetworkInterfaces:"), YES);
