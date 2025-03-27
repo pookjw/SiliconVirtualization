@@ -30,6 +30,7 @@
 @synthesize romBinaryButton = _romBinaryButton;
 
 - (void)dealloc {
+    [_SEPCoprocessorConfigurtion release];
     [_gridView release];
     [_storageLabel release];
     [_storageValueLabel release];

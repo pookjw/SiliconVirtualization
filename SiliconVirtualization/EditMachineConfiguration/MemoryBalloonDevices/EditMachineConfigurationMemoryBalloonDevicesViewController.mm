@@ -36,6 +36,7 @@
 }
 
 - (void)dealloc {
+    [_memoryBalloonDevices release];
     [_splitViewController release];
     [_memoryBalloonDevicesTableViewController release];
     [_memoryBalloonDevicesTableSplitViewItem release];

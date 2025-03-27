@@ -46,6 +46,7 @@
 
 - (void)dealloc {
     [_configuration release];
+    [_splitViewController release];
     [_coprocessorsTableViewController release];
     [_coprocessorsTableSplitViewItem release];
     [_SEPCoprocessorViewController release];

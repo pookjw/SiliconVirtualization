@@ -31,6 +31,7 @@
 }
 
 - (void)dealloc {
+    [_configuration release];
     [_splitViewController release];
     [_acceleratorDevicesTableViewController release];
     [_acceleratorDevicesTableSplitViewItem release];

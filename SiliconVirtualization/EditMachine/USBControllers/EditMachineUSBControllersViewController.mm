@@ -44,6 +44,7 @@
 }
 
 - (void)dealloc {
+    [_usbControllers release];
     [_splitViewController release];
     [_usbControllersTableViewController release];
     [_usbControllersTableSplitViewItem release];

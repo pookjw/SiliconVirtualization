@@ -42,6 +42,7 @@
 }
 
 - (void)dealloc {
+    [_directorySharingDevices release];
     [_splitViewController release];
     [_directorySharingDevicesTableViewController release];
     [_directorySharingDevicesTableSplitViewItem release];
